@@ -1,0 +1,64 @@
+Player_Stats Class:
+    All Player Stats
+        For now, just:
+        - Batting Avg
+        - Batting Avg Against
+        - Strikout %
+        - Walk %
+
+Team_Info Class:
+    - wins/losses
+    - Usual Batting Order
+
+###########################################
+
+Player Class:
+    Instance Variables:
+    - stats (Player_Stats)
+
+Pitcher Class (Player):
+    - Pitching Methods
+
+Batter Class (Player):
+    - Hitting Methods
+
+###########################################
+
+Team Class:
+    Instance Variables:
+    - Full Roster (Player[64])
+    - Bullpen (Pitcher[32])
+    - Batting Order (Batter[9])
+    - Fielders (Player[9])
+    - Position_In_Batting_Order (int) (Where we are in the batting order)
+
+###########################################
+
+Baseball_Game Class:
+    Instance Variables:
+    - half_innings (int)
+    - score (int[2])
+
+###########################################
+
+Base_State Class:
+    Instance Variables:
+    - Players_on_Base (Player[3])
+    - Whatever else we may need
+
+At_Bat Class:
+    Instance Variables:
+    - Strikes
+    - Balls
+
+Half Inning Class:
+    Instance Variables:
+    - Hitting_Team (Team)
+    - Pitching_Team (Team)
+
+    - Pitcher (Pitcher)
+    - Batter (Batter)
+
+    - Outs (int)
+    - Runs_Scored (int)
+    - Bases (Base_State)
