@@ -48,7 +48,7 @@ class Scraping_Client:
                 player_url = BASE_URL + player_info.find("a").get("href")
 
                 pos = row.find("td", {"data-stat": "pos"}).find(string=True)
-                roster.append((name, player_id, player_url, pos))
+                roster.append((name, player_id, pos, player_url))
 
         return roster
 
@@ -94,11 +94,11 @@ class Scraping_Client:
 if __name__ == "__main__":
     client = Scraping_Client()
     teams = DI.get_all_teams()
-    year = utils.get_current_year()
+    year = str(1915)
 
     for team_name, team_url, team_abbrev in teams:
-        DI.create_team_year_folder(team_abbrev, year)
         current_year_page = client.scrape_team_page_for_roster_url(team_url, year)
         if current_year_page != None:
+            DI.create_team_year_folder(team_abbrev, year)
             roster = client.scrape_team_roster_page(current_year_page)
             DI.save_team_roster_file(team_abbrev, year, roster)

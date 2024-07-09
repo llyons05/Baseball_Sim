@@ -16,8 +16,8 @@ def set_up_file_structure():
 def create_all_team_folders():
     utils.make_dirs(TEAMS_DIR)
 
-    for team in get_all_teams():
-        create_team_folder(team)
+    for team_name, team_url, team_abbrev in get_all_teams():
+        create_team_folder(team_abbrev)
 
 
 def create_team_folder(team_abbreviation: str) -> None:
@@ -36,7 +36,7 @@ def save_team_roster_file(team_abbreviation: str, year: str, roster: list):
 
     with open(csv_dir_path, "w") as csv_file:
         csv_writer = csv.writer(csv_file, lineterminator="\n")
-        csv_writer.writerow(["NAME", "ID", "URL", "POS"])
+        csv_writer.writerow(["NAME", "ID", "POS", "URL"])
 
         for player in roster:
             csv_writer.writerow(player)
