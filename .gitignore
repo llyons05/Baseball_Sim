@@ -1,2 +1,5 @@
-/baseball_venv
+baseball_venv
+__pycache__
 .vscode
+data
+old_version

@@ -1,0 +1,11 @@
+Useful Links:
+    - https://sabr.org/sabermetrics/data
+    -
+
+Stats that we need:
+    Offensive:
+    - Batting Avg
+    - HR%
+
+    Defensive:
+    - 
