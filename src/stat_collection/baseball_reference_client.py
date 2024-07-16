@@ -135,7 +135,7 @@ class Scraping_Client:
         row_filters = [
             {
                 'value_name': 'class',
-                'filtered_values': ['hidden', 'spacer']
+                'filtered_values': ['hidden', 'spacer', 'nonroster_table']
             }
         ]
 
@@ -146,7 +146,5 @@ class Scraping_Client:
 
 if __name__ == "__main__":
     client = Scraping_Client()
-    # https://www.reddit.com/r/learnpython/comments/167qy0w/beautiful_soup_help_wanted/
-    # https://stackoverflow.com/questions/42753546/parsing-html-in-with-beautifulsoup-fails-to-find-a-table
-    player_link = "http://www.baseball-reference.com/players/s/scherma01.shtml"
+    player_link = "http://www.baseball-reference.com/players/r/rodrijo06.shtml"
     client.scrape_player_batting(player_link)
