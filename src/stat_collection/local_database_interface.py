@@ -9,6 +9,8 @@ RESOURCES_DIR: str = "resources"
 def set_up_file_structure():
     utils.make_dirs("data")
     utils.make_dirs(PLAYERS_DIR)
+    utils.make_dirs(f"{PLAYERS_DIR}/batting")
+    utils.make_dirs(f"{PLAYERS_DIR}/pitching")
 
     create_all_team_folders()
 

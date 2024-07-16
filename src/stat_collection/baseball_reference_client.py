@@ -1,15 +1,18 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 import urllib.request
 import time
 import random
+import re
 
-import data_interface as DI
+import local_database_interface as DI
 import utils
+from table_parser import Table_Parser
 
-BASE_URL: str = 'http://www.baseball-reference.com'
+BASE_URL = utils.BASE_URL
 DEFAULT_EVADE_SLEEP_MIN: int = 4 #seconds
 DEFAULT_EVADE_SLEEP_MAX: int = 7
 
+default_stats: list = ["PA", "H", "2B", "3B", "HR", "SB", "CS", "BB", "SO", "Pit", "Str%"]
 class Scraping_Client:
 
     def __init__(self):
@@ -38,17 +41,20 @@ class Scraping_Client:
             return None
 
         soup = BeautifulSoup(response, "html.parser")
-        roster_table = soup.find("table", {"id": "team_batting"}).find("tbody")
-        table_rows = roster_table.findAll("tr")
-        for row in table_rows:
-            player_info = row.find("td", {"data-stat": "player"})
-            if player_info != None:
-                name = player_info.get("csk").replace(",", ";")
-                player_id = player_info.get("data-append-csv")
-                player_url = BASE_URL + player_info.find("a").get("href")
-
-                pos = row.find("td", {"data-stat": "pos"}).find(string=True)
-                roster.append((name, player_id, pos, player_url))
+        row_filters = [
+            {
+                'value_name': 'class',
+                'filtered_values': ['thead']
+            }
+        ]
+        roster_table = utils.parse_data_table(soup, "team_batting", {'player': ['csk', 'data-append-csv']}, row_filters)
+        for row in roster_table['data']:
+            player_info: dict = row.get('player', dict())
+            name = player_info.get('csk', '').replace(",", ";")
+            id = player_info.get('data-append-csv', '')
+            url = BASE_URL + player_info.get('href')
+            pos = row.get('pos', dict()).get('text', '')
+            roster.append((name, id, pos, url))
 
         return roster
 
@@ -91,14 +97,32 @@ class Scraping_Client:
         
         return None
 
+
+    def scrape_player_batting(self, player_page_url: str) -> list[dict]:
+        if "-bat.shtml" not in player_page_url:
+            player_page_url = utils.get_player_batting_page_url(player_page_url)
+
+        response = self.scrape_page_html(player_page_url)
+        if response is None:
+            return None
+        
+        soup = BeautifulSoup(response, "html.parser")
+        table_parser = Table_Parser(soup, "batting_standard", "all_batting_standard")
+        row_filters = [
+            {
+                'value_name': 'class',
+                'filtered_values': ['hidden', 'spacer']
+            }
+        ]
+
+        final_stats = table_parser.parse(row_filters=row_filters)
+
+        print(final_stats)
+        return final_stats
+
 if __name__ == "__main__":
     client = Scraping_Client()
-    teams = DI.get_all_teams()
-    year = str(1915)
-
-    for team_name, team_url, team_abbrev in teams:
-        current_year_page = client.scrape_team_page_for_roster_url(team_url, year)
-        if current_year_page != None:
-            DI.create_team_year_folder(team_abbrev, year)
-            roster = client.scrape_team_roster_page(current_year_page)
-            DI.save_team_roster_file(team_abbrev, year, roster)
+    # https://www.reddit.com/r/learnpython/comments/167qy0w/beautiful_soup_help_wanted/
+    # https://stackoverflow.com/questions/42753546/parsing-html-in-with-beautifulsoup-fails-to-find-a-table
+    player_link = "http://www.baseball-reference.com/players/s/scherma01.shtml"
+    client.scrape_player_batting(player_link)

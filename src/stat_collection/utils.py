@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
+from bs4 import BeautifulSoup, Comment
 
-from baseball_reference_client import BASE_URL
+BASE_URL = 'http://www.baseball-reference.com'
 
 def get_current_year() -> str:
     return str(datetime.now().year)
@@ -18,3 +19,9 @@ def get_team_roster_url(team_abbreviation: str, year: str) -> str:
 
 def get_player_id_from_url(player_page_url: str) -> str:
     return player_page_url.split("/")[-1].split(".")[0]
+
+def get_player_batting_page_url(base_player_page_url: str) -> str:
+    return base_player_page_url.replace(".shtml", "-bat.shtml")
+
+def get_player_pitching_page_url(base_player_page_url: str) -> str:
+    return base_player_page_url.replace(".shtml", "-pitch.shtml")
