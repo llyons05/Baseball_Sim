@@ -1,8 +1,9 @@
 from baseball_reference_client import Scraping_Client
 import local_database_interface as DI
+import utils
 
 def main():
-    save_all_rosters_from_year(2023)
+    save_all_rosters_from_year(utils.get_current_year())
 
 def save_all_rosters_from_year(year: str) -> None:
     client = Scraping_Client()

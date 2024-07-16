@@ -27,7 +27,7 @@ class Table_Parser:
 
     def parse(self,
               cell_specific_data: dict[str, list] = dict(),
-              row_filters: list[dict] = []) -> list[dict]:
+              row_filters: list[dict] = []) -> dict[str, list]:
 
         result: dict[str, list] = dict()
 
@@ -108,7 +108,12 @@ class Table_Parser:
 
         current_tag = tag
         for interior_tag in interior_tags:
+            if current_tag == None:
+                return None
             current_tag = current_tag.find(interior_tag)
+
+        if current_tag == None:
+            return None
 
         return current_tag.get(value_name)
 

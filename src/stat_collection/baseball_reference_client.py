@@ -1,18 +1,16 @@
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup
 import urllib.request
 import time
 import random
-import re
 
 import local_database_interface as DI
 import utils
 from table_parser import Table_Parser
 
 BASE_URL = utils.BASE_URL
-DEFAULT_EVADE_SLEEP_MIN: int = 4 #seconds
+DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds
 DEFAULT_EVADE_SLEEP_MAX: int = 7
 
-default_stats: list = ["PA", "H", "2B", "3B", "HR", "SB", "CS", "BB", "SO", "Pit", "Str%"]
 class Scraping_Client:
 
     def __init__(self):
@@ -41,25 +39,38 @@ class Scraping_Client:
             return None
 
         soup = BeautifulSoup(response, "html.parser")
+        table_parser = Table_Parser(soup, "team_batting", "all_team_batting")
+
         row_filters = [
             {
                 'value_name': 'class',
                 'filtered_values': ['thead']
             }
         ]
-        roster_table = utils.parse_data_table(soup, "team_batting", {'player': ['csk', 'data-append-csv']}, row_filters)
+
+        cell_specific_data = {
+            'player': [
+                'csk',
+                'data-append-csv'
+            ]
+        }
+
+        roster_table = table_parser.parse(cell_specific_data=cell_specific_data, row_filters=row_filters)
+
         for row in roster_table['data']:
             player_info: dict = row.get('player', dict())
+
             name = player_info.get('csk', '').replace(",", ";")
             id = player_info.get('data-append-csv', '')
             url = BASE_URL + player_info.get('href')
             pos = row.get('pos', dict()).get('text', '')
+
             roster.append((name, id, pos, url))
 
         return roster
 
 
-    def scrape_all_teams_list(self) -> list[tuple[str, str]]:
+    def scrape_all_teams_list(self) -> list[tuple[str, str, str]]:
         team_data_list: list[tuple[str, str]] = []
         teams_page_url: str = f"{BASE_URL}/teams/"
         response = self.scrape_page_html(teams_page_url)
@@ -68,13 +79,26 @@ class Scraping_Client:
             return None
 
         soup = BeautifulSoup(response, "html.parser")
+        table_parser = Table_Parser(soup, "teams_active", "all_teams_active")
 
-        teams_table = soup.find("table", {"id": "teams_active"})
-        team_cells = teams_table.findAll("td", {"data-stat": "franchise_name"})
+        row_filters = [
+            {
+                'value_name': 'class',
+                'filtered_values': ['hidden', 'spacer', 'thead']
+            },
+            {
+                'interior_tags': ['span'],
+                'value_name': 'class',
+                'filtered_values': ["moved_names", "alternate_names"]
+            }
 
-        for cell in team_cells:
-            team_name = cell.find(string=True)
-            team_url = BASE_URL + cell.find("a").get("href")
+        ]
+
+        teams_table = table_parser.parse(row_filters=row_filters)
+
+        for row in teams_table['data']:
+            team_name = row['franchise_name']['text']
+            team_url = BASE_URL + row['franchise_name']['href']
             team_abbrev = utils.get_abbreviation_from_team_page_url(team_url)
             team_data_list.append((team_name, team_url, team_abbrev))
 
@@ -87,14 +111,14 @@ class Scraping_Client:
             return None
 
         soup = BeautifulSoup(response, "html.parser")
-        franchise_years_table = soup.find("table", {"id": "franchise_years"})
-        table_rows = franchise_years_table.findAll("th", {"data-stat": "year_ID"})
+        table_parser = Table_Parser(soup, "franchise_years", "all_franchise_years")
+        franchise_years_table = table_parser.parse()
 
-        for row in table_rows:
-            row_year = row.find(string=True)
-            if row_year == year:
-                return BASE_URL + row.find("a").get("href")
-        
+        for row in franchise_years_table['data']:
+            row_year = row['year_ID']
+            if row_year['text'] == year:
+                return BASE_URL + row_year['href']
+
         return None
 
 
