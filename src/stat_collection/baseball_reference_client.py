@@ -3,13 +3,15 @@ import urllib.request
 import time
 import random
 
-import local_database_interface as DI
 import utils
-from table_parser import Table_Parser
+import local_database_interface as DI
+from table_parser import Table_Parser, NoTableFoundException
 
 BASE_URL = utils.BASE_URL
 DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds
 DEFAULT_EVADE_SLEEP_MAX: int = 7
+
+EMPTY_TABLE = {"data": [], "headers": []}
 
 class Scraping_Client:
 
@@ -38,8 +40,7 @@ class Scraping_Client:
         if response is None:
             return None
 
-        soup = BeautifulSoup(response, "html.parser")
-        table_parser = Table_Parser(soup, "team_batting", "all_team_batting")
+        table_parser = Table_Parser(response, "team_batting", "all_team_batting")
 
         row_filters = [
             {
@@ -78,8 +79,7 @@ class Scraping_Client:
         if response is None:
             return None
 
-        soup = BeautifulSoup(response, "html.parser")
-        table_parser = Table_Parser(soup, "teams_active", "all_teams_active")
+        table_parser = Table_Parser(response, "teams_active", "all_teams_active")
 
         row_filters = [
             {
@@ -110,8 +110,7 @@ class Scraping_Client:
         if response is None:
             return None
 
-        soup = BeautifulSoup(response, "html.parser")
-        table_parser = Table_Parser(soup, "franchise_years", "all_franchise_years")
+        table_parser = Table_Parser(response, "franchise_years", "all_franchise_years")
         franchise_years_table = table_parser.parse()
 
         for row in franchise_years_table['data']:
@@ -122,16 +121,16 @@ class Scraping_Client:
         return None
 
 
-    def scrape_player_batting(self, player_page_url: str) -> list[dict]:
-        if "-bat.shtml" not in player_page_url:
-            player_page_url = utils.get_player_batting_page_url(player_page_url)
+    def scrape_player_stats(self, base_player_page_url: str, stats_type: str = "batting") -> list[dict]:
+        table_parser = None
+        if stats_type == "batting":
+            table_parser = self.try_scraping_batting_tables(base_player_page_url)
+        elif stats_type == "pitching":
+            table_parser = self.try_scraping_pitching_tables(base_player_page_url)
 
-        response = self.scrape_page_html(player_page_url)
-        if response is None:
-            return None
-        
-        soup = BeautifulSoup(response, "html.parser")
-        table_parser = Table_Parser(soup, "batting_standard", "all_batting_standard")
+        if table_parser is None:
+            return EMPTY_TABLE
+
         row_filters = [
             {
                 'value_name': 'class',
@@ -141,10 +140,44 @@ class Scraping_Client:
 
         final_stats = table_parser.parse(row_filters=row_filters)
 
-        print(final_stats)
         return final_stats
+
+
+    def try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
+        player_batting_page_url = utils.get_player_batting_page_url(base_player_page_url)
+        table_parser = self.scrape_table_from_player_page(player_batting_page_url, "batting_standard", "all_batting_standard")
+
+        if table_parser is None:
+            table_parser = self.scrape_table_from_player_page(base_player_page_url, "batting_standard", "all_batting_standard")
+        
+        return table_parser
+
+
+    def try_scraping_pitching_tables(self, base_player_page_url: str) -> Table_Parser | None:
+        player_pitching_page_url = utils.get_player_pitching_page_url(base_player_page_url)
+        table_parser = self.scrape_table_from_player_page(player_pitching_page_url, "pitching_standard", "all_pitching_standard")
+
+        if table_parser is None:
+            table_parser = self.scrape_table_from_player_page(base_player_page_url, "pitching_standard", "all_pitching_standard")
+
+        return table_parser
+
+
+    def scrape_table_from_player_page(self, player_page_url: str, table_id: str, table_parent_div_id: str) -> Table_Parser | None:
+        response = self.scrape_page_html(player_page_url)
+        if response is None:
+            return None
+
+        try:
+            table_parser = Table_Parser(response, table_id, table_parent_div_id)
+
+        except NoTableFoundException as e:
+            return None
+        
+        return table_parser
+
 
 if __name__ == "__main__":
     client = Scraping_Client()
-    player_link = "http://www.baseball-reference.com/players/r/rodrijo06.shtml"
-    client.scrape_player_batting(player_link)
+    player_link = "https://www.baseball-reference.com/players/i/irvinja01.shtml"
+    print(client.scrape_player_stats(player_link, "pitching"))

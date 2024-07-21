@@ -11,18 +11,33 @@ class NoTableFoundException (Exception):
 class Table_Parser:
 
     def __init__(self,
-                 page_soup:  BeautifulSoup,
+                 page_html,
                  table_id: str,
                  table_parent_div_id: str = '') -> None:
 
-        self.page_soup = page_soup
+        self.page_soup = BeautifulSoup(page_html, "html.parser")
         self.table_id = table_id
         self.table_parent_div_id = table_parent_div_id
+
+        if not table_parent_div_id:
+            self.table_parent_div_id = "all_" + self.table_id
 
         self.table = self.extract_table_from_soup(self.page_soup, self.table_id, self.table_parent_div_id)
 
         if self.table == None:
             raise NoTableFoundException(f"No table with id {table_id} was found in the soup.")
+
+
+    def extract_table_from_soup(self,
+                                 page_soup: BeautifulSoup,
+                                 table_id: str,
+                                 table_parent_div_id: str) -> BeautifulSoup | None:
+
+        table = page_soup.find("table", {"id": table_id})
+        if not table:
+            table = self.extract_commented_table(page_soup, table_id, table_parent_div_id)
+
+        return table
 
 
     def parse(self,
@@ -118,18 +133,6 @@ class Table_Parser:
         return current_tag.get(value_name)
 
 
-    def extract_table_from_soup(self,
-                                 page_soup: BeautifulSoup,
-                                 table_id: str,
-                                 table_parent_div_id: str) -> BeautifulSoup | None:
-
-        table = page_soup.find("table", {"id": table_id})
-        if not table:
-            table = self.extract_commented_table(page_soup, table_id, table_parent_div_id)
-
-        return table
-
-
     def extract_commented_table(self,
                                  page_soup: BeautifulSoup,
                                  table_id: str,
@@ -152,5 +155,8 @@ class Table_Parser:
         return table
 
 
-    def get_comments(self, table_div: BeautifulSoup) -> list:
+    def get_comments(self, table_div: BeautifulSoup | None) -> list:
+        if table_div is None:
+            return []
+
         return table_div.find_all(string=lambda text: isinstance(text, Comment))
