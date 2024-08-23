@@ -76,13 +76,13 @@ def read_team_roster_file(team_abbreviation: str, year: int) -> list[dict]:
     return utils.read_csv_as_dict_list(filename)
 
 
-def save_player_year_data(player_id: str, stat_type: STAT_TYPES, player_data: list[dict]) -> str:
+def save_player_data_file(player_id: str, stat_type: STAT_TYPES, player_data: list[dict]) -> str:
     filename = get_player_data_file_path(player_id, stat_type)
     utils.save_dict_list_to_csv(filename, player_data)
     return filename
 
 
-def read_player_year_data(player_id: str, stat_type: STAT_TYPES) -> list[dict]:
+def read_player_data_file(player_id: str, stat_type: STAT_TYPES) -> list[dict]:
     filename = get_player_data_file_path(player_id, stat_type)
     return utils.read_csv_as_dict_list(filename)
 

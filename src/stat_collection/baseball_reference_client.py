@@ -16,7 +16,7 @@ EMPTY_TABLE = {"data": [], "headers": []}
 class Scraping_Client:
 
     def __init__(self):
-        self.team_abbreviations: list[str] = DI.get_all_teams()
+        pass
 
 
     def evade(self) -> None:
@@ -115,7 +115,7 @@ class Scraping_Client:
 
         for row in franchise_years_table['data']:
             row_year = row['year_ID']
-            if row_year['text'] == year:
+            if row_year['text'] == str(year):
                 return BASE_URL + row_year['href']
 
         return None

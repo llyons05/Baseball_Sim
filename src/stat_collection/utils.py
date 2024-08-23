@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
 import csv
+import prettytable
 
 BASE_URL = 'http://www.baseball-reference.com'
 
@@ -68,3 +69,17 @@ def read_csv_as_dict_list(filename: str) -> list[dict]:
             result.append(formatted_row)
     
     return result
+
+def get_dict_list_headers(dict_list: list[dict]) -> list:
+    headers = []
+    for dictionary in dict_list:
+        for key in dictionary.keys():
+            if key not in headers:
+                headers.append(key)
+    
+    return headers
+
+
+def print_csv(csv_filename: str) -> None:
+    with open(csv_filename, "r") as data_file:
+        print(prettytable.from_csv(data_file, delimiter=","))
