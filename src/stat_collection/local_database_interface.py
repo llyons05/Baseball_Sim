@@ -1,10 +1,14 @@
 import os, sys, time, csv
+from typing import Literal
 
 import utils
 
 TEAMS_DIR: str = "data/teams"
 PLAYERS_DIR: str = "data/players"
 RESOURCES_DIR: str = "resources"
+
+STAT_TYPES = Literal["batting", "pitching"]
+
 
 def set_up_file_structure():
     utils.make_dirs("data")
@@ -13,6 +17,10 @@ def set_up_file_structure():
     utils.make_dirs(f"{PLAYERS_DIR}/pitching")
 
     create_all_team_folders()
+
+
+def is_file_structure_set_up() -> bool:
+    return os.path.exists(TEAMS_DIR) or os.path.exists(PLAYERS_DIR)
 
 
 def create_all_team_folders():
@@ -63,6 +71,22 @@ def get_all_teams() -> list[tuple[str, str, str]]:
     return result
 
 
+def read_team_roster_file(team_abbreviation: str, year: int) -> list[dict]:
+    filename = get_team_roster_file_path(team_abbreviation, year)
+    return utils.read_csv_as_dict_list(filename)
+
+
+def save_player_year_data(player_id: str, stat_type: STAT_TYPES, player_data: list[dict]) -> str:
+    filename = get_player_data_file_path(player_id, stat_type)
+    utils.save_dict_list_to_csv(filename, player_data)
+    return filename
+
+
+def read_player_year_data(player_id: str, stat_type: STAT_TYPES) -> list[dict]:
+    filename = get_player_data_file_path(player_id, stat_type)
+    return utils.read_csv_as_dict_list(filename)
+
+
 def get_team_dir_path(team_abbreviation: str) -> str:
     return f"{TEAMS_DIR}/{team_abbreviation}"
 
@@ -71,8 +95,20 @@ def get_team_year_dir_path(team_abbreviation: str, year: str) -> str:
     return f"{TEAMS_DIR}/{team_abbreviation}/{year}"
 
 
-def get_player_dir_path(player_id: str) -> str:
-    return f"{PLAYERS_DIR}/{player_id}"
+def get_team_roster_file_path(team_abbreviation: str, year: str) -> str:
+    return f"{get_team_year_dir_path(team_abbreviation, year)}/{team_abbreviation}_{year}_roster.csv"
+
+
+def get_player_data_file_path(player_id: str, stat_type: STAT_TYPES) -> str:
+    return f"{PLAYERS_DIR}/{stat_type}/{player_id}_{stat_type}.csv"
+
+
+def team_roster_file_exists(team_abbreviation: str, year: str) -> bool:
+    return os.path.exists(get_team_roster_file_path(team_abbreviation, year))
+
+
+def player_data_file_exists(player_id: str, stat_type: STAT_TYPES) -> bool:
+    return os.path.exists(get_player_data_file_path(player_id, stat_type))
 
 
 if __name__ == "__main__":

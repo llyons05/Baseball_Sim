@@ -121,15 +121,15 @@ class Scraping_Client:
         return None
 
 
-    def scrape_player_stats(self, base_player_page_url: str, stats_type: str = "batting") -> list[dict]:
+    def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.STAT_TYPES) -> list[dict]:
         table_parser = None
-        if stats_type == "batting":
+        if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)
-        elif stats_type == "pitching":
+        elif stat_type == "pitching":
             table_parser = self.try_scraping_pitching_tables(base_player_page_url)
 
         if table_parser is None:
-            return EMPTY_TABLE
+            return self.format_player_data_table(EMPTY_TABLE)
 
         row_filters = [
             {
@@ -138,9 +138,9 @@ class Scraping_Client:
             }
         ]
 
-        final_stats = table_parser.parse(row_filters=row_filters)
+        player_data_table = table_parser.parse(row_filters=row_filters)
 
-        return final_stats
+        return self.format_player_data_table(player_data_table)
 
 
     def try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
@@ -177,7 +177,25 @@ class Scraping_Client:
         return table_parser
 
 
+    def format_player_data_table(self, player_data_table: dict) -> list[dict]:
+        headers: list[str] = player_data_table["headers"]
+        data: list[dict[str, dict]] = player_data_table["data"]
+
+        result = []
+
+        for year_of_data in data:
+            formatted_year_of_data: dict = {}
+            for header_name in headers:
+                formatted_year_of_data[header_name] = year_of_data.get(header_name, {}).get("text")
+            result.append(formatted_year_of_data)
+
+        result.sort(key=lambda d: int(d.get("year_ID", 0)))
+        return result
+
+
 if __name__ == "__main__":
     client = Scraping_Client()
-    player_link = "https://www.baseball-reference.com/players/i/irvinja01.shtml"
-    print(client.scrape_player_stats(player_link, "pitching"))
+    player_link = "http://www.baseball-reference.com/players/s/stantmi03.shtml"
+    stats = client.scrape_player_stats(player_link, "batting")
+
+    utils.save_dict_list_to_csv("test_player_batting.csv", stats)
