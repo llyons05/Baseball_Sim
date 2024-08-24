@@ -61,12 +61,12 @@ class Scraping_Client:
         for row in roster_table['data']:
             player_info: dict = row.get('player', dict())
 
-            name = player_info.get('csk', '').replace(",", ";")
+            lastname, firstname = player_info.get('csk', '').split(",")
             id = player_info.get('data-append-csv', '')
             url = BASE_URL + player_info.get('href')
             pos = row.get('pos', dict()).get('text', '')
 
-            roster.append((name, id, pos, url))
+            roster.append((firstname, lastname, id, pos, url))
 
         return roster
 
@@ -105,7 +105,7 @@ class Scraping_Client:
         return team_data_list
 
 
-    def scrape_team_page_for_roster_url(self, team_page_url: str, year: str) -> str | None:
+    def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
         response = self.scrape_page_html(team_page_url)
         if response is None:
             return None

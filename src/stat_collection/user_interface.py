@@ -153,7 +153,7 @@ def get_single_team_choice() -> str:
     return team_choice
 
 
-def get_player_choice(team_abbreviation: str, year: str) -> None:
+def get_player_choice(team_abbreviation: str, year: int) -> None:
     display_team_roster_file(team_abbreviation, year)
 
     player_choice = ""
@@ -174,8 +174,8 @@ def choose_viewing_stat_type() -> DI.STAT_TYPES:
     return stat_type
 
 
-def should_download_missing_team_roster_file(team_abbreviation: str, year: str) -> bool:
-    print(f"{colored("ERROR: It looks like a", "red")} {colored(year, "green")} {colored("roster file for", "red")} {colored(team_abbreviation, "green")} {colored("does not exist locally.", "red")}\n")
+def should_download_missing_team_roster_file(team_abbreviation: str, year: int) -> bool:
+    print(f"{colored("ERROR: It looks like a", "red")} {colored(f"{year} {team_abbreviation}", "green")} {colored("roster file does not exist locally.", "red")}\n")
 
     user_input = ""
     while user_input not in ("y", "n"):
@@ -211,7 +211,11 @@ def display_player_data_table(player_id: str, stat_type: DI.STAT_TYPES) -> None:
     print()
 
 
-def display_team_roster_file(team_abbreviation: str, year: str) -> None:
+def display_team_roster_file(team_abbreviation: str, year: int) -> None:
     filename = DI.get_team_roster_file_path(team_abbreviation, year)
     utils.print_csv(filename)
     print()
+
+
+def wait_for_user_input(prompt: str = "") -> str:
+    return input(prompt)

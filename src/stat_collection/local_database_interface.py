@@ -35,21 +35,23 @@ def create_team_folder(team_abbreviation: str) -> None:
     utils.make_dirs(dir_path)
 
 
-def create_team_year_folder(team_abbreviation: str, year: str) -> None:
+def create_team_year_folder(team_abbreviation: str, year: int) -> None:
     dir_path: str = get_team_year_dir_path(team_abbreviation, year)
     utils.make_dirs(dir_path)
 
 
-def save_team_roster_file(team_abbreviation: str, year: str, roster: list):
+def save_team_roster_file(team_abbreviation: str, year: int, roster: list):
     file_dir = get_team_year_dir_path(team_abbreviation, year)
     csv_dir_path = f"{file_dir}/{team_abbreviation}_{year}_roster.csv"
 
     with open(csv_dir_path, "w") as csv_file:
         csv_writer = csv.writer(csv_file, lineterminator="\n")
-        csv_writer.writerow(["NAME", "ID", "POS", "URL"])
+        csv_writer.writerow(["FIRSTNAME", "LASTNAME", "ID", "POS", "URL"])
 
         for player in roster:
             csv_writer.writerow(player)
+    
+    print(f"Saved {year} {team_abbreviation} roster to {csv_dir_path}")
 
 
 def save_list_of_all_teams(list_of_teams: list[tuple[str, str]]) -> None:
@@ -91,11 +93,11 @@ def get_team_dir_path(team_abbreviation: str) -> str:
     return f"{TEAMS_DIR}/{team_abbreviation}"
 
 
-def get_team_year_dir_path(team_abbreviation: str, year: str) -> str:
+def get_team_year_dir_path(team_abbreviation: str, year: int) -> str:
     return f"{TEAMS_DIR}/{team_abbreviation}/{year}"
 
 
-def get_team_roster_file_path(team_abbreviation: str, year: str) -> str:
+def get_team_roster_file_path(team_abbreviation: str, year: int) -> str:
     return f"{get_team_year_dir_path(team_abbreviation, year)}/{team_abbreviation}_{year}_roster.csv"
 
 
@@ -103,7 +105,7 @@ def get_player_data_file_path(player_id: str, stat_type: STAT_TYPES) -> str:
     return f"{PLAYERS_DIR}/{stat_type}/{player_id}_{stat_type}.csv"
 
 
-def team_roster_file_exists(team_abbreviation: str, year: str) -> bool:
+def team_roster_file_exists(team_abbreviation: str, year: int) -> bool:
     return os.path.exists(get_team_roster_file_path(team_abbreviation, year))
 
 

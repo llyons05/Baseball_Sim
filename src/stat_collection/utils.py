@@ -2,12 +2,13 @@ import os
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
 import csv
-import prettytable
+import pandas
+import tabulate
 
 BASE_URL = 'http://www.baseball-reference.com'
 
-def get_current_year() -> str:
-    return str(datetime.now().year)
+def get_current_year() -> int:
+    return datetime.now().year
 
 def make_dirs(dir_path: str) -> None:
     if not os.path.exists(dir_path):
@@ -16,7 +17,7 @@ def make_dirs(dir_path: str) -> None:
 def get_abbreviation_from_team_page_url(url: str) -> str:
     return url.removesuffix("/").split("/")[-1]
 
-def get_team_roster_url(team_abbreviation: str, year: str) -> str:
+def get_team_roster_url(team_abbreviation: str, year: int) -> str:
     return BASE_URL + "/teams/" + team_abbreviation + "/" + str(year) + ".shtml"
 
 def get_player_id_from_url(player_page_url: str) -> str:
@@ -81,5 +82,7 @@ def get_dict_list_headers(dict_list: list[dict]) -> list:
 
 
 def print_csv(csv_filename: str) -> None:
-    with open(csv_filename, "r") as data_file:
-        print(prettytable.from_csv(data_file, delimiter=","))
+    csv_data = read_csv_as_dict_list(csv_filename)
+    dataframe = pandas.DataFrame(csv_data)
+    data_headers = get_dict_list_headers(csv_data)
+    print(tabulate.tabulate(dataframe, data_headers, "grid", showindex=False))
