@@ -1,3 +1,5 @@
+import tqdm
+
 from baseball_reference_client import Scraping_Client
 import local_database_interface as DI
 import user_interface as UI
@@ -67,18 +69,18 @@ def handle_player_stats_scraping() -> None:
         stat_type = UI.choose_player_stat_type()
         overwrite_data = UI.should_overwrite_data()
 
+        if stat_type == "pitching":
+            should_gather_non_pitchers = UI.should_gather_non_pitcher_stats()
+        else:
+            should_gather_non_pitchers = True
+
         for team in teams_to_scrape:
-            save_all_team_player_data(team, year, stat_type, overwrite_data)
+            save_all_team_player_data(team, year, stat_type, overwrite_data, should_gather_non_pitchers)
         
         UI.wait_for_user_input("Done. Press enter to continue.")
 
 
-def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.STAT_TYPES, overwrite_data: bool = True) -> None:
-
-    if stat_type == "pitching":
-        should_gather_non_pitchers = UI.should_gather_non_pitcher_stats()
-    else:
-        should_gather_non_pitchers = True
+def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
 
     if not DI.team_roster_file_exists(team_abbreviation, year):
         print(f"{team_abbreviation} {year} roster file not found locally, scraping baseball reference...")
@@ -90,7 +92,7 @@ def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.S
 
     print(f"Saving {team_abbreviation} {year} roster player {stat_type} stats...")
 
-    for player in team_roster:
+    for player in tqdm.tqdm(team_roster):
         if (player["POS"] == "P") or should_gather_non_pitchers:
             save_player_data(player["URL"], player["ID"], stat_type, overwrite_data)
 
