@@ -26,7 +26,6 @@ def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, 
 
 
 def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_type: DI.STAT_TYPES, overwrite_data: bool = True) -> bool:
-    print(f"Saving {player_id} {stat_type} stats...")
     client = Scraping_Client()
 
     if (not DI.player_data_file_exists(player_id, stat_type)) or overwrite_data:
