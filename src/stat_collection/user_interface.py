@@ -18,17 +18,17 @@ def get_user_mode() -> Literal["scrape", "view"]:
     return "view"
 
 
-def get_scraping_mode() -> Literal["roster", "stats"]:
+def get_scraping_mode() -> Literal["team", "player"]:
     mode: str = ""
-    while mode.lower() not in ("r", "s"):
-        print(f"scrape {colored("team roster", "green")} or {colored("player statistics", "red")}? ({colored("R", "green")}/{colored("s", "red")})", end=": ")
+    while mode.lower() not in ("t", "p"):
+        print(f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")}? ({colored("T", "green")}/{colored("p", "red")})", end=": ")
         mode = input().lower()
     print()
     
-    if mode == "r":
-        return "roster"
+    if mode == "t":
+        return "team"
     
-    return "stats"
+    return "player"
 
 
 def get_roster_scraping_selection() -> list[str]:
@@ -157,13 +157,14 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
     display_team_roster_file(team_abbreviation, year)
 
     player_choice = ""
-    all_players = [player_data["ID"] for player_data in DI.read_team_roster_file(team_abbreviation, year)]
+    all_players = [player_data["ID"] for player_data in DI.read_team_data_file(team_abbreviation, year, "roster")]
 
     while player_choice not in all_players:
         player_choice = input("Input the ID of the player you want to view: ")
     
     print()
     return player_choice
+
 
 def choose_viewing_stat_type() -> DI.STAT_TYPES:
     stat_type = ""
@@ -174,8 +175,8 @@ def choose_viewing_stat_type() -> DI.STAT_TYPES:
     return stat_type
 
 
-def should_download_missing_team_roster_file(team_abbreviation: str, year: int) -> bool:
-    print(f"{colored("ERROR: It looks like a", "red")} {colored(f"{year} {team_abbreviation}", "green")} {colored("roster file does not exist locally.", "red")}\n")
+def should_download_missing_team_data_file(team_abbreviation: str, year: int, missing_data_type: DI.TEAM_DATA_FILE_TYPES) -> bool:
+    print(f"{colored("ERROR: It looks like a", "red")} {colored(f"{year} {team_abbreviation}", "green")} {colored(f"{missing_data_type} file does not exist locally.", "red")}\n")
 
     user_input = ""
     while user_input not in ("y", "n"):
@@ -212,7 +213,7 @@ def display_player_data_table(player_id: str, stat_type: DI.STAT_TYPES) -> None:
 
 
 def display_team_roster_file(team_abbreviation: str, year: int) -> None:
-    filename = DI.get_team_roster_file_path(team_abbreviation, year)
+    filename = DI.get_team_data_file_path(team_abbreviation, year, "roster")
     utils.print_csv(filename)
     print()
 

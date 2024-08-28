@@ -2,16 +2,17 @@ from bs4 import BeautifulSoup
 import urllib.request
 import time
 import random
+from typing import Literal
 
 import utils
 import local_database_interface as DI
-from table_parser import Table_Parser, NoTableFoundException
+from table_parser import Table_Parser, NoTableFoundException, PARSED_TABLE_FORMAT
 
 BASE_URL = utils.BASE_URL
 DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds
 DEFAULT_EVADE_SLEEP_MAX: int = 7
 
-EMPTY_TABLE = {"data": [], "headers": []}
+EMPTY_TABLE: PARSED_TABLE_FORMAT = {"data": [], "headers": []}
 
 class Scraping_Client:
 
@@ -34,14 +35,57 @@ class Scraping_Client:
             return None
 
 
-    def scrape_team_roster_page(self, team_roster_page_url: str) -> list[str]:
+    def scrape_team_data(self, team_year_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, list[tuple]]:
+        response = self.scrape_page_html(team_year_page_url)
+
+        roster_data = self.parse_team_roster_table(response)
+        pitching_data = self.parse_team_pitching_table(response)
+
+        result = dict()
+        result["roster"] = roster_data
+        result["pitching"] = pitching_data
+
+        return result
+
+
+    def parse_team_pitching_table(self, main_team_year_page_html) -> list[tuple]:
+        pitchers: list[tuple] = []
+        pitching_table = self.parse_default_player_table(main_team_year_page_html, "team_pitching", "all_team_pitching")
+
+        for row in pitching_table['data']:
+            player_info: dict = row.get('player', dict())
+
+            lastname, firstname = player_info.get('csk', '').split(",")
+            id = player_info.get('data-append-csv', '')
+            url = BASE_URL + player_info.get('href')
+            pos = row.get('pos', dict()).get('text', '')
+            if not pos:
+                pos = 'P'
+
+            pitchers.append((firstname, lastname, id, pos, url))
+
+        return pitchers
+
+
+    def parse_team_roster_table(self, main_team_year_page_html) -> list[tuple]:
         roster: list[tuple] = []
-        response = self.scrape_page_html(team_roster_page_url)
-        if response is None:
-            return None
+        roster_table = self.parse_default_player_table(main_team_year_page_html, "team_batting", "all_team_batting")
 
-        table_parser = Table_Parser(response, "team_batting", "all_team_batting")
+        for row in roster_table['data']:
+            player_info: dict = row.get('player', dict())
 
+            lastname, firstname = player_info.get('csk', '').split(",")
+            id = player_info.get('data-append-csv', '')
+            url = BASE_URL + player_info.get('href')
+            pos = row.get('pos', dict()).get('text', '')
+
+            roster.append((firstname, lastname, id, pos, url))
+
+        return roster
+
+
+    def parse_default_player_table(self, page_html, table_id: str, table_parent_div_id: str = "") -> PARSED_TABLE_FORMAT:
+        table_parser = Table_Parser(page_html, table_id, table_parent_div_id)
         row_filters = [
             {
                 'value_name': 'class',
@@ -56,19 +100,7 @@ class Scraping_Client:
             ]
         }
 
-        roster_table = table_parser.parse(cell_specific_data=cell_specific_data, row_filters=row_filters)
-
-        for row in roster_table['data']:
-            player_info: dict = row.get('player', dict())
-
-            lastname, firstname = player_info.get('csk', '').split(",")
-            id = player_info.get('data-append-csv', '')
-            url = BASE_URL + player_info.get('href')
-            pos = row.get('pos', dict()).get('text', '')
-
-            roster.append((firstname, lastname, id, pos, url))
-
-        return roster
+        return table_parser.parse(cell_specific_data=cell_specific_data, row_filters=row_filters)
 
 
     def scrape_all_teams_list(self) -> list[tuple[str, str, str]]:
