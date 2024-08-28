@@ -1,6 +1,11 @@
 from bs4 import BeautifulSoup, Comment
+from typing import Literal
 
 import utils
+
+
+PARSED_TABLE_FORMAT = dict[Literal['headers', 'data'], list]
+
 
 class NoTableFoundException (Exception):
 
@@ -13,7 +18,7 @@ class Table_Parser:
     def __init__(self,
                  page_html,
                  table_id: str,
-                 table_parent_div_id: str = '') -> None:
+                 table_parent_div_id: str = "") -> None:
 
         self.page_soup = BeautifulSoup(page_html, "html.parser")
         self.table_id = table_id
@@ -42,7 +47,7 @@ class Table_Parser:
 
     def parse(self,
               cell_specific_data: dict[str, list] = dict(),
-              row_filters: list[dict] = []) -> dict[str, list]:
+              row_filters: list[dict] = []) -> PARSED_TABLE_FORMAT:
 
         result: dict[str, list] = dict()
 
