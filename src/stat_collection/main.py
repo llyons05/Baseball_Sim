@@ -78,7 +78,7 @@ def handle_player_stats_scraping() -> None:
 
 def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
 
-    if not DI.team_data_file_exists(team_abbreviation, year, "roster"):
+    if DI.find_missing_team_data_files(team_abbreviation, year):
         print(f"{team_abbreviation} {year} roster file not found locally, scraping baseball reference...")
         data_successfully_found = scrape_and_save_single_team_data(team_abbreviation, year)
         if not data_successfully_found:
