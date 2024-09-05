@@ -119,27 +119,30 @@ def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
         if not data_successfully_found:
             UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved")
             return False
+
+        print("continuing...")
     
-    print("continuing...")
     return True
 
 
 
 def handle_missing_player_data_file(player_id: str, stat_type: DI.STAT_TYPES, team_abbreviation: str, year: int) -> bool:
-    data_successfully_found = False
-
     if not DI.player_data_file_exists(player_id, stat_type):
         print(f"There was no local {stat_type} file for {player_id}, scraping baseball reference...")
         team_data = DI.read_team_data_file(team_abbreviation, year, "roster")
         search_results = team_data.search_rows({"ID": player_id})
+        data_successfully_found = False
         if search_results:
             player = search_results[0]
             data_successfully_found = Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], stat_type)
-    
-    if not data_successfully_found:
-        UI.wait_for_user_input(f"There was an error finding {stat_type} data for {player_id}. No data was saved.")
 
-    return data_successfully_found
+        if not data_successfully_found:
+            UI.wait_for_user_input(f"There was an error finding {stat_type} data for {player_id}. No data was saved.")
+            return False
+
+        print("continuing...")
+
+    return True
 
 
 if __name__ == "__main__":
