@@ -42,18 +42,18 @@ def scrape_and_save_teams_data(teams: list[str], year: int) -> None:
     all_teams = DI.get_all_teams()
     overwrite_data = utils.get_current_year() == year
 
-    for team_name, team_url, team_abbreviation in all_teams:
-        if team_abbreviation in teams:
-            Data_Handler.scrape_and_save_team_data(team_url, team_abbreviation, year, overwrite_data)
+    for team_data in all_teams:
+        if team_data["TEAM_ID"] in teams:
+            Data_Handler.scrape_and_save_team_data(team_data["URL"], team_data["TEAM_ID"], year, overwrite_data)
 
 
 def scrape_and_save_single_team_data(team: str, year: int) -> bool:
     all_teams = DI.get_all_teams()
     overwrite_data = utils.get_current_year() == year
 
-    for team_name, team_url, team_abbreviation in all_teams:
-        if team_abbreviation == team:
-            return Data_Handler.scrape_and_save_team_data(team_url, team_abbreviation, year, overwrite_data)
+    for team_data in all_teams:
+        if team_data["TEAM_ID"] == team:
+            return Data_Handler.scrape_and_save_team_data(team_data["URL"], team_data["TEAM_ID"], year, overwrite_data)
     
     return False
 
@@ -78,22 +78,16 @@ def handle_player_stats_scraping() -> None:
 
 def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
 
-    if DI.find_missing_team_data_files(team_abbreviation, year):
-        print(f"{team_abbreviation} {year} roster file not found locally, scraping baseball reference...")
-        data_successfully_found = scrape_and_save_single_team_data(team_abbreviation, year)
-        if not data_successfully_found:
-            UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved")
-            return
-        print("continuing...")
+    if not handle_missing_team_data_file(team_abbreviation, year):
+        return
 
-
-    team_roster = DI.read_team_data_file(team_abbreviation, year, "roster")
+    team_roster = DI.read_team_data_file(team_abbreviation, year, "batting")
 
     print(f"Saving {team_abbreviation} {year} roster player {stat_type} stats...")
 
     for player in tqdm.tqdm(team_roster):
-        if (player["POS"] == "P") or should_gather_non_pitchers:
-            Data_Handler.scrape_and_save_player_data(player["URL"], player["ID"], stat_type, overwrite_data)
+        if (player["pos"] == "P") or should_gather_non_pitchers:
+            Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], stat_type, overwrite_data)
 
 
 def handle_data_viewing() -> None:
@@ -101,44 +95,52 @@ def handle_data_viewing() -> None:
         team = UI.get_single_team_choice()
         year = UI.choose_year()
 
-        missing_data_file = DI.find_missing_team_data_files(team, year)
-        if missing_data_file:
-            data_successfully_found = handle_missing_team_data_file(team, year, missing_data_file)
-            if not data_successfully_found:
-                UI.wait_for_user_input(f"There was an error finding a {year} {team} roster file. Please try a different team or year.")
-                continue
+        if not handle_missing_team_data_file(team, year):
+            continue
         
         player = UI.get_player_choice(team, year)
         stat_type = UI.choose_viewing_stat_type()
 
-        if not DI.player_data_file_exists(player, stat_type):
-            player_data_successfully_found = handle_missing_player_data_file(player, stat_type, team, year)
-            if not player_data_successfully_found:
-                UI.wait_for_user_input("Press enter to continue.")
-                continue
+        if not handle_missing_player_data_file(player, stat_type, team, year):
+            continue
 
         UI.display_player_data_table(player, stat_type)
         UI.wait_for_user_input("Press enter to view a different player's stats.")
 
 
-def handle_missing_team_data_file(team_abbreviation: str, year: int, missing_data_type: DI.TEAM_DATA_FILE_TYPES) -> bool:
-    if UI.should_download_missing_team_data_file(team_abbreviation, year, missing_data_type):
-        all_teams = DI.get_all_teams()
-        for team in all_teams:
-            if team[2] == team_abbreviation:
-                return Data_Handler.scrape_and_save_team_data(team[1], team[2], year)
+def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
+    missing_data_file = DI.find_missing_team_data_files(team_abbreviation, year)
+
+    if missing_data_file:
+
+        print(f"{team_abbreviation} {year} {missing_data_file} file not found locally, scraping baseball reference...")
+
+        data_successfully_found = scrape_and_save_single_team_data(team_abbreviation, year)
+        if not data_successfully_found:
+            UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved")
+            return False
     
-    return False
+    print("continuing...")
+    return True
+
 
 
 def handle_missing_player_data_file(player_id: str, stat_type: DI.STAT_TYPES, team_abbreviation: str, year: int) -> bool:
-    if UI.should_download_missing_player_data_file(player_id, stat_type):
-        team_data = DI.read_team_data_file(team_abbreviation, year, "roster")
-        for team_player in team_data:
-            if team_player["ID"] == player_id:
-                return Data_Handler.scrape_and_save_player_data(team_player["URL"], team_player["ID"], stat_type)
+    data_successfully_found = False
 
-    return False
+    if not DI.player_data_file_exists(player_id, stat_type):
+        print(f"There was no local {stat_type} file for {player_id}, scraping baseball reference...")
+        team_data = DI.read_team_data_file(team_abbreviation, year, "roster")
+        search_results = team_data.search_rows({"ID": player_id})
+        if search_results:
+            player = search_results[0]
+            data_successfully_found = Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], stat_type)
+    
+    if not data_successfully_found:
+        UI.wait_for_user_input(f"There was an error finding {stat_type} data for {player_id}. No data was saved.")
+
+    return data_successfully_found
+
 
 if __name__ == "__main__":
     main()

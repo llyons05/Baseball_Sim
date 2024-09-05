@@ -35,7 +35,7 @@ def get_roster_scraping_selection() -> list[str]:
     roster_prompt_text = "Input the abbreviations for the teams whose rosters should be saved."
     roster_example_text = f"Press enter to save all teams, or type teams comma separated (ex: {colored("NYY", "blue")}, {colored("WSN", "red")}, {colored("PIT", "yellow")}): "
 
-    all_teams = [x[2] for x in DI.get_all_teams()]
+    all_teams = [x["TEAM_ID"] for x in DI.get_all_teams()]
     roster_input_str = ""
 
     display_all_teams_table()
@@ -54,7 +54,7 @@ def get_team_stats_scraping_selection() -> list[str]:
     roster_prompt_text = "Input the abbreviations for the teams whose players' stats should be saved."
     roster_example_text = f"Press enter to save all teams, or type comma separated teams (ex: {colored("NYY", "blue")}, {colored("WSN", "red")}, {colored("PIT", "yellow")}): "
 
-    all_teams = [team[2] for team in DI.get_all_teams()]
+    all_teams = [team["TEAM_ID"] for team in DI.get_all_teams()]
     roster_input_str = ""
 
     display_all_teams_table()
@@ -143,7 +143,7 @@ def parse_user_string_input_list(input_str: str, delimiter: str = ",") -> list[s
 
 def get_single_team_choice() -> str:
     team_choice = ""
-    all_teams = [team[2] for team in DI.get_all_teams()]
+    all_teams = [team["TEAM_ID"] for team in DI.get_all_teams()]
 
     display_all_teams_table()
     while team_choice not in all_teams:
@@ -213,8 +213,9 @@ def display_player_data_table(player_id: str, stat_type: DI.STAT_TYPES) -> None:
 
 
 def display_team_roster_file(team_abbreviation: str, year: int) -> None:
-    filename = DI.get_team_data_file_path(team_abbreviation, year, "roster")
-    utils.print_csv(filename)
+    filename = DI.get_team_data_file_path(team_abbreviation, year, "batting")
+    headers_to_display = ["NAME", "pos", "ID"]
+    utils.print_csv(filename, headers_to_display)
     print()
 
 

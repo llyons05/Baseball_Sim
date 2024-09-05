@@ -1,17 +1,14 @@
 from bs4 import BeautifulSoup, Comment
-from typing import Literal
+from typing import Literal, TypedDict
 
 import utils
-
-
-PARSED_TABLE_FORMAT = dict[Literal['headers', 'data'], list]
-
+from table import Table
+import table_parsing_types as Extra_Types
 
 class NoTableFoundException (Exception):
 
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
-
 
 class Table_Parser:
 
@@ -46,34 +43,40 @@ class Table_Parser:
 
 
     def parse(self,
-              cell_specific_data: dict[str, list] = dict(),
-              row_filters: list[dict] = []) -> PARSED_TABLE_FORMAT:
+              extra_row_values: list[Extra_Types.EXTRA_ROW_VALUE] = dict(),
+              row_filters: list[Extra_Types.TABLE_ROW_FILTER] = [],
+              column_filters: list[Extra_Types.TABLE_COLUMN_FILTER] = [],
+              forbidden_chars: dict[str, str] = dict()) -> Table:
 
-        result: dict[str, list] = dict()
+        headers = self.parse_table_headers(self.table, column_filters, extra_row_values)
+        data = self.parse_table_body(self.table, extra_row_values, row_filters, column_filters)
 
-        result['headers'] = self.parse_table_headers(self.table)
-        result['data'] = self.parse_table_body(self.table, cell_specific_data, row_filters)
-
-        return result
+        return Table(headers, data, forbidden_chars)
 
 
-    def parse_table_headers(self, table: BeautifulSoup) -> list[str]:
+    def parse_table_headers(self, table: BeautifulSoup,
+                            column_filters: Extra_Types.TABLE_COLUMN_FILTER,
+                            extra_columns: list[Extra_Types.EXTRA_ROW_VALUE]) -> list[str]:
         headers: list[str] = []
         table_headers = table.find("thead")
         if table_headers:
             header_cells = table_headers.find_all("th")
             for cell in header_cells:
-                headers.append(cell.get("data-stat"))
+                value = cell.get("data-stat")
+                if value not in column_filters:
+                    headers.append(value)
 
+        headers.extend(extra_column["name"] for extra_column in extra_columns)
         return headers
 
 
     def parse_table_body(self,
                          table: BeautifulSoup,
-                         cell_specific_data: list[str, dict],
-                         row_filters: list[dict]) -> list[dict]:
+                         extra_row_values: list[Extra_Types.EXTRA_ROW_VALUE],
+                         row_filters: list[Extra_Types.TABLE_ROW_FILTER],
+                         column_filters: Extra_Types.TABLE_COLUMN_FILTER) -> list[dict[str, str]]:
 
-        result: list[dict] = []
+        result: list[dict[str, str]] = []
         table_rows = table.find("tbody").find_all("tr")
 
         for row in table_rows:
@@ -81,61 +84,66 @@ class Table_Parser:
             if self.is_row_filtered(row, row_filters):
                 continue
 
-            row_data = dict()
+            row_data: dict[str, str] = dict()
             row_header = row.find("th")
             if row_header:
                 header_cell_name = row_header.get("data-stat")
-                row_data[header_cell_name] = self.parse_table_cell(row_header, cell_specific_data.get(header_cell_name, []))
+                if (header_cell_name not in column_filters):
+                    row_data[header_cell_name] = self.parse_table_cell(row_header)
 
             row_cells = row.findAll("td")
             for cell in row_cells:
                 cell_name = cell.get("data-stat")
-                row_data[cell_name] = self.parse_table_cell(cell, cell_specific_data.get(cell_name, []))
+                if cell_name and (cell_name not in column_filters):
+                    row_data[cell_name] = self.parse_table_cell(cell)
+
+            extra_values = self.get_extra_row_values(row, extra_row_values)
+            row_data.update(extra_values)
 
             result.append(row_data)
-        return result
-
-
-    def parse_table_cell(self, cell: BeautifulSoup, values_to_get: list = []) -> dict:
-        result = dict()
-        result['text'] = cell.find(string=True)
-
-        hyperlink = cell.find("a")
-        if hyperlink:
-            result['href'] = hyperlink.get("href")
-
-        for value in values_to_get:
-            result[value] = cell.get(value)
 
         return result
 
 
-    def is_row_filtered(self, row: BeautifulSoup, row_filters: list[dict]) -> bool:
+    def get_extra_row_values(self, row: BeautifulSoup, extra_values: list[Extra_Types.EXTRA_ROW_VALUE]) -> dict[str, str]:
+        result: dict[str, str] = dict()
+        for extra_value in extra_values:
+            key = extra_value["name"]
+            value = self.get_value_from_tag(row, extra_value["location"])
+            if value == None:
+                value = ""
+            result[key] = value
+        
+        return result
+
+
+    def parse_table_cell(self, cell: BeautifulSoup) -> str:
+        result = cell.find(string=True)
+        return result
+
+
+    def is_row_filtered(self, row: BeautifulSoup, row_filters: list[Extra_Types.TABLE_ROW_FILTER]) -> bool:
         for row_filter in row_filters:
             filtered_values = row_filter['filtered_values']
-            value = self.get_value_from_tag(row, row_filter.get('interior_tags', []), row_filter['value_name'])
+            value = self.get_value_from_tag(row, row_filter["value_location"])
             for filtered_value in filtered_values:
                 if (filtered_value == value) or ((value != None) and (filtered_value in value)):
                     return True
-    
         return False
 
 
-    def get_value_from_tag(self,
-                           tag: BeautifulSoup,
-                           interior_tags: list[str],
-                           value_name: str) -> str:
+    def get_value_from_tag(self, tag: BeautifulSoup, value_location: Extra_Types.HTML_TAG_VALUE_LOCATION) -> str:
 
         current_tag = tag
-        for interior_tag in interior_tags:
+        for navigation_step in value_location.get("tag_navigation_path", []):
             if current_tag == None:
                 return None
-            current_tag = current_tag.find(interior_tag)
+            current_tag = current_tag.find(navigation_step.get("tag_name"), navigation_step.get("attributes", dict()))
 
         if current_tag == None:
             return None
 
-        return current_tag.get(value_name)
+        return current_tag.get(value_location["attribute_name"])
 
 
     def extract_commented_table(self,

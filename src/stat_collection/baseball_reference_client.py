@@ -3,16 +3,13 @@ import urllib.request
 import time
 import random
 from typing import Literal
+from copy import deepcopy
 
 import utils
 import local_database_interface as DI
-from table_parser import Table_Parser, NoTableFoundException, PARSED_TABLE_FORMAT
-
-BASE_URL = utils.BASE_URL
-DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds
-DEFAULT_EVADE_SLEEP_MAX: int = 7
-
-EMPTY_TABLE: PARSED_TABLE_FORMAT = {"data": [], "headers": []}
+from table_parser import Table_Parser, NoTableFoundException
+import table_parsing_types as Extra_Types
+from table import Table, EMPTY_TABLE
 
 class Scraping_Client:
 
@@ -35,106 +32,50 @@ class Scraping_Client:
             return None
 
 
-    def scrape_team_data(self, team_year_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, list[tuple]]:
+    def scrape_team_data(self, team_year_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, Table]:
         response = self.scrape_page_html(team_year_page_url)
 
         roster_data = self.parse_team_roster_table(response)
+        batting_data = self.parse_team_batting_table(response)
         pitching_data = self.parse_team_pitching_table(response)
 
         result = dict()
         result["roster"] = roster_data
+        result["batting"] = batting_data
         result["pitching"] = pitching_data
 
         return result
 
 
-    def parse_team_pitching_table(self, main_team_year_page_html) -> list[tuple]:
-        pitchers: list[tuple] = []
-        pitching_table = self.parse_default_player_table(main_team_year_page_html, "team_pitching", "all_team_pitching")
+    def parse_team_roster_table(self, main_team_year_page_html) -> Table:
+        parser = Table_Parser(main_team_year_page_html, "appearances", "all_appearances")
 
-        for row in pitching_table['data']:
-            player_info: dict = row.get('player', dict())
+        extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
+        for val in extra_row_vals[:3]:
+            val["location"]["tag_navigation_path"][0]["tag_name"] = "th"
 
-            lastname, firstname = player_info.get('csk', '').split(",")
-            id = player_info.get('data-append-csv', '')
-            url = BASE_URL + player_info.get('href')
-            pos = row.get('pos', dict()).get('text', '')
-            if not pos:
-                pos = 'P'
-
-            pitchers.append((firstname, lastname, id, pos, url))
-
-        return pitchers
-
-
-    def parse_team_roster_table(self, main_team_year_page_html) -> list[tuple]:
-        roster: list[tuple] = []
-        roster_table = self.parse_default_player_table(main_team_year_page_html, "team_batting", "all_team_batting")
-
-        for row in roster_table['data']:
-            player_info: dict = row.get('player', dict())
-
-            lastname, firstname = player_info.get('csk', '').split(",")
-            id = player_info.get('data-append-csv', '')
-            url = BASE_URL + player_info.get('href')
-            pos = row.get('pos', dict()).get('text', '')
-
-            roster.append((firstname, lastname, id, pos, url))
-
+        roster = parser.parse(extra_row_vals, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return roster
 
 
-    def parse_default_player_table(self, page_html, table_id: str, table_parent_div_id: str = "") -> PARSED_TABLE_FORMAT:
-        table_parser = Table_Parser(page_html, table_id, table_parent_div_id)
-        row_filters = [
-            {
-                'value_name': 'class',
-                'filtered_values': ['thead']
-            }
-        ]
-
-        cell_specific_data = {
-            'player': [
-                'csk',
-                'data-append-csv'
-            ]
-        }
-
-        return table_parser.parse(cell_specific_data=cell_specific_data, row_filters=row_filters)
+    def parse_team_pitching_table(self, main_team_year_page_html) -> Table:
+        pitchers = self.parse_default_player_list_table(main_team_year_page_html, "team_pitching", "all_team_pitching")
+        for row in pitchers.rows:
+            if not row["pos"]:
+                row["pos"] = "P"
+    
+        return pitchers
 
 
-    def scrape_all_teams_list(self) -> list[tuple[str, str, str]]:
-        team_data_list: list[tuple[str, str]] = []
-        teams_page_url: str = f"{BASE_URL}/teams/"
-        response = self.scrape_page_html(teams_page_url)
+    def parse_team_batting_table(self, main_team_year_page_html) -> Table:
+        batters = self.parse_default_player_list_table(main_team_year_page_html, "team_batting", "all_team_batting")
+        return batters
 
-        if response is None:
-            return None
 
-        table_parser = Table_Parser(response, "teams_active", "all_teams_active")
-
-        row_filters = [
-            {
-                'value_name': 'class',
-                'filtered_values': ['hidden', 'spacer', 'thead']
-            },
-            {
-                'interior_tags': ['span'],
-                'value_name': 'class',
-                'filtered_values': ["moved_names", "alternate_names"]
-            }
-
-        ]
-
-        teams_table = table_parser.parse(row_filters=row_filters)
-
-        for row in teams_table['data']:
-            team_name = row['franchise_name']['text']
-            team_url = BASE_URL + row['franchise_name']['href']
-            team_abbrev = utils.get_abbreviation_from_team_page_url(team_url)
-            team_data_list.append((team_name, team_url, team_abbrev))
-
-        return team_data_list
+    def parse_default_player_list_table(self, main_team_year_page_html, table_id: str, table_parent_div_id: str) -> Table:
+        parser = Table_Parser(main_team_year_page_html, table_id, table_parent_div_id)
+        table_data = parser.parse(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
+        return table_data
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
@@ -142,18 +83,26 @@ class Scraping_Client:
         if response is None:
             return None
 
+        extra_columns: list[Extra_Types.EXTRA_ROW_VALUE] = [
+            {
+                "name": "URL",
+                "location": {
+                    "tag_navigation_path": [{"tag_name": "th"}, {"tag_name": "a"}],
+                    "attribute_name": "href"
+                }
+            }
+        ]
         table_parser = Table_Parser(response, "franchise_years", "all_franchise_years")
-        franchise_years_table = table_parser.parse()
+        franchise_years_table = table_parser.parse(extra_columns)
 
-        for row in franchise_years_table['data']:
-            row_year = row['year_ID']
-            if row_year['text'] == str(year):
-                return BASE_URL + row_year['href']
+        search_results = franchise_years_table.search_rows({"year_ID": str(year)})
+        if (len(search_results) > 0):
+            return BASE_URL + search_results[0]["URL"]
 
         return None
 
 
-    def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.STAT_TYPES) -> list[dict]:
+    def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.STAT_TYPES) -> Table:
         table_parser = None
         if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)
@@ -161,18 +110,18 @@ class Scraping_Client:
             table_parser = self.try_scraping_pitching_tables(base_player_page_url)
 
         if table_parser is None:
-            return self.format_player_data_table(EMPTY_TABLE)
+            return EMPTY_TABLE
 
-        row_filters = [
+        row_filters: list[Extra_Types.TABLE_ROW_FILTER] = [
             {
-                'value_name': 'class',
-                'filtered_values': ['hidden', 'spacer', 'nonroster_table']
+                "value_location": {"attribute_name": "class"},
+                "filtered_values": ["hidden", "spacer", "nonroster_table"]
             }
         ]
 
         player_data_table = table_parser.parse(row_filters=row_filters)
-
-        return self.format_player_data_table(player_data_table)
+        player_data_table.sort(key=lambda d: int(d.get("year_ID", 0)))
+        return player_data_table
 
 
     def try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
@@ -209,25 +158,63 @@ class Scraping_Client:
         return table_parser
 
 
-    def format_player_data_table(self, player_data_table: dict) -> list[dict]:
-        headers: list[str] = player_data_table["headers"]
-        data: list[dict[str, dict]] = player_data_table["data"]
-
-        result = []
-
-        for year_of_data in data:
-            formatted_year_of_data: dict = {}
-            for header_name in headers:
-                formatted_year_of_data[header_name] = year_of_data.get(header_name, {}).get("text")
-            result.append(formatted_year_of_data)
-
-        result.sort(key=lambda d: int(d.get("year_ID", 0)))
-        return result
-
-
 if __name__ == "__main__":
-    client = Scraping_Client()
-    player_link = "http://www.baseball-reference.com/players/s/stantmi03.shtml"
-    stats = client.scrape_player_stats(player_link, "batting")
+    pass
 
-    utils.save_dict_list_to_csv("test_player_batting.csv", stats)
+
+DEFAULT_FORBIDDEN_CHARS = {",": " ", "\"": ""}
+
+BASE_URL = utils.BASE_URL
+DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds
+DEFAULT_EVADE_SLEEP_MAX: int = 7
+
+DEFAULT_PLAYER_TABLE_ROW_FILTERS: list[Extra_Types.TABLE_ROW_FILTER] = [
+            {
+                "value_location": {
+                    "attribute_name": "class"
+                },
+                "filtered_values": ["thead"]
+            }
+        ]
+
+DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS: list[Extra_Types.EXTRA_ROW_VALUE] = [
+            {
+                "name": "NAME",
+                "location": {
+                    "attribute_name": "csk",
+                    "tag_navigation_path": [
+                        {
+                            "tag_name": "td",
+                            "attributes": {"data-stat": "player"}
+                        }
+                    ]
+                }
+            },  
+            {
+                "name": "ID",
+                "location": {
+                    "attribute_name": "data-append-csv",
+                    "tag_navigation_path": [
+                        {
+                            "tag_name": "td",
+                            "attributes": {"data-stat": "player"}
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "URL",
+                "location": {
+                    "attribute_name": "href",
+                    "tag_navigation_path": [
+                        {
+                            "tag_name": "td",
+                            "attributes": {"data-stat": "player"}
+                        },
+                        {
+                            "tag_name": "a"
+                        }
+                    ]
+                }
+            }
+        ]

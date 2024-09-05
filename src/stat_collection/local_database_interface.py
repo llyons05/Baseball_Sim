@@ -2,13 +2,14 @@ import os, sys, time, csv
 from typing import Literal, get_args
 
 import utils
+from table import Table
 
 TEAMS_DIR: str = "data/teams"
 PLAYERS_DIR: str = "data/players"
 RESOURCES_DIR: str = "resources"
 
 STAT_TYPES = Literal["batting", "pitching"]
-TEAM_DATA_FILE_TYPES = Literal["roster", "pitching"]
+TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching"]
 
 
 def set_up_file_structure():
@@ -27,8 +28,13 @@ def is_file_structure_set_up() -> bool:
 def create_all_team_folders():
     utils.make_dirs(TEAMS_DIR)
 
-    for team_name, team_url, team_abbrev in get_all_teams():
-        create_team_folder(team_abbrev)
+    for team in get_all_teams():
+        create_team_folder(team["TEAM_ID"])
+
+
+def get_all_teams() -> list[dict[Literal["NAME", "URL", "TEAM_ID"], str]]:
+    filename = f"{RESOURCES_DIR}/all_teams.csv"
+    return utils.read_csv_as_dict_list(filename)
 
 
 def create_team_folder(team_abbreviation: str) -> None:
@@ -41,62 +47,26 @@ def create_team_year_folder(team_abbreviation: str, year: int) -> None:
     utils.make_dirs(dir_path)
 
 
-def save_team_roster_file(team_abbreviation: str, year: int, roster: list[tuple]) -> None:
-    headers = ["FIRSTNAME", "LASTNAME", "ID", "POS", "URL"]
-    save_team_data_file(team_abbreviation, year, roster, headers, "roster")
-
-
-def save_team_pitching_file(team_abbreviation: str, year: int, pitchers: list[tuple]) -> None:
-    headers = ["FIRSTNAME", "LASTNAME", "ID", "POS", "URL"]
-    save_team_data_file(team_abbreviation, year, pitchers, headers, "pitching")
-
-
-def save_team_data_file(team_abbreviation: str, year: int, data: list[tuple], headers: list[str], team_data_type: TEAM_DATA_FILE_TYPES) -> None:
+def save_team_data_file(team_abbreviation: str, year: int, data: Table, team_data_type: TEAM_DATA_FILE_TYPES) -> None:
     csv_dir_path = get_team_data_file_path(team_abbreviation, year, team_data_type)
-
-    with open(csv_dir_path, "w") as csv_file:
-        csv_writer = csv.writer(csv_file, lineterminator="\n")
-        csv_writer.writerow(headers)
-
-        for item in data:
-            csv_writer.writerow(item)
-    
+    utils.save_table_to_csv(csv_dir_path, data)
     print(f"Saved {year} {team_abbreviation} {team_data_type} to {csv_dir_path}")
 
 
-def save_list_of_all_teams(list_of_teams: list[tuple[str, str]]) -> None:
-    with open(f"{RESOURCES_DIR}/all_teams.csv", "w") as csv_file:
-        csv_writer = csv.writer(csv_file, lineterminator="\n")
-        csv_writer.writerow(["Name","URL","TEAM_ID"])
-        for team in list_of_teams:
-            csv_writer.writerow(team)
-
-
-def get_all_teams() -> list[tuple[str, str, str]]:
-    result: list[tuple[str, str, str]] = []
-    with open(f"{RESOURCES_DIR}/all_teams.csv", "r") as abbreviations:
-        csv_reader = csv.reader(abbreviations)
-        csv_reader.__next__() # skip headers
-        for row in csv_reader:
-            result.append(row)
-
-    return result
-
-
-def read_team_data_file(team_abbreviation: str, year: int, team_data_type: TEAM_DATA_FILE_TYPES) -> list[dict]:
+def read_team_data_file(team_abbreviation: str, year: int, team_data_type: TEAM_DATA_FILE_TYPES) -> Table:
     filename = get_team_data_file_path(team_abbreviation, year, team_data_type)
-    return utils.read_csv_as_dict_list(filename)
+    return utils.read_csv_as_table(filename)
 
 
-def save_player_data_file(player_id: str, stat_type: STAT_TYPES, player_data: list[dict]) -> str:
+def save_player_data_file(player_id: str, stat_type: STAT_TYPES, player_data: Table) -> str:
     filename = get_player_data_file_path(player_id, stat_type)
-    utils.save_dict_list_to_csv(filename, player_data)
+    utils.save_table_to_csv(filename, player_data)
     return filename
 
 
-def read_player_data_file(player_id: str, stat_type: STAT_TYPES) -> list[dict]:
+def read_player_data_file(player_id: str, stat_type: STAT_TYPES) -> Table:
     filename = get_player_data_file_path(player_id, stat_type)
-    return utils.read_csv_as_dict_list(filename)
+    return utils.read_csv_as_table(filename)
 
 
 def get_team_dir_path(team_abbreviation: str) -> str:
