@@ -78,10 +78,10 @@ def choose_year() -> int:
     return int(year_input)
 
 
-def choose_player_stat_type() -> DI.STAT_TYPES:
+def choose_player_stat_type() -> DI.PLAYER_STAT_TYPES:
     stat_type = ""
-    while stat_type not in ("batting", "pitching"):
-        stat_type = input(f"What player stats should be scraped? ({colored("batting", "red")}, {colored("pitching", "blue")}): ")
+    while stat_type not in ("batting", "pitching", "appearances"):
+        stat_type = input(f"What player stats should be scraped? ({colored("batting", "red")}, {colored("pitching", "blue")}, {colored("appearances", "green")}): ")
     
     print()
     return stat_type
@@ -166,10 +166,10 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
     return player_choice
 
 
-def choose_viewing_stat_type() -> DI.STAT_TYPES:
+def choose_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
     stat_type = ""
-    while stat_type not in ("batting", "pitching"):
-        stat_type = input(f"What player stats should be viewed? ({colored("batting", "red")}, {colored("pitching", "blue")}): ")
+    while stat_type not in ("batting", "pitching", "appearances"):
+        stat_type = input(f"What player stats should be viewed? ({colored("batting", "red")}, {colored("pitching", "blue")}, {colored("appearances", "green")}): ")
     
     print()
     return stat_type
@@ -188,7 +188,7 @@ def should_download_missing_team_data_file(team_abbreviation: str, year: int, mi
     return False
 
 
-def should_download_missing_player_data_file(player_id: str, stat_type: DI.STAT_TYPES) -> bool:
+def should_download_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -> bool:
     print(f"{colored("ERROR: It looks like", "red")} {colored(stat_type, "green")} {colored("data for", "red")} {colored(player_id, "green")} {colored("does not exist locally.", "red")}\n")
 
     user_input = ""
@@ -206,7 +206,7 @@ def display_all_teams_table() -> None:
     print()
 
 
-def display_player_data_table(player_id: str, stat_type: DI.STAT_TYPES) -> None:
+def display_player_data_table(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -> None:
     filename = DI.get_player_data_file_path(player_id, stat_type)
     utils.print_csv(filename)
     print()

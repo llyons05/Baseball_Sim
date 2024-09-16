@@ -25,7 +25,7 @@ def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, 
         return False
 
 
-def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_type: DI.STAT_TYPES, overwrite_data: bool = True) -> bool:
+def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_type: DI.PLAYER_STAT_TYPES, overwrite_data: bool = True) -> bool:
     client = Scraping_Client()
     if utils.BASE_URL not in player_page_url:
         player_page_url = utils.BASE_URL + player_page_url

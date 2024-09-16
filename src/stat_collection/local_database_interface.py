@@ -8,8 +8,14 @@ TEAMS_DIR: str = "data/teams"
 PLAYERS_DIR: str = "data/players"
 RESOURCES_DIR: str = "resources"
 
-STAT_TYPES = Literal["batting", "pitching"]
+PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching"]
+
+PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
+    "appearances": "roster",
+    "batting": "batting",
+    "pitching": "pitching"
+}
 
 
 def set_up_file_structure():
@@ -17,6 +23,7 @@ def set_up_file_structure():
     utils.make_dirs(PLAYERS_DIR)
     utils.make_dirs(f"{PLAYERS_DIR}/batting")
     utils.make_dirs(f"{PLAYERS_DIR}/pitching")
+    utils.make_dirs(f"{PLAYERS_DIR}/appearances")
 
     create_all_team_folders()
 
@@ -58,13 +65,13 @@ def read_team_data_file(team_abbreviation: str, year: int, team_data_type: TEAM_
     return utils.read_csv_as_table(filename)
 
 
-def save_player_data_file(player_id: str, stat_type: STAT_TYPES, player_data: Table) -> str:
+def save_player_data_file(player_id: str, stat_type: PLAYER_STAT_TYPES, player_data: Table) -> str:
     filename = get_player_data_file_path(player_id, stat_type)
     utils.save_table_to_csv(filename, player_data)
     return filename
 
 
-def read_player_data_file(player_id: str, stat_type: STAT_TYPES) -> Table:
+def read_player_data_file(player_id: str, stat_type: PLAYER_STAT_TYPES) -> Table:
     filename = get_player_data_file_path(player_id, stat_type)
     return utils.read_csv_as_table(filename)
 
@@ -81,7 +88,7 @@ def get_team_data_file_path(team_abbreviation: str, year: int, team_data_type: T
     return f"{get_team_year_dir_path(team_abbreviation, year)}/{team_abbreviation}_{year}_{team_data_type}.csv"
 
 
-def get_player_data_file_path(player_id: str, stat_type: STAT_TYPES) -> str:
+def get_player_data_file_path(player_id: str, stat_type: PLAYER_STAT_TYPES) -> str:
     return f"{PLAYERS_DIR}/{stat_type}/{player_id}_{stat_type}.csv"
 
 
@@ -97,8 +104,16 @@ def team_data_file_exists(team_abbreviation: str, year: int, team_data_type: TEA
     return os.path.exists(get_team_data_file_path(team_abbreviation, year, team_data_type))
 
 
-def player_data_file_exists(player_id: str, stat_type: STAT_TYPES) -> bool:
+def player_data_file_exists(player_id: str, stat_type: PLAYER_STAT_TYPES) -> bool:
     return os.path.exists(get_player_data_file_path(player_id, stat_type))
+
+
+def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES, gather_all_players: bool = False) -> TEAM_DATA_FILE_TYPES:
+    team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
+    if gather_all_players:
+        team_file_type_to_read_from = "roster"
+    
+    return team_file_type_to_read_from
 
 
 if __name__ == "__main__":

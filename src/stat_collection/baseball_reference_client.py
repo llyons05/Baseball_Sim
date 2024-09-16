@@ -102,12 +102,14 @@ class Scraping_Client:
         return None
 
 
-    def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.STAT_TYPES) -> Table:
+    def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.PLAYER_STAT_TYPES) -> Table:
         table_parser = None
         if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)
         elif stat_type == "pitching":
             table_parser = self.try_scraping_pitching_tables(base_player_page_url)
+        elif stat_type == "appearances":
+            table_parser = self.try_scraping_appearance_tables(base_player_page_url)
 
         if table_parser is None:
             return EMPTY_TABLE
@@ -140,6 +142,12 @@ class Scraping_Client:
 
         if table_parser is None:
             table_parser = self.scrape_table_from_player_page(base_player_page_url, "pitching_standard", "all_pitching_standard")
+
+        return table_parser
+
+
+    def try_scraping_appearance_tables(self, base_player_page_url: str) -> Table_Parser | None:
+        table_parser = self.scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
 
         return table_parser
 

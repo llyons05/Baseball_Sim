@@ -76,18 +76,18 @@ def handle_player_stats_scraping() -> None:
         UI.wait_for_user_input("Done. Press enter to continue.")
 
 
-def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
+def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.PLAYER_STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
 
     if not handle_missing_team_data_file(team_abbreviation, year):
         return
 
-    team_roster = DI.read_team_data_file(team_abbreviation, year, "batting")
+    team_file_type_to_read_from = DI.get_team_file_type_to_read_from(stat_type, should_gather_non_pitchers)
+    team_data = DI.read_team_data_file(team_abbreviation, year, team_file_type_to_read_from)
 
     print(f"Saving {team_abbreviation} {year} roster player {stat_type} stats...")
 
-    for player in tqdm.tqdm(team_roster):
-        if (player["pos"] == "P") or should_gather_non_pitchers:
-            Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], stat_type, overwrite_data)
+    for player in tqdm.tqdm(team_data):
+        Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], stat_type, overwrite_data)
 
 
 def handle_data_viewing() -> None:
@@ -126,7 +126,7 @@ def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
 
 
 
-def handle_missing_player_data_file(player_id: str, stat_type: DI.STAT_TYPES, team_abbreviation: str, year: int) -> bool:
+def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TYPES, team_abbreviation: str, year: int) -> bool:
     if not DI.player_data_file_exists(player_id, stat_type):
         print(f"There was no local {stat_type} file for {player_id}, scraping baseball reference...")
         team_data = DI.read_team_data_file(team_abbreviation, year, "roster")
