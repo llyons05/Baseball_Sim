@@ -32,13 +32,14 @@ class Scraping_Client:
             return None
 
 
-    def scrape_team_data(self, team_year_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, Table]:
-        response = self.scrape_page_html(team_year_page_url)
+    def scrape_team_data(self, team_roster_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, Table]:
+        response = self.scrape_page_html(team_roster_page_url)
 
         roster_data = self.parse_team_roster_table(response)
         batting_data = self.parse_team_batting_table(response)
         pitching_data = self.parse_team_pitching_table(response)
-        basic_team_info_data = self.get_team_info_table(response, team_year_page_url)
+        basic_team_info_data = self.parse_team_info_table(response, team_roster_page_url)
+        batting_order_data = self.get_team_batting_orders_table(team_roster_page_url)
 
         result: dict[DI.TEAM_DATA_FILE_TYPES, Table] = dict()
         result["roster"] = roster_data
@@ -49,8 +50,8 @@ class Scraping_Client:
         return result
 
 
-    def parse_team_roster_table(self, main_team_year_page_html) -> Table:
-        parser = Table_Parser(main_team_year_page_html, "appearances", "all_appearances")
+    def parse_team_roster_table(self, main_team_roster_page_html) -> Table:
+        parser = Table_Parser(main_team_roster_page_html, "appearances", "all_appearances")
 
         extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
         for val in extra_row_vals[:3]:
@@ -60,8 +61,8 @@ class Scraping_Client:
         return roster
 
 
-    def parse_team_pitching_table(self, main_team_year_page_html) -> Table:
-        pitchers = self.parse_default_player_list_table(main_team_year_page_html, "team_pitching", "all_team_pitching")
+    def parse_team_pitching_table(self, main_team_roster_page_html) -> Table:
+        pitchers = self.parse_default_player_list_table(main_team_roster_page_html, "team_pitching", "all_team_pitching")
         for row in pitchers.rows:
             if not row["pos"]:
                 row["pos"] = "P"
@@ -69,24 +70,41 @@ class Scraping_Client:
         return pitchers
 
 
-    def parse_team_batting_table(self, main_team_year_page_html) -> Table:
-        batters = self.parse_default_player_list_table(main_team_year_page_html, "team_batting", "all_team_batting")
+    def parse_team_batting_table(self, main_team_roster_page_html) -> Table:
+        batters = self.parse_default_player_list_table(main_team_roster_page_html, "team_batting", "all_team_batting")
         return batters
 
 
-    def parse_default_player_list_table(self, main_team_year_page_html, table_id: str, table_parent_div_id: str) -> Table:
-        parser = Table_Parser(main_team_year_page_html, table_id, table_parent_div_id)
+    def parse_default_player_list_table(self, main_team_roster_page_html, table_id: str, table_parent_div_id: str) -> Table:
+        parser = Table_Parser(main_team_roster_page_html, table_id, table_parent_div_id)
         table_data = parser.parse(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return table_data
 
 
-    def get_team_info_table(self, main_team_year_page_html, team_year_page_url: str) -> Table:
+    def parse_team_info_table(self, main_team_roster_page_html, team_year_page_url: str) -> Table:
         result = Table()
         team_abbreviation = utils.get_abbreviation_from_specific_team_page_url(team_year_page_url)
 
         result.add_row({"abbreviation": team_abbreviation}, True)
 
         return result
+
+
+    def get_team_batting_orders_table(self, team_roster_page_url: str) -> Table:
+        url = utils.get_team_batting_order_url(team_roster_page_url)
+        response = self.scrape_page_html(url)
+        
+        extra_row_vals: list[Extra_Types.EXTRA_ROW_VALUE] = []
+        for x in range(1, 10):
+            extra_row_vals.append({
+                "name": str(x),
+                "location": {
+                    "attribute_name": "data-entry-id",
+                    "tag_navigation_path": [
+                        {"tag_name": "li", "attributes": {"value": str(x)}}
+                    ]
+                }
+            })
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:

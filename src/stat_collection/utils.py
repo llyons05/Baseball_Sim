@@ -31,6 +31,10 @@ def get_team_roster_url(team_abbreviation: str, year: int) -> str:
     return BASE_URL + "/teams/" + team_abbreviation + "/" + str(year) + ".shtml"
 
 
+def get_team_batting_order_url(team_roster_url: str) -> str:
+    return team_roster_url.replace(".shtml", "-batting-orders.shmtl")
+
+
 def get_player_id_from_url(player_page_url: str) -> str:
     return player_page_url.split("/")[-1].split(".")[0]
 
