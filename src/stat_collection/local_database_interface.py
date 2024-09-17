@@ -9,7 +9,7 @@ PLAYERS_DIR: str = "data/players"
 RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances"]
-TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching"]
+TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",

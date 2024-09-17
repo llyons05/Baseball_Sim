@@ -19,8 +19,12 @@ def make_dirs(dir_path: str) -> None:
         os.makedirs(dir_path, exist_ok=True)
 
 
-def get_abbreviation_from_team_page_url(url: str) -> str:
+def get_abbreviation_from_overall_team_page_url(url: str) -> str:
     return url.removesuffix("/").split("/")[-1]
+
+
+def get_abbreviation_from_specific_team_page_url(url: str) -> str:
+    return url.removesuffix("/").removeprefix(BASE_URL + "/teams/").split("/")[0]
 
 
 def get_team_roster_url(team_abbreviation: str, year: int) -> str:

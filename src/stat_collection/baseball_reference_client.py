@@ -38,11 +38,13 @@ class Scraping_Client:
         roster_data = self.parse_team_roster_table(response)
         batting_data = self.parse_team_batting_table(response)
         pitching_data = self.parse_team_pitching_table(response)
+        basic_team_info_data = self.get_team_info_table(response, team_year_page_url)
 
-        result = dict()
+        result: dict[DI.TEAM_DATA_FILE_TYPES, Table] = dict()
         result["roster"] = roster_data
         result["batting"] = batting_data
         result["pitching"] = pitching_data
+        result["team_info"] = basic_team_info_data
 
         return result
 
@@ -76,6 +78,15 @@ class Scraping_Client:
         parser = Table_Parser(main_team_year_page_html, table_id, table_parent_div_id)
         table_data = parser.parse(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return table_data
+
+
+    def get_team_info_table(self, main_team_year_page_html, team_year_page_url: str) -> Table:
+        result = Table()
+        team_abbreviation = utils.get_abbreviation_from_specific_team_page_url(team_year_page_url)
+
+        result.add_row({"abbreviation": team_abbreviation}, True)
+
+        return result
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
