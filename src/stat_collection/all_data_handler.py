@@ -19,6 +19,7 @@ def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, 
             DI.save_team_data_file(team_abbreviation, year, team_data["batting"], "batting")
             DI.save_team_data_file(team_abbreviation, year, team_data["pitching"], "pitching")
             DI.save_team_data_file(team_abbreviation, year, team_data["team_info"], "team_info")
+            DI.save_team_data_file(team_abbreviation, year, team_data["common_batting_orders"], "common_batting_orders")
         
         return True
     
@@ -36,5 +37,3 @@ def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_type:
         DI.save_player_data_file(player_id, stat_type, player_data)
 
     return True
-
-

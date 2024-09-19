@@ -12,8 +12,12 @@ class HTML_TAG_NAME_AND_ATTRIBUTES(TypedDict):
     """
 
 
+HTML_TAG_NAVIGATION_PATH = list[HTML_TAG_NAME_AND_ATTRIBUTES]
+""" A list of tag descriptors that leads to (and ends in) the tag we are looking for. """
+
+
 class HTML_TAG_VALUE_LOCATION(TypedDict):
-    tag_navigation_path: list[HTML_TAG_NAME_AND_ATTRIBUTES]
+    tag_navigation_path: HTML_TAG_NAVIGATION_PATH
     """ The path of html tags that leads to the desired attribute. """
     attribute_name: str
     """ The name of the tag attribute that should be pulled. """

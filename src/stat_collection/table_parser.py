@@ -14,30 +14,27 @@ class Table_Parser:
 
     def __init__(self,
                  page_html,
-                 table_id: str,
-                 table_parent_div_id: str = "") -> None:
+                 table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
+                 table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> None:
 
         self.page_soup = BeautifulSoup(page_html, "html.parser")
-        self.table_id = table_id
-        self.table_parent_div_id = table_parent_div_id
+        self.table_location = table_location
+        self.table_wrapper_div_location = table_wrapper_div_location
 
-        if not table_parent_div_id:
-            self.table_parent_div_id = "all_" + self.table_id
-
-        self.table = self.extract_table_from_soup(self.page_soup, self.table_id, self.table_parent_div_id)
+        self.table = self.extract_table_from_soup(self.page_soup, self.table_location, self.table_wrapper_div_location)
 
         if self.table == None:
-            raise NoTableFoundException(f"No table with id {table_id} was found in the soup.")
+            raise NoTableFoundException(f"No table at location {table_location} was found in the soup.")
 
 
     def extract_table_from_soup(self,
                                  page_soup: BeautifulSoup,
-                                 table_id: str,
-                                 table_parent_div_id: str) -> BeautifulSoup | None:
+                                 table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
+                                 table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> BeautifulSoup | None:
 
-        table = page_soup.find("table", {"id": table_id})
+        table = self.get_tag_from_soup(page_soup, table_location)
         if not table:
-            table = self.extract_commented_table(page_soup, table_id, table_parent_div_id)
+            table = self.extract_commented_table(page_soup, table_location, table_wrapper_div_location)
 
         return table
 
@@ -133,12 +130,7 @@ class Table_Parser:
 
 
     def get_value_from_tag(self, tag: BeautifulSoup, value_location: Extra_Types.HTML_TAG_VALUE_LOCATION) -> str:
-
-        current_tag = tag
-        for navigation_step in value_location.get("tag_navigation_path", []):
-            if current_tag == None:
-                return None
-            current_tag = current_tag.find(navigation_step.get("tag_name"), navigation_step.get("attributes", dict()))
+        current_tag = self.get_tag_from_soup(tag, value_location.get("tag_navigation_path", []))
 
         if current_tag == None:
             return None
@@ -146,25 +138,35 @@ class Table_Parser:
         return current_tag.get(value_location["attribute_name"])
 
 
+    def get_tag_from_soup(self, soup: BeautifulSoup, tag_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> BeautifulSoup:
+        current_tag = soup
+        for navigation_step in tag_location:
+            if current_tag == None:
+                return None
+            current_tag = current_tag.find(navigation_step.get("tag_name"), navigation_step.get("attributes", dict()))
+        
+        return current_tag
+
+
     def extract_commented_table(self,
                                  page_soup: BeautifulSoup,
-                                 table_id: str,
-                                 table_parent_div_id: str) -> BeautifulSoup | None:
+                                 table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
+                                 table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> BeautifulSoup | None:
 
-        table_div = page_soup.find("div", {"class": "table_wrapper", "id": table_parent_div_id})
+        table_div = self.get_tag_from_soup(page_soup, table_wrapper_div_location)
         all_comments = self.get_comments(table_div)
 
         correct_comment = None
         for comment in all_comments:
-            if table_id in comment:
+            if "table" in comment:
                 correct_comment = comment
                 break
 
         if not correct_comment:
             return None
-        
+
         comment_soup = BeautifulSoup(str(correct_comment), "html.parser")
-        table = comment_soup.find("table", {"id": table_id})
+        table = self.get_tag_from_soup(comment_soup, [table_location[-1]])
         return table
 
 
