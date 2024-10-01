@@ -4,12 +4,13 @@ from typing import Literal, get_args
 import utils
 from table import Table
 
-TEAMS_DIR: str = "data/teams"
-PLAYERS_DIR: str = "data/players"
+PARENT_DIR: str = "data"
+TEAMS_DIR: str = f"{PARENT_DIR}/teams"
+PLAYERS_DIR: str = f"{PARENT_DIR}/players"
 RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances"]
-TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "batting_orders"]
+TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
@@ -19,17 +20,31 @@ PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] =
 
 
 def set_up_file_structure():
-    utils.make_dirs("data")
-    utils.make_dirs(PLAYERS_DIR)
-    utils.make_dirs(f"{PLAYERS_DIR}/batting")
-    utils.make_dirs(f"{PLAYERS_DIR}/pitching")
-    utils.make_dirs(f"{PLAYERS_DIR}/appearances")
-
+    utils.make_dirs(PARENT_DIR)
     create_all_team_folders()
+    create_all_player_folders()
 
 
 def is_file_structure_set_up() -> bool:
-    return os.path.exists(TEAMS_DIR) or os.path.exists(PLAYERS_DIR)
+    return all_team_folders_exist() and all_player_folders_exist()
+
+
+def all_team_folders_exist() -> bool:
+    if not os.path.exists(TEAMS_DIR): return False
+
+    for team in get_all_teams():
+        if not os.path.exists(get_team_dir_path(team["TEAM_ID"])):
+            return False
+    return True
+
+
+def all_player_folders_exist() -> bool:
+    if not os.path.exists(PLAYERS_DIR): return False
+
+    for stat_type in get_args(PLAYER_STAT_TYPES):
+        if not os.path.exists(f"{PLAYERS_DIR}/{stat_type}"):
+            return False
+    return True
 
 
 def create_all_team_folders():
@@ -37,6 +52,13 @@ def create_all_team_folders():
 
     for team in get_all_teams():
         create_team_folder(team["TEAM_ID"])
+
+
+def create_all_player_folders():
+    utils.make_dirs(PLAYERS_DIR)
+
+    for stat_type in get_args(PLAYER_STAT_TYPES):
+        utils.make_dirs(f"{PLAYERS_DIR}/{stat_type}")
 
 
 def get_all_teams() -> list[dict[Literal["NAME", "URL", "TEAM_ID"], str]]:
@@ -109,6 +131,12 @@ def player_data_file_exists(player_id: str, stat_type: PLAYER_STAT_TYPES) -> boo
 
 
 def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES, gather_all_players: bool = False) -> TEAM_DATA_FILE_TYPES:
+    """
+    Given the stat type, returns what type of team file should be read to retrieve the correct players.
+    For example, if our player_stat_type is 'pitching', then this will return the team data file type where the pitchers are located.
+    If gather_all_players is True, then this will return the file type that contains a list of all players.
+    """
+
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
     if gather_all_players:
         team_file_type_to_read_from = "roster"

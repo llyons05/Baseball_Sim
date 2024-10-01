@@ -39,20 +39,25 @@ class Scraping_Client:
         batting_data = self.parse_team_batting_table(response)
         pitching_data = self.parse_team_pitching_table(response)
         basic_team_info_data = self.parse_team_info_table(response, team_roster_page_url)
-        batting_order_data = self.get_team_batting_orders_table(team_roster_page_url)
+        batting_order_data = self.get_team_common_batting_orders_table(team_roster_page_url)
 
         result: dict[DI.TEAM_DATA_FILE_TYPES, Table] = dict()
         result["roster"] = roster_data
         result["batting"] = batting_data
         result["pitching"] = pitching_data
         result["team_info"] = basic_team_info_data
-        result["batting_orders"] = batting_order_data
+        result["common_batting_orders"] = batting_order_data
 
         return result
 
 
     def parse_team_roster_table(self, main_team_roster_page_html) -> Table:
-        parser = Table_Parser(main_team_roster_page_html, "appearances", "all_appearances")
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the roster data for the team.
+        """
+
+        parser = Table_Parser(main_team_roster_page_html, self.get_default_table_location("appearances"), self.get_default_wrapper_div_location("all_appearances"))
 
         extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
         for val in extra_row_vals[:3]:
@@ -63,26 +68,47 @@ class Scraping_Client:
 
 
     def parse_team_pitching_table(self, main_team_roster_page_html) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the team's list of pitchers and some basic stats for them.
+        """
+
         pitchers = self.parse_default_player_list_table(main_team_roster_page_html, "team_pitching", "all_team_pitching")
         for row in pitchers.rows:
             if not row["pos"]:
                 row["pos"] = "P"
-    
+
         return pitchers
 
 
     def parse_team_batting_table(self, main_team_roster_page_html) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the team's batting stats.
+        """
+
         batters = self.parse_default_player_list_table(main_team_roster_page_html, "team_batting", "all_team_batting")
         return batters
 
 
-    def parse_default_player_list_table(self, main_team_roster_page_html, table_id: str, table_parent_div_id: str) -> Table:
-        parser = Table_Parser(main_team_roster_page_html, table_id, table_parent_div_id)
+    def parse_default_player_list_table(self, team_page_html, table_id: str, table_parent_div_id: str) -> Table:
+        """
+        Takes in the html response from a team page with the desired table of players on it, as well as
+        the "id" of the table in the html, and the "id" of the div that contains the table.
+        Returns a parsed version of that table. This method can be used for most tables of players on baseball reference.
+        """
+
+        parser = Table_Parser(team_page_html, self.get_default_table_location(table_id), self.get_default_wrapper_div_location(table_parent_div_id))
         table_data = parser.parse(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return table_data
 
 
     def parse_team_info_table(self, main_team_roster_page_html, team_year_page_url: str) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it, as well as the url to that page.
+        Returns a table with basic info about the team.
+        """
+
         result = Table()
         team_abbreviation = utils.get_abbreviation_from_specific_team_page_url(team_year_page_url)
 
@@ -91,39 +117,43 @@ class Scraping_Client:
         return result
 
 
-    def get_team_batting_orders_table(self, team_roster_page_url: str) -> Table:
-        result = Table(forbidden_characters=DEFAULT_FORBIDDEN_CHARS)
+    def get_team_common_batting_orders_table(self, team_roster_page_url: str) -> Table:
+        """
+        Takes in the url to main team page that has that year's roster on it.
+        Returns a table with the most common batting orders for that team.
+        """
 
         url = utils.get_team_batting_order_url(team_roster_page_url)
         response = self.scrape_page_html(url)
 
-        value_locations: list[Extra_Types.HTML_TAG_VALUE_LOCATION] = []
-        for i in range(1, 10):
-            value_locations.append({
-                "attribute_name": "data-entry-id",
-                "tag_navigation_path": [
-                    {"tag_name": "li", "attributes": {"value": str(i)}}, {"tag_name": "a"}
-                ]
-            })
-        
-        parser = Table_Parser(response, "st_0", "all_common_orders")
-        html_table = parser.table
-        columns: list[BeautifulSoup] = html_table.find_all("td")
+        wrapper_div_location = [{"tag_name": "div", "attributes": {"id": "all_common_orders"}}]
+        table_location = [wrapper_div_location[0], {"tag_name": "table", "attributes": {"class": "stats_table"}}]
+        parser = Table_Parser(response, table_location, wrapper_div_location, table_row_tag_name="td", table_body_tag_name="tr",
+                              row_cell_tag_name="li", cell_descriptor_attribute_name="value", cell_parsing_method=self.parse_batting_order_cell)
 
-        for column in columns:
-            column_data = dict()
-            column_header = parser.parse_table_cell(column.find("strong"))
-            column_data["games_played"] = column_header.strip().split()[0]
+        extra_row_values: list[Extra_Types.EXTRA_ROW_VALUE] = [
+            {"name": "games", "location": {"tag_navigation_path": [{"tag_name": "strong"}]}}
+        ]
 
-            for i in range(len(value_locations)):
-                player_id = parser.get_value_from_tag(column, value_locations[i])
-                column_data[str(i)] = player_id
-            result.add_row(column_data, True)
-        
-        return result
+        table = parser.parse(extra_row_values, forbidden_chars={" Games": ""})
+        return table
+
+
+    def parse_batting_order_cell(self, cell: BeautifulSoup) -> str:
+        """ Helper method to parse batting order table cells. """
+
+        hyperlink = cell.find("a")
+        if hyperlink:
+            return hyperlink.get("data-entry-id")
+        return cell.find(string=True)
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
+        """
+        Takes in the url for the team page that has the list of all the years of the franchise, as well as the year we are looking for.
+        Returns the url to the team page of that franchise for that year, and returns None if no roster exists for that year.
+        """
+
         response = self.scrape_page_html(team_page_url)
         if response is None:
             return None
@@ -137,7 +167,7 @@ class Scraping_Client:
                 }
             }
         ]
-        table_parser = Table_Parser(response, "franchise_years", "all_franchise_years")
+        table_parser = Table_Parser(response, self.get_default_table_location("franchise_years"), self.get_default_wrapper_div_location("all_franchise_years"))
         franchise_years_table = table_parser.parse(extra_columns)
 
         search_results = franchise_years_table.search_rows({"year_ID": str(year)})
@@ -148,6 +178,11 @@ class Scraping_Client:
 
 
     def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.PLAYER_STAT_TYPES) -> Table:
+        """
+        Takes in the url to a player's baseball reference page, as well as the type of stat to be scraped.
+        Returns a Table containing the data for that player, and an Empty Table if no table is found.
+        """
+
         table_parser = None
         if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)
@@ -173,42 +208,61 @@ class Scraping_Client:
 
     def try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
         player_batting_page_url = utils.get_player_batting_page_url(base_player_page_url)
-        table_parser = self.scrape_table_from_player_page(player_batting_page_url, "batting_standard", "all_batting_standard")
+        table_location = self.get_default_table_location("batting_standard")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_batting_standard")
+
+        table_parser = self.scrape_table_from_player_page(player_batting_page_url, table_location, wrapper_div_location)
 
         if table_parser is None:
-            table_parser = self.scrape_table_from_player_page(base_player_page_url, "batting_standard", "all_batting_standard")
+            table_parser = self.scrape_table_from_player_page(base_player_page_url, table_location, wrapper_div_location)
         
         return table_parser
 
 
     def try_scraping_pitching_tables(self, base_player_page_url: str) -> Table_Parser | None:
         player_pitching_page_url = utils.get_player_pitching_page_url(base_player_page_url)
-        table_parser = self.scrape_table_from_player_page(player_pitching_page_url, "pitching_standard", "all_pitching_standard")
+        table_location = self.get_default_table_location("pitching_standard")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_pitching_standard")
+
+        table_parser = self.scrape_table_from_player_page(player_pitching_page_url, table_location, wrapper_div_location)
 
         if table_parser is None:
-            table_parser = self.scrape_table_from_player_page(base_player_page_url, "pitching_standard", "all_pitching_standard")
+            table_parser = self.scrape_table_from_player_page(base_player_page_url, table_location, wrapper_div_location)
 
         return table_parser
 
 
     def try_scraping_appearance_tables(self, base_player_page_url: str) -> Table_Parser | None:
-        table_parser = self.scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
+        table_location = self.get_default_table_location("appearances")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_appearances")
+
+        table_parser = self.scrape_table_from_player_page(base_player_page_url, table_location, wrapper_div_location)
 
         return table_parser
 
 
-    def scrape_table_from_player_page(self, player_page_url: str, table_id: str, table_parent_div_id: str) -> Table_Parser | None:
+    def scrape_table_from_player_page(self, player_page_url: str,
+                                      table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
+                                      table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> Table_Parser | None:
         response = self.scrape_page_html(player_page_url)
         if response is None:
             return None
 
         try:
-            table_parser = Table_Parser(response, table_id, table_parent_div_id)
+            table_parser = Table_Parser(response, table_location, table_wrapper_div_location)
 
         except NoTableFoundException as e:
+            print(f"NO TABLE FOUND ON PAGE {player_page_url}")
             return None
         
         return table_parser
+
+
+    def get_default_table_location(self, table_id: str) -> Extra_Types.HTML_TAG_NAVIGATION_PATH:
+        return [{"tag_name": "table", "attributes": {"id": table_id}}]
+
+    def get_default_wrapper_div_location(self, wrapper_div_id: str) -> Extra_Types.HTML_TAG_NAVIGATION_PATH:
+        return [{"tag_name": "div", "attributes": {"id": wrapper_div_id, "class": "table_wrapper"}}]
 
 
 if __name__ == "__main__":
