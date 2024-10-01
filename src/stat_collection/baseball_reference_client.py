@@ -52,6 +52,11 @@ class Scraping_Client:
 
 
     def parse_team_roster_table(self, main_team_roster_page_html) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the roster data for the team.
+        """
+
         parser = Table_Parser(main_team_roster_page_html, self.get_default_table_location("appearances"), self.get_default_wrapper_div_location("all_appearances"))
 
         extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
@@ -63,26 +68,47 @@ class Scraping_Client:
 
 
     def parse_team_pitching_table(self, main_team_roster_page_html) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the team's list of pitchers and some basic stats for them.
+        """
+
         pitchers = self.parse_default_player_list_table(main_team_roster_page_html, "team_pitching", "all_team_pitching")
         for row in pitchers.rows:
             if not row["pos"]:
                 row["pos"] = "P"
-    
+
         return pitchers
 
 
     def parse_team_batting_table(self, main_team_roster_page_html) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it.
+        Returns a Table containing the team's batting stats.
+        """
+
         batters = self.parse_default_player_list_table(main_team_roster_page_html, "team_batting", "all_team_batting")
         return batters
 
 
-    def parse_default_player_list_table(self, main_team_roster_page_html, table_id: str, table_parent_div_id: str) -> Table:
-        parser = Table_Parser(main_team_roster_page_html, self.get_default_table_location(table_id), self.get_default_wrapper_div_location(table_parent_div_id))
+    def parse_default_player_list_table(self, team_page_html, table_id: str, table_parent_div_id: str) -> Table:
+        """
+        Takes in the html response from a team page with the desired table of players on it, as well as
+        the "id" of the table in the html, and the "id" of the div that contains the table.
+        Returns a parsed version of that table. This method can be used for most tables of players on baseball reference.
+        """
+
+        parser = Table_Parser(team_page_html, self.get_default_table_location(table_id), self.get_default_wrapper_div_location(table_parent_div_id))
         table_data = parser.parse(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return table_data
 
 
     def parse_team_info_table(self, main_team_roster_page_html, team_year_page_url: str) -> Table:
+        """
+        Takes in the html response from the main team page that has that year's roster on it, as well as the url to that page.
+        Returns a table with basic info about the team.
+        """
+
         result = Table()
         team_abbreviation = utils.get_abbreviation_from_specific_team_page_url(team_year_page_url)
 
@@ -92,6 +118,11 @@ class Scraping_Client:
 
 
     def get_team_common_batting_orders_table(self, team_roster_page_url: str) -> Table:
+        """
+        Takes in the url to main team page that has that year's roster on it.
+        Returns a table with the most common batting orders for that team.
+        """
+
         url = utils.get_team_batting_order_url(team_roster_page_url)
         response = self.scrape_page_html(url)
 
@@ -109,6 +140,8 @@ class Scraping_Client:
 
 
     def parse_batting_order_cell(self, cell: BeautifulSoup) -> str:
+        """ Helper method to parse batting order table cells. """
+
         hyperlink = cell.find("a")
         if hyperlink:
             return hyperlink.get("data-entry-id")
@@ -116,6 +149,11 @@ class Scraping_Client:
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
+        """
+        Takes in the url for the team page that has the list of all the years of the franchise, as well as the year we are looking for.
+        Returns the url to the team page of that franchise for that year, and returns None if no roster exists for that year.
+        """
+
         response = self.scrape_page_html(team_page_url)
         if response is None:
             return None
@@ -140,6 +178,11 @@ class Scraping_Client:
 
 
     def scrape_player_stats(self, base_player_page_url: str, stat_type: DI.PLAYER_STAT_TYPES) -> Table:
+        """
+        Takes in the url to a player's baseball reference page, as well as the type of stat to be scraped.
+        Returns a Table containing the data for that player, and an Empty Table if no table is found.
+        """
+
         table_parser = None
         if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)

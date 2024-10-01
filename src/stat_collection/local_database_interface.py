@@ -131,6 +131,12 @@ def player_data_file_exists(player_id: str, stat_type: PLAYER_STAT_TYPES) -> boo
 
 
 def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES, gather_all_players: bool = False) -> TEAM_DATA_FILE_TYPES:
+    """
+    Given the stat type, returns what type of team file should be read to retrieve the correct players.
+    For example, if our player_stat_type is 'pitching', then this will return the team data file type where the pitchers are located.
+    If gather_all_players is True, then this will return the file type that contains a list of all players.
+    """
+
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
     if gather_all_players:
         team_file_type_to_read_from = "roster"
