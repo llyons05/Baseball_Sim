@@ -46,6 +46,7 @@ class Scraping_Client:
         result["batting"] = batting_data
         result["pitching"] = pitching_data
         result["team_info"] = basic_team_info_data
+        result["batting_orders"] = batting_order_data
 
         return result
 
@@ -91,20 +92,35 @@ class Scraping_Client:
 
 
     def get_team_batting_orders_table(self, team_roster_page_url: str) -> Table:
+        result = Table(forbidden_characters=DEFAULT_FORBIDDEN_CHARS)
+
         url = utils.get_team_batting_order_url(team_roster_page_url)
         response = self.scrape_page_html(url)
-        
-        extra_row_vals: list[Extra_Types.EXTRA_ROW_VALUE] = []
-        for x in range(1, 10):
-            extra_row_vals.append({
-                "name": str(x),
-                "location": {
-                    "attribute_name": "data-entry-id",
-                    "tag_navigation_path": [
-                        {"tag_name": "li", "attributes": {"value": str(x)}}
-                    ]
-                }
+
+        value_locations: list[Extra_Types.HTML_TAG_VALUE_LOCATION] = []
+        for i in range(1, 10):
+            value_locations.append({
+                "attribute_name": "data-entry-id",
+                "tag_navigation_path": [
+                    {"tag_name": "li", "attributes": {"value": str(i)}}, {"tag_name": "a"}
+                ]
             })
+        
+        parser = Table_Parser(response, "st_0", "all_common_orders")
+        html_table = parser.table
+        columns: list[BeautifulSoup] = html_table.find_all("td")
+
+        for column in columns:
+            column_data = dict()
+            column_header = parser.parse_table_cell(column.find("strong"))
+            column_data["games_played"] = column_header.strip().split()[0]
+
+            for i in range(len(value_locations)):
+                player_id = parser.get_value_from_tag(column, value_locations[i])
+                column_data[str(i)] = player_id
+            result.add_row(column_data, True)
+        
+        return result
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
