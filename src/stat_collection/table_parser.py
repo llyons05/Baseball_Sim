@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup, Comment
 from typing import Literal, TypedDict
+from collections.abc import Callable
 
 import utils
 from table import Table
@@ -10,12 +11,23 @@ class NoTableFoundException (Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
+def default_parse_table_cell(cell: BeautifulSoup) -> str:
+    result = cell.find(string=True)
+    return result
+
 class Table_Parser:
 
     def __init__(self,
                  page_html,
                  table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
-                 table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> None:
+                 table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
+                 table_header_tag_name: str = "thead",
+                 table_body_tag_name: str = "tbody",
+                 table_row_tag_name: str = "tr",
+                 row_header_cell_tag_name: str = "th",
+                 row_cell_tag_name: str = "td",
+                 cell_descriptor_attribute_name: str = "data-stat",
+                 cell_parsing_method: Callable[[BeautifulSoup], str] = default_parse_table_cell) -> None:
 
         self.page_soup = BeautifulSoup(page_html, "html.parser")
         self.table_location = table_location
@@ -25,6 +37,15 @@ class Table_Parser:
 
         if self.table == None:
             raise NoTableFoundException(f"No table at location {table_location} was found in the soup.")
+
+        self.table_row_tag_name = table_row_tag_name
+        self.table_header_tag_name = table_header_tag_name
+        self.table_body_tag_name = table_body_tag_name
+        self.row_header_cell_tag_name = row_header_cell_tag_name
+        self.row_cell_tag_name = row_cell_tag_name
+        self.cell_descriptor_attribute_name = cell_descriptor_attribute_name
+
+        self.parse_table_cell = cell_parsing_method
 
 
     def extract_table_from_soup(self,
@@ -48,18 +69,21 @@ class Table_Parser:
         headers = self.parse_table_headers(self.table, column_filters, extra_row_values)
         data = self.parse_table_body(self.table, extra_row_values, row_filters, column_filters)
 
-        return Table(headers, data, forbidden_chars)
+        result = Table(headers, forbidden_characters=forbidden_chars)
+        result.add_rows(data, True)
+
+        return result
 
 
     def parse_table_headers(self, table: BeautifulSoup,
                             column_filters: Extra_Types.TABLE_COLUMN_FILTER,
                             extra_columns: list[Extra_Types.EXTRA_ROW_VALUE]) -> list[str]:
         headers: list[str] = []
-        table_headers = table.find("thead")
+        table_headers = table.find(self.table_header_tag_name)
         if table_headers:
-            header_cells = table_headers.find_all("th")
+            header_cells = table_headers.find_all(self.row_header_cell_tag_name)
             for cell in header_cells:
-                value = cell.get("data-stat")
+                value = cell.get(self.cell_descriptor_attribute_name)
                 if value not in column_filters:
                     headers.append(value)
 
@@ -74,7 +98,7 @@ class Table_Parser:
                          column_filters: Extra_Types.TABLE_COLUMN_FILTER) -> list[dict[str, str]]:
 
         result: list[dict[str, str]] = []
-        table_rows = table.find("tbody").find_all("tr")
+        table_rows = table.find(self.table_body_tag_name).find_all(self.table_row_tag_name)
 
         for row in table_rows:
 
@@ -82,15 +106,15 @@ class Table_Parser:
                 continue
 
             row_data: dict[str, str] = dict()
-            row_header = row.find("th")
+            row_header = row.find(self.row_header_cell_tag_name)
             if row_header:
-                header_cell_name = row_header.get("data-stat")
+                header_cell_name = row_header.get(self.cell_descriptor_attribute_name)
                 if (header_cell_name not in column_filters):
                     row_data[header_cell_name] = self.parse_table_cell(row_header)
 
-            row_cells = row.findAll("td")
+            row_cells = row.findAll(self.row_cell_tag_name)
             for cell in row_cells:
-                cell_name = cell.get("data-stat")
+                cell_name = cell.get(self.cell_descriptor_attribute_name)
                 if cell_name and (cell_name not in column_filters):
                     row_data[cell_name] = self.parse_table_cell(cell)
 
@@ -114,11 +138,6 @@ class Table_Parser:
         return result
 
 
-    def parse_table_cell(self, cell: BeautifulSoup) -> str:
-        result = cell.find(string=True)
-        return result
-
-
     def is_row_filtered(self, row: BeautifulSoup, row_filters: list[Extra_Types.TABLE_ROW_FILTER]) -> bool:
         for row_filter in row_filters:
             filtered_values = row_filter['filtered_values']
@@ -135,7 +154,10 @@ class Table_Parser:
         if current_tag == None:
             return None
 
-        return current_tag.get(value_location["attribute_name"])
+        if (value_location.get("attribute_name")):
+            return current_tag.get(value_location["attribute_name"])
+        else:
+            return current_tag.find(string=True)
 
 
     def get_tag_from_soup(self, soup: BeautifulSoup, tag_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> BeautifulSoup:

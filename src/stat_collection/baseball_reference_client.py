@@ -92,35 +92,27 @@ class Scraping_Client:
 
 
     def get_team_common_batting_orders_table(self, team_roster_page_url: str) -> Table:
-        result = Table()
         url = utils.get_team_batting_order_url(team_roster_page_url)
         response = self.scrape_page_html(url)
 
         wrapper_div_location = [{"tag_name": "div", "attributes": {"id": "all_common_orders"}}]
         table_location = [wrapper_div_location[0], {"tag_name": "table", "attributes": {"class": "stats_table"}}]
-        parser = Table_Parser(response, table_location, wrapper_div_location)
+        parser = Table_Parser(response, table_location, wrapper_div_location, table_row_tag_name="td", table_body_tag_name="tr",
+                              row_cell_tag_name="li", cell_descriptor_attribute_name="value", cell_parsing_method=self.parse_batting_order_cell)
 
-        value_locations: list[Extra_Types.HTML_TAG_VALUE_LOCATION] = []
-        for x in range(1, 10):
-            value_locations.append({
-                "attribute_name": "data-entry-id",
-                "tag_navigation_path": [
-                    {"tag_name": "li", "attributes": {"value": str(x)}}, {"tag_name": "a"}
-                ]
-            })
-        
-        columns: list[BeautifulSoup] = parser.table.find_all("td")
-        for column in columns:
-            column_data = dict()
-            column_data["num_games"] = column.find("strong").find(string=True).split()[0]
-            for location in value_locations:
-                pos_in_batting_order = location["tag_navigation_path"][0]["attributes"]["value"]
-                column_data[pos_in_batting_order] = parser.get_value_from_tag(column, location)
-            
-            result.add_row(column_data, True)
+        extra_row_values: list[Extra_Types.EXTRA_ROW_VALUE] = [
+            {"name": "games", "location": {"tag_navigation_path": [{"tag_name": "strong"}]}}
+        ]
 
-        return result
+        table = parser.parse(extra_row_values, forbidden_chars={" Games": ""})
+        return table
 
+
+    def parse_batting_order_cell(self, cell: BeautifulSoup) -> str:
+        hyperlink = cell.find("a")
+        if hyperlink:
+            return hyperlink.get("data-entry-id")
+        return cell.find(string=True)
 
 
     def scrape_team_page_for_roster_url(self, team_page_url: str, year: int) -> str | None:
