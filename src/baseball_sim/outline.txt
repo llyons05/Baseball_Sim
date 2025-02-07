@@ -62,3 +62,11 @@ Half Inning Class:
     - Outs (int)
     - Runs_Scored (int)
     - Bases (Base_State)
+
+
+NOTES:
+    What to do when player stats for a year don't exist
+    Batting order can currently include players who are not in the field
+        - Have set_up_batting_order only pull from the fielders
+    Make sure to use pass by reference whenever necessary for large tables
+    Add documentation

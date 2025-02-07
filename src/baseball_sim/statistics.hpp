@@ -1,22 +1,116 @@
 #pragma once
 
-#include "player.hpp"
+#include "baseball_exceptions.hpp"
+#include "table.hpp"
+
+#include <vector>
+#include <map>
+#include <string>
+#include <stdexcept>
+
+
+enum ePlayer_Stat_Types {
+    PLAYER_BATTING,
+    PLAYER_PITCHING,
+    PLAYER_APPEARANCES,
+    NUM_PLAYER_STAT_TYPES
+};
+
+extern std::string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES];
 
 class Player_Stats {
-    // Batter Stats
-    float batting_avg;
-    float obps;
-    
-    // Pitcher Stats
-    float opponent_batting_avg;
-    float strikout_percentage;
-    float walk_percentage;
+
+    public:
+        std::string player_id;
+        Stat_Table stat_tables[NUM_PLAYER_STAT_TYPES];
+        int current_year;
+
+        Player_Stats(){}
+
+        Player_Stats(std::string player_id, int year, std::string team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
+
+        template <class T>
+        T get_stat(ePlayer_Stat_Types stat_type, std::string stat_name, T default_val) {
+            Stat_Table stat_table = stat_tables[stat_type];
+            int row_index = current_table_row_indices[stat_type];
+            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+        }
+
+    private:
+        int current_table_row_indices[NUM_PLAYER_STAT_TYPES];
+        std::string current_team_abbreviation;
+
+        void change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, std::string team_abbreviation);
+};
+
+
+enum eTeam_Stat_Types {
+    TEAM_ROSTER,
+    TEAM_BATTING,
+    TEAM_PITCHING,
+    TEAM_COMMON_BATTING_ORDERS,
+    TEAM_INFO,
+    NUM_TEAM_STAT_TYPES
+};
+
+
+extern std::string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES];
+
+class Team_Stats {
+    public:
+        std::string team_name;
+        Stat_Table stat_tables[NUM_TEAM_STAT_TYPES];
+
+        Team_Stats() {}
+        Team_Stats(std::string team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES]);
+
+        Table_Row get_row(eTeam_Stat_Types stat_type, std::map<std::string, std::vector<std::string>> row_attributes);
+
+        template <class T>
+        T get_stat(eTeam_Stat_Types stat_type, std::map<std::string, std::vector<std::string>> row_attributes, std::string stat_name, T default_val) {
+            Stat_Table stat_table = stat_tables[stat_type];
+            int row_index = stat_table.find_row(row_attributes);
+            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+        }
 
 };
 
-class Team_Info {
-    int wins;
-    int losses;
+extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE;
 
-    Player usual_batting_order[9];
+
+enum eLeague_Stat_Types {
+    LEAGUE_BATTING,
+    LEAGUE_PITCHING,
+    NUM_LEAGUE_STAT_TYPES
 };
+
+class League_Stats {
+    public:
+        Stat_Table stat_tables[NUM_LEAGUE_STAT_TYPES];
+
+        League_Stats() {}
+        League_Stats(Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]);
+
+        Table_Row get_row(eLeague_Stat_Types stat_type, int year) {
+            return stat_tables[stat_type].get_rows().at(get_row_index(year));
+        }
+
+        template <class T>
+        T get_stat(eLeague_Stat_Types stat_type, int year, std::string stat_name, T default_val) {
+            Stat_Table stat_table = stat_tables[stat_type];
+            int row_index = get_row_index(year);
+            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+        }
+
+    private:
+        int start_year;
+
+        int get_row_index(int year) {
+            if (year > start_year) {
+                return start_year;
+            }
+            return start_year - year;
+        }
+};
+
+extern League_Stats LEAGUE_AVG_STATS;
