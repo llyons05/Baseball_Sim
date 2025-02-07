@@ -28,11 +28,8 @@ class At_Bat {
         int balls;
         int strikes;
 
-        Player pitcher;
-        Player batter;
-
-        Team pitching_team;
-        Team hitting_team;
+        Player* pitcher;
+        Player* batter;
 
         At_Bat(Team& hitting_team, Team& pitching_team);
         eAt_Bat_Result play();
@@ -49,6 +46,14 @@ class At_Bat {
 class Base_State {
     public:
         Player players_on_base[3];
+
+        Base_State() {
+            for (int i = 0; i < 3; i++) {
+                players_on_base[i] = NULL_PLAYER;
+            }
+        }
+
+        int advance_runners(Player& batter, eAt_Bat_Result result);
 };
 
 
@@ -56,15 +61,14 @@ class Half_Inning {
     public:
         const static int NUM_OUTS_TO_END_INNING = 3;
 
-        Team hitting_team;
-        Team pitching_team;
+        Team* hitting_team;
+        Team* pitching_team;
 
-        Player pitcher;
-        Player batter;
+        Player* pitcher;
+        Player* batter;
 
         int outs;
         int runs_scored;
-        int total_bases;
         Base_State bases;
 
         Half_Inning(Team& hitting_team, Team& pitching_team);

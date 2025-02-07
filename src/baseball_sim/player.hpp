@@ -53,3 +53,5 @@ class Player {
             return id == other.id;
         }
 };
+
+const Player NULL_PLAYER("NULL", Player_Stats());

@@ -36,6 +36,10 @@ class Team {
             return all_players;
         }
 
+        Player get_batter() {
+            return batting_order[position_in_batting_order];
+        }
+
 
         std::set<Player> filter_players_by_listed_pos(std::vector<std::string> positions = {});
         std::set<Player> filter_pitchers(std::vector<std::string> positions = {});
