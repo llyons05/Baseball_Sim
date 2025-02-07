@@ -40,6 +40,8 @@ class At_Bat {
 
         void calculate_probabilities(float prob_array[num_outcomes]);
         float get_probability_numerator(std::string batter_stat, std::string pitcher_stat, std::string league_stat, eLeague_Stat_Types league_stat_type);
+        int get_random_event(float event_probs[], int num_events);
+        eAt_Bat_Result get_hit_result();
 };
 
 

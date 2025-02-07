@@ -25,24 +25,18 @@ eAt_Bat_Result At_Bat::get_ab_result() {
 
     float outcome_probs[num_outcomes];
     calculate_probabilities(outcome_probs);
+    int outcome_index = get_random_event(outcome_probs, num_outcomes);
 
-    float r = ((float)rand())/(RAND_MAX);
-
-    // std::cout << "HIT PROB: " << outcome_probs[0] << "\n";
-    // std::cout << "WALK PROB: " << outcome_probs[1] << "\n";
-    // std::cout << "OUT PROB: " << outcome_probs[2] << "\n";
-
-    if (r<= outcome_probs[0]) {
-        std::cout << "\t" << batter->name << " GOT A " << "HIT!\n";
+    if (outcome_index == 0) {
+        std::cout << "\t" << batter->name << " GOT A HIT!\n";
+        return get_hit_result();
+    }
+    if (outcome_index == 1) {
+        std::cout << "\t" << batter->name << " WAS WALKED...\n";
         return ADVANCED_ONE_BASE;
     }
-    r -= outcome_probs[0];
-    if (r<= outcome_probs[1]) {
-        std::cout << "\t" << batter->name << " WAS " << "WALKED...\n";
-        return ADVANCED_ONE_BASE;
-    }
-    std::cout << "\t" << batter->name << " IS " << "OUT!\n";
-    
+
+    std::cout << "\t" << batter->name << " IS OUT!\n";
     return OUT;
 }
 
@@ -85,6 +79,45 @@ float At_Bat::get_probability_numerator(std::string batter_stat, std::string pit
     float z = LEAGUE_AVG_STATS.get_stat<float>(league_stat_type, batter->stats.current_year, league_stat, 0.0);
 
     return x*y/z;
+}
+
+
+// Returns the index of the event that happens
+int At_Bat::get_random_event(float event_probs[], int num_events) {
+    float r = ((float)rand())/(RAND_MAX);
+    for (int i = 0; i < num_events; i++) {
+        if (r <= event_probs[i]) {
+            return i;
+        }
+        r -= event_probs[i];
+    }
+    std::cout << "PROBABILITY ERROR\n";
+    return -1;
+}
+
+
+eAt_Bat_Result At_Bat::get_hit_result() {
+    int total_hits = batter->stats.get_stat<int>(PLAYER_BATTING, "b_h", 0);
+    int doubles = batter->stats.get_stat<int>(PLAYER_BATTING, "b_doubles", 0);
+    int triples = batter->stats.get_stat<int>(PLAYER_BATTING, "b_triples", 0);
+    int home_runs = batter->stats.get_stat<int>(PLAYER_BATTING, "b_hr", 0);
+    int singles = total_hits - doubles - triples - home_runs;
+
+    float single_prob = ((float)singles) / total_hits;
+    float double_prob = ((float)doubles) / total_hits;
+    float triple_prob = ((float)triples) / total_hits;
+    float hr_prob = ((float)home_runs) / total_hits;
+    
+    float prob_arr[4] = {single_prob, double_prob, triple_prob, hr_prob};
+
+    eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(prob_arr, 4) + 1);
+
+    if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
+    else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
+    else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
+    else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
+
+    return result;
 }
 
 
