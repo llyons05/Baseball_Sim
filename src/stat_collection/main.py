@@ -29,6 +29,15 @@ def handle_user_scraping() -> None:
     elif scraping_mode == "player":
         handle_player_stats_scraping()
 
+    elif scraping_mode == "league":
+        handle_league_stats_scraping()
+
+
+def handle_league_stats_scraping():
+    overwrite_data = UI.should_overwrite_data()
+    Data_Handler.scrape_and_save_league_data(overwrite_data)
+    UI.wait_for_user_input("Done. Press enter to continue.")
+
 
 def handle_team_data_scraping():
     while True:
@@ -65,23 +74,18 @@ def handle_player_stats_scraping() -> None:
         stat_type = UI.choose_player_stat_type()
         overwrite_data = UI.should_overwrite_data()
 
-        if stat_type == "pitching":
-            should_gather_non_pitchers = UI.should_gather_non_pitcher_stats()
-        else:
-            should_gather_non_pitchers = True
-
         for team in teams_to_scrape:
-            save_all_team_player_data(team, year, stat_type, overwrite_data, should_gather_non_pitchers)
+            save_all_team_player_data(team, year, stat_type, overwrite_data)
         
         UI.wait_for_user_input("Done. Press enter to continue.")
 
 
-def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.PLAYER_STAT_TYPES, overwrite_data: bool = True, should_gather_non_pitchers: bool = True) -> None:
+def save_all_team_player_data(team_abbreviation: str, year: int, stat_type: DI.PLAYER_STAT_TYPES, overwrite_data: bool = True) -> None:
 
     if not handle_missing_team_data_file(team_abbreviation, year):
         return
 
-    team_file_type_to_read_from = DI.get_team_file_type_to_read_from(stat_type, should_gather_non_pitchers)
+    team_file_type_to_read_from = DI.get_team_file_type_to_read_from(stat_type)
     team_data = DI.read_team_data_file(team_abbreviation, year, team_file_type_to_read_from)
 
     print(f"Saving {team_abbreviation} {year} roster player {stat_type} stats...")

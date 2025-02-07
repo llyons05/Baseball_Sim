@@ -37,3 +37,15 @@ def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_type:
         DI.save_player_data_file(player_id, stat_type, player_data)
 
     return True
+
+
+def scrape_and_save_league_data(overwrite_data: bool = True) -> bool:
+    client = Scraping_Client()
+    
+    print("Scraping League average statistics...")
+    if (not DI.league_data_file_exists("batting") or not DI.league_data_file_exists("pitching")) or overwrite_data:
+        league_data = client.scrape_league_avg_tables()
+        DI.save_league_data_file("batting", league_data["batting"])
+        DI.save_league_data_file("pitching", league_data["pitching"])
+    
+    return True

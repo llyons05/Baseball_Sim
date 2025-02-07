@@ -7,6 +7,7 @@ from table import Table
 PARENT_DIR: str = "data"
 TEAMS_DIR: str = f"{PARENT_DIR}/teams"
 PLAYERS_DIR: str = f"{PARENT_DIR}/players"
+LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances"]
@@ -23,10 +24,11 @@ def set_up_file_structure():
     utils.make_dirs(PARENT_DIR)
     create_all_team_folders()
     create_all_player_folders()
+    create_all_league_folders()
 
 
 def is_file_structure_set_up() -> bool:
-    return all_team_folders_exist() and all_player_folders_exist()
+    return all_team_folders_exist() and all_player_folders_exist() and all_league_folders_exist()
 
 
 def all_team_folders_exist() -> bool:
@@ -47,6 +49,10 @@ def all_player_folders_exist() -> bool:
     return True
 
 
+def all_league_folders_exist() -> bool:
+    return os.path.exists(LEAGUE_DIR)
+
+
 def create_all_team_folders():
     utils.make_dirs(TEAMS_DIR)
 
@@ -59,6 +65,10 @@ def create_all_player_folders():
 
     for stat_type in get_args(PLAYER_STAT_TYPES):
         utils.make_dirs(f"{PLAYERS_DIR}/{stat_type}")
+
+
+def create_all_league_folders():
+    utils.make_dirs(LEAGUE_DIR)
 
 
 def get_all_teams() -> list[dict[Literal["NAME", "URL", "TEAM_ID"], str]]:
@@ -98,6 +108,18 @@ def read_player_data_file(player_id: str, stat_type: PLAYER_STAT_TYPES) -> Table
     return utils.read_csv_as_table(filename)
 
 
+def save_league_data_file(stat_type: Literal["batting", "pitching"], league_data: Table) -> str:
+    filename = get_league_data_file_path(stat_type)
+    utils.save_table_to_csv(filename, league_data)
+    print(f"Saved League {stat_type} table to {filename}")
+    return filename
+
+
+def read_league_data_file(stat_type: Literal["batting", "pitching"]) -> Table:
+    filename = get_league_data_file_path(stat_type)
+    return utils.read_csv_as_table(filename)
+
+
 def get_team_dir_path(team_abbreviation: str) -> str:
     return f"{TEAMS_DIR}/{team_abbreviation}"
 
@@ -112,6 +134,10 @@ def get_team_data_file_path(team_abbreviation: str, year: int, team_data_type: T
 
 def get_player_data_file_path(player_id: str, stat_type: PLAYER_STAT_TYPES) -> str:
     return f"{PLAYERS_DIR}/{stat_type}/{player_id}_{stat_type}.csv"
+
+
+def get_league_data_file_path(stat_type: Literal["batting", "pitching"]) -> str:
+    return f"{LEAGUE_DIR}/league_{stat_type}_avg.csv"
 
 
 def find_missing_team_data_files(team_abbreviation: str, year: int) -> TEAM_DATA_FILE_TYPES | Literal[""]:
@@ -130,7 +156,11 @@ def player_data_file_exists(player_id: str, stat_type: PLAYER_STAT_TYPES) -> boo
     return os.path.exists(get_player_data_file_path(player_id, stat_type))
 
 
-def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES, gather_all_players: bool = False) -> TEAM_DATA_FILE_TYPES:
+def league_data_file_exists(stat_type: Literal["batting", "pitching"]) -> bool:
+    return os.path.exists(get_league_data_file_path(stat_type))
+
+
+def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES) -> TEAM_DATA_FILE_TYPES:
     """
     Given the stat type, returns what type of team file should be read to retrieve the correct players.
     For example, if our player_stat_type is 'pitching', then this will return the team data file type where the pitchers are located.
@@ -138,8 +168,6 @@ def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES, gather_
     """
 
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
-    if gather_all_players:
-        team_file_type_to_read_from = "roster"
     
     return team_file_type_to_read_from
 

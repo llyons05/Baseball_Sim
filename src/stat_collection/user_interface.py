@@ -18,17 +18,18 @@ def get_user_mode() -> Literal["scrape", "view"]:
     return "view"
 
 
-def get_scraping_mode() -> Literal["team", "player"]:
+def get_scraping_mode() -> Literal["team", "player", "league"]:
     mode: str = ""
-    while mode.lower() not in ("t", "p"):
-        print(f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")}? ({colored("T", "green")}/{colored("p", "red")})", end=": ")
+    while mode.lower() not in ("t", "p", "l"):
+        print(f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")} or {colored("league statistics", "blue")}? ({colored("T", "green")}/{colored("p", "red")}/{colored("l", "blue")})", end=": ")
         mode = input().lower()
     print()
     
     if mode == "t":
         return "team"
-    
-    return "player"
+    elif mode == "p":
+        return "player"
+    return "league"
 
 
 def get_roster_scraping_selection() -> list[str]:
@@ -213,7 +214,7 @@ def display_player_data_table(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -
 
 
 def display_team_roster_file(team_abbreviation: str, year: int) -> None:
-    filename = DI.get_team_data_file_path(team_abbreviation, year, "batting")
+    filename = DI.get_team_data_file_path(team_abbreviation, year, "roster")
     headers_to_display = ["NAME", "pos", "ID"]
     utils.print_csv(filename, headers_to_display)
     print()

@@ -62,6 +62,7 @@ class Scraping_Client:
         extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
         for val in extra_row_vals[:3]:
             val["location"]["tag_navigation_path"][0]["tag_name"] = "th"
+            val["location"]["tag_navigation_path"][0]["attributes"]["data-stat"] = "player"
 
         roster = parser.parse(extra_row_vals, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return roster
@@ -73,10 +74,10 @@ class Scraping_Client:
         Returns a Table containing the team's list of pitchers and some basic stats for them.
         """
 
-        pitchers = self.parse_default_player_list_table(main_team_roster_page_html, "team_pitching", "all_team_pitching")
+        pitchers = self.parse_default_player_list_table(main_team_roster_page_html, "players_standard_pitching", "all_players_standard_pitching")
         for row in pitchers.rows:
-            if not row["pos"]:
-                row["pos"] = "P"
+            if not row["team_position"]:
+                row["team_position"] = "P"
 
         return pitchers
 
@@ -87,7 +88,7 @@ class Scraping_Client:
         Returns a Table containing the team's batting stats.
         """
 
-        batters = self.parse_default_player_list_table(main_team_roster_page_html, "team_batting", "all_team_batting")
+        batters = self.parse_default_player_list_table(main_team_roster_page_html, "players_standard_batting", "all_players_standard_batting")
         return batters
 
 
@@ -208,8 +209,8 @@ class Scraping_Client:
 
     def try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
         player_batting_page_url = utils.get_player_batting_page_url(base_player_page_url)
-        table_location = self.get_default_table_location("batting_standard")
-        wrapper_div_location = self.get_default_wrapper_div_location("all_batting_standard")
+        table_location = self.get_default_table_location("players_standard_batting")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_players_standard_batting")
 
         table_parser = self.scrape_table_from_player_page(player_batting_page_url, table_location, wrapper_div_location)
 
@@ -221,8 +222,8 @@ class Scraping_Client:
 
     def try_scraping_pitching_tables(self, base_player_page_url: str) -> Table_Parser | None:
         player_pitching_page_url = utils.get_player_pitching_page_url(base_player_page_url)
-        table_location = self.get_default_table_location("pitching_standard")
-        wrapper_div_location = self.get_default_wrapper_div_location("all_pitching_standard")
+        table_location = self.get_default_table_location("players_standard_pitching")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_players_standard_pitching")
 
         table_parser = self.scrape_table_from_player_page(player_pitching_page_url, table_location, wrapper_div_location)
 
@@ -256,6 +257,28 @@ class Scraping_Client:
             return None
         
         return table_parser
+
+
+    def scrape_league_avg_tables(self) -> dict[Literal["batting", "pitching"], Table]:
+        result: dict[Literal["batting", "pitching"], Table] = dict()
+
+        batting_url = BASE_URL + "/leagues/majors/bat.shtml"
+        batting_table_location = self.get_default_table_location("teams_standard_batting")
+        batting_wrapper_div_location = self.get_default_wrapper_div_location("all_teams_standard_batting")
+
+        response = self.scrape_page_html(batting_url)
+        table_parser = Table_Parser(response, batting_table_location, batting_wrapper_div_location)
+        result["batting"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS)
+
+        pitching_url = BASE_URL + "/leagues/majors/pitch.shtml"
+        pitching_table_location = self.get_default_table_location("teams_standard_pitching")
+        pitching_wrapper_div_location = self.get_default_wrapper_div_location("all_teams_standard_pitching")
+
+        response = self.scrape_page_html(pitching_url)
+        table_parser = Table_Parser(response, pitching_table_location, pitching_wrapper_div_location)
+        result["pitching"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS)
+
+        return result
 
 
     def get_default_table_location(self, table_id: str) -> Extra_Types.HTML_TAG_NAVIGATION_PATH:
@@ -292,7 +315,7 @@ DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS: list[Extra_Types.EXTRA_ROW_VALUE] = [
                     "tag_navigation_path": [
                         {
                             "tag_name": "td",
-                            "attributes": {"data-stat": "player"}
+                            "attributes": {"data-stat": "name_display"}
                         }
                     ]
                 }
@@ -304,7 +327,7 @@ DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS: list[Extra_Types.EXTRA_ROW_VALUE] = [
                     "tag_navigation_path": [
                         {
                             "tag_name": "td",
-                            "attributes": {"data-stat": "player"}
+                            "attributes": {"data-stat": "name_display"}
                         }
                     ]
                 }
@@ -316,7 +339,7 @@ DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS: list[Extra_Types.EXTRA_ROW_VALUE] = [
                     "tag_navigation_path": [
                         {
                             "tag_name": "td",
-                            "attributes": {"data-stat": "player"}
+                            "attributes": {"data-stat": "name_display"}
                         },
                         {
                             "tag_name": "a"
