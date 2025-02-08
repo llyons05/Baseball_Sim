@@ -51,6 +51,8 @@ class Team {
         void print_fielders();
         void print_batting_order();
 
+        void reset();
+
     private:
         Player pick_starting_pitcher();
         Player pick_relief_pitcher();

@@ -12,7 +12,7 @@ enum eBases {
 
 
 enum eAt_Bat_Result {
-    OUT,
+    BATTER_OUT,
     ADVANCED_ONE_BASE,
     ADVANCED_TWO_BASES,
     ADVANCED_THREE_BASES,
@@ -56,6 +56,7 @@ class Base_State {
         }
 
         int advance_runners(Player& batter, eAt_Bat_Result result);
+        void print();
 };
 
 

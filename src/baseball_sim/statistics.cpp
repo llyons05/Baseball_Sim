@@ -23,7 +23,14 @@ Player_Stats::Player_Stats(string player_id, int year_to_pull_stats_from, string
 
 
 void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, string team_abbreviation) {
-    current_table_row_indices[stat_type] = stat_tables[stat_type].find_row(map<string, vector<string>>({{"year_ID", {to_string(year)}}, {"team_ID", {team_abbreviation}}}));
+    string year_str = "year_id";
+    string team_name_str = "team_name_abbr";
+    if (stat_type == PLAYER_APPEARANCES) {
+        year_str = "year_ID";
+        team_name_str = "team_ID";
+    }
+
+    current_table_row_indices[stat_type] = stat_tables[stat_type].find_row(map<string, vector<string>>({{year_str, {to_string(year)}}, {team_name_str, {team_abbreviation}}}));
     if (current_table_row_indices[stat_type] < 0) {
         current_table_row_indices[stat_type] = stat_tables[stat_type].get_rows().size() - 1;
     }
