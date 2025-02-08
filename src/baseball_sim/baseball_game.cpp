@@ -45,6 +45,6 @@ void Baseball_Game::print_game_result() {
     else {
         std::cout << teams[AWAY_TEAM].team_name << " wins!" << "\n";
     }
-    std::cout << "TOTAL INNINGS: " << half_inning_count << "\n";
+    std::cout << "TOTAL INNINGS: " << half_inning_count/2 << "\n";
     std::cout << "FINAL SCORE: " << score[HOME_TEAM] << " - " << score[AWAY_TEAM] << "\n\n";
 }
