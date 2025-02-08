@@ -176,3 +176,8 @@ void Team::print_batting_order() {
     }
     std::cout << "\n";
 }
+
+
+void Team::reset() {
+    position_in_batting_order = 0;
+}

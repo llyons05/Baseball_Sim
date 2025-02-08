@@ -28,16 +28,16 @@ eAt_Bat_Result At_Bat::get_ab_result() {
     int outcome_index = get_random_event(outcome_probs, num_outcomes);
 
     if (outcome_index == 0) {
-        std::cout << "\t" << batter->name << " GOT A HIT!\n";
+        // std::cout << "\t" << batter->name << " GOT A HIT!\n";
         return get_hit_result();
     }
     if (outcome_index == 1) {
-        std::cout << "\t" << batter->name << " WAS WALKED...\n";
+        // std::cout << "\t" << batter->name << " WAS WALKED...\n";
         return ADVANCED_ONE_BASE;
     }
 
-    std::cout << "\t" << batter->name << " IS OUT!\n";
-    return OUT;
+    // std::cout << "\t" << batter->name << " IS OUT!\n";
+    return BATTER_OUT;
 }
 
 
@@ -48,9 +48,9 @@ void At_Bat::calculate_probabilities(float prob_array[num_outcomes]) {
     float hit_prob_constant = get_probability_numerator("b_h", "p_h", "H", LEAGUE_BATTING) * plate_appearance_num;
 
     // Walk Probability Constant
-    float batter_total_walks = batter->stats.get_stat<float>(PLAYER_BATTING, "b_bb", 0.0) + batter->stats.get_stat<float>(PLAYER_BATTING, "b_ibb", 0.0) + batter->stats.get_stat<float>(PLAYER_BATTING, "b_hbp", 0.0);
-    float pitcher_total_walks = pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_bb", 0.0) + pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_ibb", 0.0) + pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_hbp", 0.0);
-    float league_total_walks = LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "BB", 0.0) + LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "IBB", 0.0) + LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "HBP", 0.0);
+    float batter_total_walks = batter->stats.get_stat<float>(PLAYER_BATTING, "b_bb", 0.0) + batter->stats.get_stat<float>(PLAYER_BATTING, "b_hbp", 0.0);
+    float pitcher_total_walks = pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_bb", 0.0) + pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_hbp", 0.0);
+    float league_total_walks = LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "BB", 0.0) + LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "HBP", 0.0);
     float walk_prob_constant = (batter_total_walks*pitcher_total_walks/league_total_walks) * plate_appearance_num;
 
     // Out Probability Constant
@@ -112,10 +112,10 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 
     eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(prob_arr, 4) + 1);
 
-    if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
-    else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
-    else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
-    else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
+    // if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
+    // else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
+    // else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
+    // else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
 
     return result;
 }
@@ -130,19 +130,19 @@ Half_Inning::Half_Inning(Team& hitting_team, Team& pitching_team) {
 
 
 int Half_Inning::play() {
-    std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
+    // std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
         At_Bat at_bat(*hitting_team, *pitching_team);
         eAt_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
     }
-    std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
+    // std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
     return runs_scored;
 }
 
 
 void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
-    if (at_bat_result == OUT) {
+    if (at_bat_result == BATTER_OUT) {
         outs++;
     }
     runs_scored += bases.advance_runners(hitting_team->batting_order[hitting_team->position_in_batting_order], at_bat_result);
@@ -151,7 +151,7 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
 
 
 int Base_State::advance_runners(Player& batter, eAt_Bat_Result result) {
-    if (result == OUT) return 0;
+    if (result == BATTER_OUT) return 0;
 
     int runs_scored = 0;
     for (int i = THIRD_BASE; i >= FIRST_BASE; i--) {
@@ -174,4 +174,34 @@ int Base_State::advance_runners(Player& batter, eAt_Bat_Result result) {
         players_on_base[batter_base] = batter;
     }
     return runs_scored;
+}
+
+
+void Base_State::print() {
+    const char empty_base = 'o';
+    const char full_base = (char)254;
+
+    if (players_on_base[SECOND_BASE].name != "NULL") {
+        std::cout << "\t\t" << full_base << "\n";
+    }
+    else {
+        std::cout << "\t\t" << empty_base << "\n";
+    }
+
+    std::cout << "\n";
+    if (players_on_base[THIRD_BASE].name != "NULL") {
+        std::cout << "\t" << full_base;
+    }
+    else {
+        std::cout << "\t" << empty_base;
+    }
+
+    if (players_on_base[FIRST_BASE].name != "NULL") {
+        std::cout << "\t\t" << full_base;
+    }
+    else {
+        std::cout << "\t\t" << empty_base;
+    }
+
+    std::cout << "\n\n\t\tH\n";
 }

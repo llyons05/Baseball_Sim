@@ -14,7 +14,7 @@ class Baseball_Game {
         int score[2];
         Team teams[2];
 
-        Baseball_Game( Team home_team, Team away_team );
+        Baseball_Game( Team& home_team, Team& away_team );
 
         Game_Result play_game();
         int play_half_inning();
