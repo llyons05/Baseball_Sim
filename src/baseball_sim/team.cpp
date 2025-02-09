@@ -14,6 +14,10 @@ Team::Team(std::string team_name, std::vector<Player> players, Team_Stats team_s
     
     this->team_name = team_name;
     this->all_players = players;
+    position_in_batting_order = 0;
+    runs_allowed_by_pitcher = 0;
+
+    set_up_pitchers();
     set_up_fielders();
     set_current_pitcher(pick_starting_pitcher());
     set_up_batting_order();
@@ -37,7 +41,7 @@ std::set<Player> Team::filter_players_by_listed_pos(std::vector<std::string> pos
 }
 
 
-std::set<Player> Team::filter_pitchers(std::vector<std::string> pitcher_types) {\
+std::set<Player> Team::filter_pitchers(std::vector<std::string> pitcher_types) {
     Stat_Table stat_table = team_stats.stat_tables[TEAM_PITCHING];
 
     std::vector<Table_Row> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
@@ -51,20 +55,22 @@ std::set<Player> Team::filter_pitchers(std::vector<std::string> pitcher_types) {
 }
 
 
-Player Team::pick_pitcher(int current_half_inning) {
-    if (current_half_inning > 9) {
-        return pick_relief_pitcher();
+std::set<Player> Team::get_all_pitchers() {
+    std::vector<Table_Row> pitcher_table = team_stats.stat_tables[TEAM_PITCHING].get_rows();
+    std::vector<std::string> pitcher_ids;
+
+    for (Table_Row row : pitcher_table) {
+        pitcher_ids.push_back(row.get_stat("ID", ""));
     }
-    return pick_starting_pitcher();
+
+    return find_players(pitcher_ids);
 }
 
 
 Player Team::pick_starting_pitcher() {
-    std::set<Player> pitchers = filter_pitchers({"P", "SP"});
-
-    Player new_pitcher;
+    Player new_pitcher = get_pitcher();
     int max_games = -1;
-    for (Player player : pitchers) {
+    for (Player player : available_pitchers) {
         int games = player.stats.get_stat<int>(PLAYER_PITCHING, "p_gs", 0);
         if (games > max_games) {
             max_games = games;
@@ -77,12 +83,10 @@ Player Team::pick_starting_pitcher() {
 
 
 Player Team::pick_relief_pitcher() {
-    std::set<Player> pitchers = filter_pitchers({"RP", "CL", "P"});
-
-    Player new_pitcher;
+    Player new_pitcher = get_pitcher();
     float highest_win_loss = -1;
-    for (Player player : pitchers) {
-        float win_loss = player.stats.get_stat(PLAYER_PITCHING, "p_w", 0);
+    for (Player player : available_pitchers) {
+        float win_loss = player.stats.get_stat(PLAYER_PITCHING, "p_sv", 0);
         if (win_loss > highest_win_loss) {
             highest_win_loss = win_loss;
             new_pitcher = player;
@@ -95,6 +99,28 @@ Player Team::pick_relief_pitcher() {
 
 void Team::set_current_pitcher(Player new_pitcher) {
     fielders[POS_PITCHER] = new_pitcher;
+    available_pitchers.erase(new_pitcher);
+    runs_allowed_by_pitcher = 0;
+}
+
+
+Player Team::try_switching_pitcher(int current_half_inning) {
+    float curr_pitcher_era = get_pitcher().stats.get_stat<float>(PLAYER_PITCHING, "p_earned_run_avg", 10.0);
+    if (runs_allowed_by_pitcher > curr_pitcher_era) {
+        Player new_pitcher = pick_next_pitcher(current_half_inning);
+        set_current_pitcher(new_pitcher);
+        // std::cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher.name << "\n";
+        return new_pitcher;
+    }
+    return get_pitcher();
+}
+
+
+Player Team::pick_next_pitcher(int current_half_inning) {
+    if (current_half_inning > 12) {
+        return pick_relief_pitcher();
+    }
+    return pick_starting_pitcher();
 }
 
 
@@ -139,6 +165,11 @@ void Team::set_up_fielders() {
 }
 
 
+void Team::set_up_pitchers() {
+    available_pitchers = get_all_pitchers();
+}
+
+
 void Team::set_position_in_field(Player new_player, eDefensivePositions position) {
     fielders[position] = new_player;
 }
@@ -180,4 +211,7 @@ void Team::print_batting_order() {
 
 void Team::reset() {
     position_in_batting_order = 0;
+    runs_allowed_by_pitcher = 0;
+    set_up_pitchers();
+    set_current_pitcher(pick_starting_pitcher());
 }

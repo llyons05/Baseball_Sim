@@ -1,11 +1,10 @@
-#pragma once
-
 #include "game_states.hpp"
 
 #include "statistics.hpp"
 
 #include <random>
 #include <time.h>
+#include <cassert>
 
 //https://sabr.org/journal/article/matchup-probabilities-in-major-league-baseball/
 
@@ -22,7 +21,6 @@ eAt_Bat_Result At_Bat::play() {
 
 
 eAt_Bat_Result At_Bat::get_ab_result() {
-
     float outcome_probs[num_outcomes];
     calculate_probabilities(outcome_probs);
     int outcome_index = get_random_event(outcome_probs, num_outcomes);
@@ -77,7 +75,6 @@ float At_Bat::get_probability_numerator(std::string batter_stat, std::string pit
     float x = batter->stats.get_stat<float>(PLAYER_BATTING, batter_stat, 0.0);
     float y = pitcher->stats.get_stat<float>(PLAYER_PITCHING, pitcher_stat, 0.0);
     float z = LEAGUE_AVG_STATS.get_stat<float>(league_stat_type, batter->stats.current_year, league_stat, 0.0);
-
     return x*y/z;
 }
 
@@ -121,20 +118,26 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 }
 
 
-Half_Inning::Half_Inning(Team& hitting_team, Team& pitching_team) {
+Half_Inning::Half_Inning(Team& hitting_team, Team& pitching_team, int half_inning_number) {
     this->hitting_team = &hitting_team;
     this->pitching_team = &pitching_team;
+    this->half_inning_number = half_inning_number;
     outs = 0;
     runs_scored = 0;
 }
 
 
 int Half_Inning::play() {
+    // std::string top_or_bottom = "TOP ";
+    // if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
+    // std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
     // std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
+
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
         At_Bat at_bat(*hitting_team, *pitching_team);
         eAt_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
+        // bases.print();
     }
     // std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
     return runs_scored;
@@ -145,8 +148,12 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
     if (at_bat_result == BATTER_OUT) {
         outs++;
     }
-    runs_scored += bases.advance_runners(hitting_team->batting_order[hitting_team->position_in_batting_order], at_bat_result);
+    int runs_from_ab = bases.advance_runners(hitting_team->batting_order[hitting_team->position_in_batting_order], at_bat_result);
+    runs_scored += runs_from_ab;
     hitting_team->position_in_batting_order = (hitting_team->position_in_batting_order + 1) % 9;
+
+    pitching_team->runs_allowed_by_pitcher += runs_from_ab;
+    pitching_team->try_switching_pitcher(half_inning_number);
 }
 
 
@@ -158,12 +165,12 @@ int Base_State::advance_runners(Player& batter, eAt_Bat_Result result) {
         if (players_on_base[i].name != "NULL") {
             int new_base = i + result;
             if (new_base > THIRD_BASE) {
-                players_on_base[i] = NULL_PLAYER;
                 runs_scored++;
             }
             else {
                 players_on_base[new_base] = players_on_base[i];
             }
+            players_on_base[i] = NULL_PLAYER;
         }
     }
     int batter_base = result - 1;

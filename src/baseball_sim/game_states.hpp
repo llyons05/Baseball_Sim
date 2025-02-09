@@ -67,14 +67,13 @@ class Half_Inning {
         Team* hitting_team;
         Team* pitching_team;
 
-        Player* pitcher;
-        Player* batter;
-
         int outs;
         int runs_scored;
         Base_State bases;
 
-        Half_Inning(Team& hitting_team, Team& pitching_team);
+        int half_inning_number;
+
+        Half_Inning(Team& hitting_team, Team& pitching_team, int half_inning_number);
         int play();
         void handle_at_bat_result(eAt_Bat_Result at_bat_result);
 };
