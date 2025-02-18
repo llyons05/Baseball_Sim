@@ -50,9 +50,10 @@ int main() {
 
     home_team.print_batting_order();
     away_team.print_batting_order();
+    
+    Baseball_Game game(home_team, away_team);
 
     for (int i = 0; i < num_games; i++) {
-        Baseball_Game game(home_team, away_team);
         Game_Result result = game.play_game();
 
         if (result.final_score[HOME_TEAM] > result.final_score[AWAY_TEAM]) total_wins[HOME_TEAM]++;
@@ -61,8 +62,7 @@ int main() {
         total_runs[HOME_TEAM] += result.final_score[HOME_TEAM];
         total_runs[AWAY_TEAM] += result.final_score[AWAY_TEAM];
 
-        home_team.reset();
-        away_team.reset();
+        game.reset();
     }
 
     std::cout << "Result of " << num_games << " games:\n";

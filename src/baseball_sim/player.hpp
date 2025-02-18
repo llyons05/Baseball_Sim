@@ -4,7 +4,7 @@
 
 #include <string>
 #include <map>
-
+#include <functional>
 
 enum eDefensivePositions {
     POS_PITCHER,
@@ -40,7 +40,7 @@ class Player {
             id = stats.player_id;
         }
 
-        int games_at_fielding_position(eDefensivePositions position) {
+        int games_at_fielding_position(eDefensivePositions position) const {
             std::string stat_string = POSITION_TO_APPEARANCE_KEY.at(DEFENSIVE_POSITIONS[position]);
             return stats.get_stat(PLAYER_APPEARANCES, stat_string, 0);
         }

@@ -30,7 +30,7 @@ class Player_Stats {
         Player_Stats(std::string player_id, int year, std::string team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
 
         template <class T>
-        T get_stat(ePlayer_Stat_Types stat_type, std::string stat_name, T default_val) {
+        T get_stat(ePlayer_Stat_Types stat_type, std::string stat_name, T default_val) const {
             int row_index = current_table_row_indices[stat_type];
             return stat_tables[stat_type].get_stat<T>(stat_name, row_index, default_val);
         }

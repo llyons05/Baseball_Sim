@@ -28,9 +28,9 @@ class Team {
 
         Team(){}
 
-        Team(std::string team_name, std::vector<Player> players, Team_Stats team_stats);
+        Team(std::string team_name, std::vector<Player>& players, Team_Stats& team_stats);
 
-        void add_player(Player player) {
+        void add_player(Player& player) {
             all_players.push_back(player);
         }
 
@@ -38,22 +38,22 @@ class Team {
             return all_players;
         }
 
-        Player get_batter() {
-            return batting_order[position_in_batting_order];
+        inline Player* get_batter() {
+            return &batting_order[position_in_batting_order];
         }
 
-        Player get_pitcher() {
-            return fielders[POS_PITCHER];
+        inline Player* get_pitcher() {
+            return &fielders[POS_PITCHER];
         }
 
 
         std::set<Player> filter_players_by_listed_pos(std::vector<std::string> positions = {});
         std::set<Player> filter_pitchers(std::vector<std::string> positions = {});
 
-        Player try_switching_pitcher(int current_half_inning);
-        Player pick_next_pitcher(int current_half_inning);
-        void set_current_pitcher(Player new_pitcher);
-        void set_position_in_field(Player new_player, eDefensivePositions position);
+        Player* try_switching_pitcher(int current_half_inning);
+        Player* pick_next_pitcher(int current_half_inning);
+        void set_current_pitcher(Player& new_pitcher);
+        void set_position_in_field(Player& new_player, eDefensivePositions position);
 
         void print_fielders();
         void print_batting_order();
@@ -61,8 +61,8 @@ class Team {
         void reset();
 
     private:
-        Player pick_starting_pitcher();
-        Player pick_relief_pitcher();
+        Player* pick_starting_pitcher();
+        Player* pick_relief_pitcher();
 
         void set_up_batting_order();
         void set_up_fielders();
@@ -72,7 +72,7 @@ class Team {
 
         std::set<Player> find_players(std::vector<std::string> player_ids) {
             std::set<Player> result;
-            for (Player player : all_players) {
+            for (const Player& player : all_players) {
                 for (std::string player_id : player_ids) {
                     if (player.id == player_id) {
                         result.insert(player);
@@ -84,5 +84,5 @@ class Team {
         }
 
         Player find_best_player_for_defense_pos(eDefensivePositions position, std::vector<Player> players_to_exclude = {});
-        eDefensivePositions find_player_in_fielders(Player player, eDefensivePositions = (eDefensivePositions)0, eDefensivePositions to = NUM_DEFENSIVE_POSITIONS);
+        eDefensivePositions find_player_in_fielders(Player& player, eDefensivePositions = (eDefensivePositions)0, eDefensivePositions to = NUM_DEFENSIVE_POSITIONS);
 };

@@ -38,6 +38,18 @@ int Baseball_Game::play_half_inning() {
 }
 
 
+void Baseball_Game::reset() {
+    teams[HOME_TEAM].reset();
+    teams[AWAY_TEAM].reset();
+
+    score[HOME_TEAM] = 0;
+    score[AWAY_TEAM] = 0;
+
+    team_batting = AWAY_TEAM;
+    half_inning_count = 0;
+}
+
+
 void Baseball_Game::print_game_result() {
     if (score[HOME_TEAM] > score[AWAY_TEAM]) {
         std::cout << teams[HOME_TEAM].team_name << " wins!" << "\n";

@@ -18,6 +18,8 @@ class Baseball_Game {
 
         Game_Result play_game();
         int play_half_inning();
+
+        void reset();
         
         void print_game_result();
 };
