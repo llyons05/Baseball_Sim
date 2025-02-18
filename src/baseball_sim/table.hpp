@@ -63,8 +63,7 @@ class Stat_Table {
                 throw std::exception();
             }
 
-            Table_Row row = table_rows[row_index];
-            return row.get_stat(stat_name, default_val);
+            return table_rows[row_index].get_stat(stat_name, default_val);
         }
 
     private:

@@ -81,13 +81,14 @@ class Half_Inning {
 
 class Game_Result {
     public:
-        Team teams[2];
+        Team* home_team;
+        Team* away_team;
         int final_score[2];
         int half_innings_played;
 
-        Game_Result(Team home_team, Team away_team, int final_score[2], int half_innings_played) {
-            this->teams[HOME_TEAM] = home_team;
-            this->teams[AWAY_TEAM] = away_team;
+        Game_Result(Team& home_team, Team& away_team, int final_score[2], int half_innings_played) {
+            this->home_team = &home_team;
+            this->away_team = &away_team;
             this->final_score[0] = final_score[0];
             this->final_score[1] = final_score[1];
             this->half_innings_played = half_innings_played;

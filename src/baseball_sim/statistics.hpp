@@ -31,9 +31,8 @@ class Player_Stats {
 
         template <class T>
         T get_stat(ePlayer_Stat_Types stat_type, std::string stat_name, T default_val) {
-            Stat_Table stat_table = stat_tables[stat_type];
             int row_index = current_table_row_indices[stat_type];
-            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+            return stat_tables[stat_type].get_stat<T>(stat_name, row_index, default_val);
         }
 
     private:
@@ -68,9 +67,8 @@ class Team_Stats {
 
         template <class T>
         T get_stat(eTeam_Stat_Types stat_type, std::map<std::string, std::vector<std::string>> row_attributes, std::string stat_name, T default_val) {
-            Stat_Table stat_table = stat_tables[stat_type];
-            int row_index = stat_table.find_row(row_attributes);
-            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+            int row_index = stat_tables[stat_type].find_row(row_attributes);
+            return stat_tables[stat_type].get_stat<T>(stat_name, row_index, default_val);
         }
 
 };
@@ -96,10 +94,9 @@ class League_Stats {
         }
 
         template <class T>
-        T get_stat(eLeague_Stat_Types stat_type, int year, std::string stat_name, T default_val) {
-            Stat_Table stat_table = stat_tables[stat_type];
+        T get_stat(eLeague_Stat_Types stat_type, int year, std::string stat_name, T default_val) {\
             int row_index = get_row_index(year);
-            return stat_table.get_stat<T>(stat_name, row_index, default_val);
+            return stat_tables[stat_type].get_stat<T>(stat_name, row_index, default_val);
         }
 
     private:
