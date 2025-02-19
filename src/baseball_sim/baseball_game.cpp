@@ -24,8 +24,10 @@ Game_Result Baseball_Game::play_game() {
         score[team_batting] += runs_scored;
         team_batting = !team_batting;
     }
-
+    #if BASEBALL_DEBUG
     print_game_result();
+    #endif
+
     return Game_Result(teams[HOME_TEAM], teams[AWAY_TEAM], score, half_inning_count);
 }
 

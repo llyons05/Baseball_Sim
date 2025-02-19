@@ -26,15 +26,22 @@ eAt_Bat_Result At_Bat::get_ab_result() {
     int outcome_index = get_random_event(outcome_probs, num_outcomes);
 
     if (outcome_index == 0) {
-        // std::cout << "\t" << batter->name << " GOT A HIT!\n";
+        #if BASEBALL_DEBUG
+        std::cout << "\t" << batter->name << " GOT A HIT!\n";
+        #endif
         return get_hit_result();
     }
     if (outcome_index == 1) {
-        // std::cout << "\t" << batter->name << " WAS WALKED...\n";
+        #if BASEBALL_DEBUG
+        std::cout << "\t" << batter->name << " WAS WALKED...\n";
+        #endif
         return ADVANCED_ONE_BASE;
     }
 
-    // std::cout << "\t" << batter->name << " IS OUT!\n";
+    #if BASEBALL_DEBUG
+    std::cout << "\t" << batter->name << " IS OUT!\n";
+    #endif
+
     return BATTER_OUT;
 }
 
@@ -90,8 +97,10 @@ int At_Bat::get_random_event(float event_probs[], int num_events) {
         r -= event_probs[i];
     }
 
+    #if BASEBALL_DEBUG
     std::cout << "PROBABILITY ERROR\n";
     std::quick_exit(1);
+    #endif
     return -1;
 }
 
@@ -112,10 +121,12 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 
     eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(prob_arr, 4) + 1);
 
-    // if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
-    // else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
-    // else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
-    // else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
+    #if BASEBALL_DEBUG
+    if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
+    else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
+    else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
+    else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
+    #endif
 
     return result;
 }
@@ -131,18 +142,24 @@ Half_Inning::Half_Inning(Team& hitting_team, Team& pitching_team, int half_innin
 
 
 int Half_Inning::play() {
-    // std::string top_or_bottom = "TOP ";
-    // if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
-    // std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
-    // std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
+    #if BASEBALL_DEBUG
+    std::string top_or_bottom = "TOP ";
+    if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
+    std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
+    std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
+    #endif
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
         At_Bat at_bat(*hitting_team, *pitching_team);
         eAt_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
-        // bases.print();
+        bases.print();
     }
-    // std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
+
+    #if BASEBALL_DEBUG
+    std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
+    #endif
+
     return runs_scored;
 }
 
@@ -188,6 +205,7 @@ int Base_State::advance_runners(Player* batter, eAt_Bat_Result result) {
 
 
 void Base_State::print() {
+    #if BASEBALL_DEBUG
     const char empty_base = 'o';
     const char full_base = (char)254;
 
@@ -214,4 +232,5 @@ void Base_State::print() {
     }
 
     std::cout << "\n\n\t\tH\n";
+    #endif
 }

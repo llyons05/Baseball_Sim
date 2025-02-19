@@ -9,6 +9,10 @@
 
 
 int main() {
+    #if BASEBALL_DEBUG
+        std::cout << "IN DEBUG MODE\n";
+    #endif
+
     Stat_Loader loader;
     loader.load_league_avgs();
     srand(time(NULL));
@@ -37,7 +41,7 @@ int main() {
 
     std::cout << "Input number of games in the series: ";
     std::cin >> num_games;
-    std::cout << "\n";
+    std::cout << "\nRunning " << num_games << " games...\n";
 
     Team home_team = loader.load_team(home_team_name, home_team_year);
     Team away_team = loader.load_team(away_team_name, away_team_year);
@@ -45,11 +49,13 @@ int main() {
     int total_wins[2] = {0};
     int total_runs[2] = {0};
 
+    #if BASEBALL_DEBUG
     home_team.print_fielders();
     away_team.print_fielders();
 
     home_team.print_batting_order();
     away_team.print_batting_order();
+    #endif
     
     Baseball_Game game(home_team, away_team);
 
