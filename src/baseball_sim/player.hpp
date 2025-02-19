@@ -4,7 +4,8 @@
 
 #include <string>
 #include <map>
-#include <functional>
+#include <unordered_map>
+#include <memory>
 
 enum eDefensivePositions {
     POS_PITCHER,
@@ -53,5 +54,3 @@ class Player {
             return id == other.id;
         }
 };
-
-const Player NULL_PLAYER("NULL", Player_Stats());

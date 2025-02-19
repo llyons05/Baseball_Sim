@@ -39,7 +39,7 @@ class At_Bat {
         const static int num_outcomes = 3;
 
         void calculate_probabilities(float prob_array[num_outcomes]);
-        float get_probability_numerator(std::string batter_stat, std::string pitcher_stat, std::string league_stat, eLeague_Stat_Types league_stat_type);
+        float get_probability_numerator(const std::string& batter_stat, const std::string& pitcher_stat, const std::string& league_stat, eLeague_Stat_Types league_stat_type);
         int get_random_event(float event_probs[], int num_events);
         eAt_Bat_Result get_hit_result();
 };
@@ -47,15 +47,11 @@ class At_Bat {
 
 class Base_State {
     public:
-        Player players_on_base[3];
+        Player* players_on_base[3];
 
-        Base_State() {
-            for (int i = 0; i < 3; i++) {
-                players_on_base[i] = NULL_PLAYER;
-            }
-        }
+        Base_State() : players_on_base() {}
 
-        int advance_runners(Player& batter, eAt_Bat_Result result);
+        int advance_runners(Player* batter, eAt_Bat_Result result);
         void print();
 };
 

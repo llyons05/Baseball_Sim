@@ -1,5 +1,6 @@
 baseball_venv
 __pycache__
+.vs
 .vscode
 data
 old_version

@@ -10,8 +10,8 @@
 
 
 At_Bat::At_Bat(Team& hitting_team, Team& pitching_team) {
-    this->pitcher = &pitching_team.fielders[POS_PITCHER];
-    this->batter = &hitting_team.batting_order[hitting_team.position_in_batting_order];
+    this->pitcher = pitching_team.fielders[POS_PITCHER];
+    this->batter = hitting_team.batting_order[hitting_team.position_in_batting_order];
 }
 
 
@@ -71,7 +71,7 @@ void At_Bat::calculate_probabilities(float prob_array[num_outcomes]) {
 }
 
 
-float At_Bat::get_probability_numerator(std::string batter_stat, std::string pitcher_stat, std::string league_stat, eLeague_Stat_Types league_stat_type) {
+float At_Bat::get_probability_numerator(const std::string& batter_stat, const std::string& pitcher_stat, const std::string& league_stat, eLeague_Stat_Types league_stat_type) {
     float x = batter->stats.get_stat<float>(PLAYER_BATTING, batter_stat, 0.0);
     float y = pitcher->stats.get_stat<float>(PLAYER_PITCHING, pitcher_stat, 0.0);
     float z = LEAGUE_AVG_STATS.get_stat<float>(league_stat_type, batter->stats.current_year, league_stat, 0.0);
@@ -160,12 +160,12 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
 }
 
 
-int Base_State::advance_runners(Player& batter, eAt_Bat_Result result) {
+int Base_State::advance_runners(Player* batter, eAt_Bat_Result result) {
     if (result == BATTER_OUT) return 0;
 
     int runs_scored = 0;
     for (int i = THIRD_BASE; i >= FIRST_BASE; i--) {
-        if (players_on_base[i].name != "NULL") {
+        if (players_on_base[i] != NULL) {
             int new_base = i + result;
             if (new_base > THIRD_BASE) {
                 runs_scored++;
@@ -173,7 +173,7 @@ int Base_State::advance_runners(Player& batter, eAt_Bat_Result result) {
             else {
                 players_on_base[new_base] = players_on_base[i];
             }
-            players_on_base[i] = NULL_PLAYER;
+            players_on_base[i] = NULL;
         }
     }
     int batter_base = result - 1;
@@ -191,7 +191,7 @@ void Base_State::print() {
     const char empty_base = 'o';
     const char full_base = (char)254;
 
-    if (players_on_base[SECOND_BASE].name != "NULL") {
+    if (players_on_base[SECOND_BASE] != NULL) {
         std::cout << "\t\t" << full_base << "\n";
     }
     else {
@@ -199,14 +199,14 @@ void Base_State::print() {
     }
 
     std::cout << "\n";
-    if (players_on_base[THIRD_BASE].name != "NULL") {
+    if (players_on_base[THIRD_BASE] != NULL) {
         std::cout << "\t" << full_base;
     }
     else {
         std::cout << "\t" << empty_base;
     }
 
-    if (players_on_base[FIRST_BASE].name != "NULL") {
+    if (players_on_base[FIRST_BASE] != NULL) {
         std::cout << "\t\t" << full_base;
     }
     else {

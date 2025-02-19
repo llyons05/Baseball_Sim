@@ -5,12 +5,15 @@
 #include "team.hpp"
 #include "player.hpp"
 
+#include <unordered_map>
+
 using namespace std;
 
 
 const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANCES};
 
 League_Stats LEAGUE_AVG_STATS;
+std::unordered_map<string, shared_ptr<Player>> player_cache;
 
 void Stat_Loader::load_league_avgs() {
     vector<map<string, string>> batting_data = read_csv_file(get_league_data_file_path("batting"));
@@ -26,18 +29,18 @@ void Stat_Loader::load_league_avgs() {
 
 Team Stat_Loader::load_team(const string& team_abbreviation, int year) {
     Team_Stats team_stats = load_team_stats(team_abbreviation, year);
-    vector<Player> roster = load_team_roster(team_stats, year);
+    vector<Player*> roster = load_team_roster(team_stats, year);
     Team team(team_abbreviation, roster, team_stats);
 
     return team;
 }
 
 
-vector<Player> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
-    vector<Player> result;
+vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
+    vector<Player*> result;
     string team_abbreviation = team_stats.stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
 
-    for (Table_Row player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
+    for (const Table_Row& player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
         string player_id = player_data.get_stat("ID", "");
         string name = player_data.get_stat("NAME", "");
         vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
@@ -58,9 +61,10 @@ vector<Player> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
 }
 
 
-Player Stat_Loader::load_player(const string& player_name, const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
+Player* Stat_Loader::load_player(const string& player_name, const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     Player_Stats stats = load_necessary_player_stats(player_id, year, team_abbreviation, stats_to_load);
-    return Player(player_name, stats);
+    Player new_player(player_name, stats);
+    return cache_player(new_player);
 }
 
 
@@ -82,6 +86,12 @@ Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, ePlayer_
 
     Stat_Table stat_container(player_file_data, stat_type, player_id + "_" + stat_type);
     return stat_container;
+}
+
+
+Player* Stat_Loader::cache_player(const Player& player) {
+    player_cache[player.id] = make_shared<Player>(player);
+    return player_cache.at(player.id).get();
 }
 
 
