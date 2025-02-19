@@ -24,7 +24,7 @@ void Stat_Loader::load_league_avgs() {
 }
 
 
-Team Stat_Loader::load_team(string team_abbreviation, int year) {
+Team Stat_Loader::load_team(const string& team_abbreviation, int year) {
     Team_Stats team_stats = load_team_stats(team_abbreviation, year);
     vector<Player> roster = load_team_roster(team_stats, year);
     Team team(team_abbreviation, roster, team_stats);
@@ -33,7 +33,7 @@ Team Stat_Loader::load_team(string team_abbreviation, int year) {
 }
 
 
-vector<Player> Stat_Loader::load_team_roster(Team_Stats team_stats, int year) {
+vector<Player> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
     vector<Player> result;
     string team_abbreviation = team_stats.stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
 
@@ -58,13 +58,13 @@ vector<Player> Stat_Loader::load_team_roster(Team_Stats team_stats, int year) {
 }
 
 
-Player Stat_Loader::load_player(string player_name, string player_id, int year, string team_abbreviation, vector<ePlayer_Stat_Types> stats_to_load) {
+Player Stat_Loader::load_player(const string& player_name, const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     Player_Stats stats = load_necessary_player_stats(player_id, year, team_abbreviation, stats_to_load);
     return Player(player_name, stats);
 }
 
 
-Player_Stats Stat_Loader::load_necessary_player_stats(string player_id, int year, string team_abbreviation, vector<ePlayer_Stat_Types> stats_to_load) {
+Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     Stat_Table all_player_stats[NUM_PLAYER_STAT_TYPES];
 
     for (ePlayer_Stat_Types stat_type : stats_to_load) {
@@ -75,7 +75,7 @@ Player_Stats Stat_Loader::load_necessary_player_stats(string player_id, int year
 }
 
 
-Stat_Table Stat_Loader::load_player_stat_table(string player_id, ePlayer_Stat_Types player_stat_type) {
+Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, ePlayer_Stat_Types player_stat_type) {
     string stat_type = PLAYER_STAT_TYPES[player_stat_type];
     string filename = get_player_data_file_path(player_id, stat_type);
     vector<map<string, string>> player_file_data = read_csv_file(filename);
@@ -85,7 +85,7 @@ Stat_Table Stat_Loader::load_player_stat_table(string player_id, ePlayer_Stat_Ty
 }
 
 
-Team_Stats Stat_Loader::load_team_stats(string team_abbreviation, int year) {
+Team_Stats Stat_Loader::load_team_stats(const string& team_abbreviation, int year) {
     Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES];
 
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
@@ -99,7 +99,7 @@ Team_Stats Stat_Loader::load_team_stats(string team_abbreviation, int year) {
 
 
 
-vector<map<string, string>> Stat_Loader::read_csv_file(string filename) {
+vector<map<string, string>> Stat_Loader::read_csv_file(const string& filename) {
     vector<map<string, string>> result;
     ifstream csv_file = open_file(filename);
     
@@ -118,7 +118,7 @@ vector<map<string, string>> Stat_Loader::read_csv_file(string filename) {
 }
 
 
-ifstream Stat_Loader::open_file(string filename) {
+ifstream Stat_Loader::open_file(const string& filename) {
     ifstream file(filename);
     if (!file.is_open()) {
         throw runtime_error("Could not open file " + filename);
@@ -133,7 +133,7 @@ ifstream Stat_Loader::open_file(string filename) {
 
 
 /* Reads a line of a csv file and returns a list of all the comma-seperated values in that line. */
-vector<string> Stat_Loader::read_csv_line(string line) {
+vector<string> Stat_Loader::read_csv_line(const string& line) {
     vector<string> result;
     stringstream stringstream(line);
     string current_item;
@@ -151,7 +151,7 @@ Creates a dictionary from a list of keys and values.
 If there are fewer values than keys, the extra keys will be inserted with an empty string as their value.
 If there are more values than keys, the extra values will be ignored.
 */
-map<string, string> Stat_Loader::match_keys_to_values(vector<string> keys, vector<string> values) {
+map<string, string> Stat_Loader::match_keys_to_values(const vector<string>& keys, const vector<string>& values) {
     map<string, string> result;
 
     for (unsigned int i = 0; i < keys.size(); i++) {
@@ -166,21 +166,21 @@ map<string, string> Stat_Loader::match_keys_to_values(vector<string> keys, vecto
 }
 
 
-string Stat_Loader::get_player_data_file_path(string player_id, string stat_type) {
+string Stat_Loader::get_player_data_file_path(const string& player_id, const string& stat_type) {
     return PLAYERS_FILE_PATH + "/" + stat_type + "/" + player_id + "_" + stat_type + ".csv";
 }
 
 
-string Stat_Loader::get_team_data_file_path(string team_abbreviation, int year, string team_data_file_type) {
+string Stat_Loader::get_team_data_file_path(const string& team_abbreviation, int year, const string& team_data_file_type) {
     return get_team_year_dir_path(team_abbreviation, year) + "/" + team_abbreviation + "_" + to_string(year) + "_" + team_data_file_type + ".csv";
 }
 
 
-string Stat_Loader::get_team_year_dir_path(string team_abbreviation, int year) {
+string Stat_Loader::get_team_year_dir_path(const string& team_abbreviation, int year) {
     return TEAMS_FILE_PATH + "/" + team_abbreviation + "/" + to_string(year);
 }
 
 
-std::string Stat_Loader::get_league_data_file_path(std::string stat_type) {
+std::string Stat_Loader::get_league_data_file_path(const string& stat_type) {
     return LEAGUE_FILE_PATH  + "/" + "league_" + stat_type + "_avg.csv";
 }

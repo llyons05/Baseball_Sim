@@ -9,7 +9,7 @@
 #include <random>
 #include <set>
 
-Team::Team(std::string team_name, std::vector<Player>& players, Team_Stats& team_stats) {
+Team::Team(const std::string& team_name, const std::vector<Player>& players, const Team_Stats& team_stats) {
     this->team_stats = team_stats;
     
     this->team_name = team_name;
@@ -24,7 +24,7 @@ Team::Team(std::string team_name, std::vector<Player>& players, Team_Stats& team
 }
 
 
-std::set<Player> Team::filter_players_by_listed_pos(std::vector<std::string> positions) {
+std::set<Player> Team::filter_players_by_listed_pos(const std::vector<std::string>& positions) {
     std::vector<std::string> player_ids;
 
     for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
@@ -41,7 +41,7 @@ std::set<Player> Team::filter_players_by_listed_pos(std::vector<std::string> pos
 }
 
 
-std::set<Player> Team::filter_pitchers(std::vector<std::string> pitcher_types) {
+std::set<Player> Team::filter_pitchers(const std::vector<std::string>& pitcher_types) {
     Stat_Table stat_table = team_stats.stat_tables[TEAM_PITCHING];
 
     std::vector<Table_Row> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
@@ -97,7 +97,7 @@ Player* Team::pick_relief_pitcher() {
 }
 
 
-void Team::set_current_pitcher(Player& new_pitcher) {
+void Team::set_current_pitcher(const Player& new_pitcher) {
     fielders[POS_PITCHER] = new_pitcher;
     available_pitchers.erase(new_pitcher);
     runs_allowed_by_pitcher = 0;
@@ -170,12 +170,12 @@ void Team::set_up_pitchers() {
 }
 
 
-void Team::set_position_in_field(Player& new_player, eDefensivePositions position) {
+void Team::set_position_in_field(const Player& new_player, eDefensivePositions position) {
     fielders[position] = new_player;
 }
 
 
-Player Team::find_best_player_for_defense_pos(eDefensivePositions position, std::vector<Player> players_to_exclude) {
+Player Team::find_best_player_for_defense_pos(eDefensivePositions position, const std::vector<Player>& players_to_exclude) {
     int max_games_found = -1;
     Player best_player;
     

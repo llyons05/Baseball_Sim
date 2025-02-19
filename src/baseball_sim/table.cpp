@@ -7,11 +7,11 @@
 
 using namespace std;
 
-Stat_Table::Stat_Table(vector<map<string, string>>& stat_table, string stat_type, string stat_table_id) {
+Stat_Table::Stat_Table(const vector<map<string, string>>& stat_table, const string& stat_type, const string& stat_table_id) {
     this->stat_type = stat_type;
     this->stat_table_id = stat_table_id;
 
-    for (map<string, string>& row_data : stat_table) {
+    for (const map<string, string>& row_data : stat_table) {
         Table_Row row(row_data);
         this->table_rows.push_back(row);
     }
@@ -19,7 +19,7 @@ Stat_Table::Stat_Table(vector<map<string, string>>& stat_table, string stat_type
 
 
 /* Gets the index of the first row that matches the search attributes. If no rows meet the criteria, -1 is returned. */
-int Stat_Table::find_row(map<string, vector<string>> search_attributes) {
+int Stat_Table::find_row(const map<string, vector<string>>& search_attributes) {
     for (unsigned int i = 0; i < table_rows.size(); i++) {
         if (table_rows[i].has_attributes(search_attributes)) {
             return i;
@@ -29,7 +29,7 @@ int Stat_Table::find_row(map<string, vector<string>> search_attributes) {
 }
 
 
-vector<Table_Row> Stat_Table::filter_rows(map<string, vector<string>> search_attributes) {
+vector<Table_Row> Stat_Table::filter_rows(const map<string, vector<string>>& search_attributes) {
     vector<Table_Row> result;
     for (const Table_Row& row : table_rows) {
         if (row.has_attributes(search_attributes)) result.push_back(row);
@@ -38,7 +38,7 @@ vector<Table_Row> Stat_Table::filter_rows(map<string, vector<string>> search_att
 }
 
 
-string Table_Row::get_stat(string stat_name, string default_val) const {
+string Table_Row::get_stat(const string& stat_name, string default_val) const {
     string raw_stat_data = get_raw_stat_data(stat_name);
     if (raw_stat_data.empty()) {
         raw_stat_data = default_val;
@@ -47,7 +47,7 @@ string Table_Row::get_stat(string stat_name, string default_val) const {
 }
 
 
-int Table_Row::get_stat(string stat_name, int default_val) const {
+int Table_Row::get_stat(const string& stat_name, int default_val) const {
     string raw_stat_data = get_raw_stat_data(stat_name);
     int stat_value;
 
@@ -59,7 +59,7 @@ int Table_Row::get_stat(string stat_name, int default_val) const {
 }
 
 
-float Table_Row::get_stat(string stat_name, float default_val) const {
+float Table_Row::get_stat(const string& stat_name, float default_val) const {
     string raw_stat_data = get_raw_stat_data(stat_name);
     float stat_value;
 
@@ -79,7 +79,7 @@ and checks to see if:
 
 If the dictionary that is passed is empty, it will return true.
 */
-bool Table_Row::has_attributes(map<string, vector<string>> attributes) const {
+bool Table_Row::has_attributes(const map<string, vector<string>>& attributes) const {
     for (auto const& [attr_name, attr_values] : attributes) {
         bool found_attribute = false;
         for (string value : attr_values) {

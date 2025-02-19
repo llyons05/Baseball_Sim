@@ -28,9 +28,9 @@ class Team {
 
         Team(){}
 
-        Team(std::string team_name, std::vector<Player>& players, Team_Stats& team_stats);
+        Team(const std::string& team_name, const std::vector<Player>& players, const Team_Stats& team_stats);
 
-        void add_player(Player& player) {
+        void add_player(const Player& player) {
             all_players.push_back(player);
         }
 
@@ -47,13 +47,13 @@ class Team {
         }
 
 
-        std::set<Player> filter_players_by_listed_pos(std::vector<std::string> positions = {});
-        std::set<Player> filter_pitchers(std::vector<std::string> positions = {});
+        std::set<Player> filter_players_by_listed_pos(const std::vector<std::string>& positions = {});
+        std::set<Player> filter_pitchers(const std::vector<std::string>& positions = {});
 
         Player* try_switching_pitcher(int current_half_inning);
         Player* pick_next_pitcher(int current_half_inning);
-        void set_current_pitcher(Player& new_pitcher);
-        void set_position_in_field(Player& new_player, eDefensivePositions position);
+        void set_current_pitcher(const Player& new_pitcher);
+        void set_position_in_field(const Player& new_player, eDefensivePositions position);
 
         void print_fielders();
         void print_batting_order();
@@ -70,7 +70,7 @@ class Team {
 
         std::set<Player> get_all_pitchers();
 
-        std::set<Player> find_players(std::vector<std::string> player_ids) {
+        std::set<Player> find_players(const std::vector<std::string>& player_ids) {
             std::set<Player> result;
             for (const Player& player : all_players) {
                 for (std::string player_id : player_ids) {
@@ -83,6 +83,5 @@ class Team {
             return result;
         }
 
-        Player find_best_player_for_defense_pos(eDefensivePositions position, std::vector<Player> players_to_exclude = {});
-        eDefensivePositions find_player_in_fielders(Player& player, eDefensivePositions = (eDefensivePositions)0, eDefensivePositions to = NUM_DEFENSIVE_POSITIONS);
+        Player find_best_player_for_defense_pos(eDefensivePositions position, const std::vector<Player>& players_to_exclude = {});
 };
