@@ -81,14 +81,17 @@ float At_Bat::get_probability_numerator(std::string batter_stat, std::string pit
 
 // Returns the index of the event that happens
 int At_Bat::get_random_event(float event_probs[], int num_events) {
+    const float eps = 1e-7;
     float r = ((float)rand())/(RAND_MAX);
     for (int i = 0; i < num_events; i++) {
-        if (r <= event_probs[i]) {
+        if (r - eps <= event_probs[i]) {
             return i;
         }
         r -= event_probs[i];
     }
+
     std::cout << "PROBABILITY ERROR\n";
+    std::quick_exit(1);
     return -1;
 }
 
