@@ -111,7 +111,7 @@ Player* Team::try_switching_pitcher(int current_half_inning) {
         set_current_pitcher(new_pitcher);
 
         #if BASEBALL_DEBUG
-        std::cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher.name << "\n";
+        std::cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher->name << "\n";
         #endif
 
         return new_pitcher;
