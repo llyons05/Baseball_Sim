@@ -35,7 +35,7 @@ eAt_Bat_Result At_Bat::get_ab_result() {
         #if BASEBALL_DEBUG
         std::cout << "\t" << batter->name << " WAS WALKED...\n";
         #endif
-        return ADVANCED_ONE_BASE;
+        return BATTER_WALKED;
     }
 
     #if BASEBALL_DEBUG
@@ -119,12 +119,12 @@ eAt_Bat_Result At_Bat::get_hit_result() {
     
     float prob_arr[4] = {single_prob, double_prob, triple_prob, hr_prob};
 
-    eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(prob_arr, 4) + 1);
+    eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(prob_arr, 4) + 2);
 
     #if BASEBALL_DEBUG
-    if (result == ADVANCED_ONE_BASE) std::cout << "\t SINGLE\n";
-    else if (result == ADVANCED_TWO_BASES) std::cout << "\t DOUBLE\n";
-    else if (result == ADVANCED_THREE_BASES) std::cout << "\t TRIPLE\n";
+    if (result == SINGLE) std::cout << "\t SINGLE\n";
+    else if (result == DOUBLE) std::cout << "\t DOUBLE\n";
+    else if (result == TRIPLE) std::cout << "\t TRIPLE\n";
     else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
     #endif
 
@@ -179,11 +179,16 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
 
 int Base_State::advance_runners(Player* batter, eAt_Bat_Result result) {
     if (result == BATTER_OUT) return 0;
+    if (result == BATTER_WALKED) return handle_walk(batter);
+    return handle_hit(batter, result);
+}
 
+
+int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
     int runs_scored = 0;
     for (int i = THIRD_BASE; i >= FIRST_BASE; i--) {
         if (players_on_base[i] != NULL) {
-            int new_base = i + result;
+            int new_base = i + result - 1;
             if (new_base > THIRD_BASE) {
                 runs_scored++;
             }
@@ -193,13 +198,34 @@ int Base_State::advance_runners(Player* batter, eAt_Bat_Result result) {
             players_on_base[i] = NULL;
         }
     }
-    int batter_base = result - 1;
+    int batter_base = result - 2;
     if (batter_base > THIRD_BASE) {
         runs_scored++;
     }
     else {
         players_on_base[batter_base] = batter;
     }
+    return runs_scored;
+}
+
+
+int Base_State::handle_walk(Player* batter) {
+    int runs_scored = 0;
+    Player* current_player = players_on_base[FIRST_BASE];
+    Player* temp;
+    uint8_t current_base = FIRST_BASE;
+
+    while (current_player != NULL) {
+        if (current_base >= THIRD_BASE) {
+            ++runs_scored;
+            break;
+        }
+        temp = players_on_base[++current_base];
+        players_on_base[current_base] = current_player;
+        current_player = temp;
+    }
+
+    players_on_base[FIRST_BASE] = batter;
     return runs_scored;
 }
 
@@ -232,5 +258,10 @@ void Base_State::print() {
     }
 
     std::cout << "\n\n\t\tH\n";
+
+    for (int i = 0; i <= THIRD_BASE; i++) {
+        if (players_on_base[i] != NULL)
+            std::cout << "PLAYER ON BASE " << i + 1 << ": " << players_on_base[i]->name << "\n";
+    }
     #endif
 }

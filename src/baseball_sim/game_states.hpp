@@ -13,10 +13,12 @@ enum eBases {
 
 enum eAt_Bat_Result {
     BATTER_OUT,
-    ADVANCED_ONE_BASE,
-    ADVANCED_TWO_BASES,
-    ADVANCED_THREE_BASES,
-    HOME_RUN
+    BATTER_WALKED,
+    SINGLE,
+    DOUBLE,
+    TRIPLE,
+    HOME_RUN,
+    NUM_AT_BAT_RESULTS
 };
 
 
@@ -52,6 +54,9 @@ class Base_State {
         Base_State() : players_on_base() {}
 
         int advance_runners(Player* batter, eAt_Bat_Result result);
+        int handle_walk(Player* batter);
+        int handle_hit(Player* batter, eAt_Bat_Result result);
+
         void print();
 };
 

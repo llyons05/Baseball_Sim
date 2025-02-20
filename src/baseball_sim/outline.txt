@@ -66,7 +66,8 @@ Half Inning Class:
 
 NOTES:
     What to do when player stats for a year don't exist
+    Implement better base running logic (use baseball reference's Baserunning stats)
+        - Check how often a player on first makes it to third on a single
     Batting order can currently include players who are not in the field
         - Have set_up_batting_order only pull from the fielders
-    Make sure to use pass by reference whenever necessary for large tables
     Add documentation
