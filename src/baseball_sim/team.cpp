@@ -109,7 +109,11 @@ Player* Team::try_switching_pitcher(int current_half_inning) {
     if (runs_allowed_by_pitcher > curr_pitcher_era) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning);
         set_current_pitcher(new_pitcher);
-        // std::cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher.name << "\n";
+
+        #if BASEBALL_DEBUG
+        std::cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher.name << "\n";
+        #endif
+
         return new_pitcher;
     }
     return get_pitcher();
@@ -175,7 +179,7 @@ void Team::set_position_in_field(Player* new_player, eDefensivePositions positio
 
 Player* Team::find_best_player_for_defense_pos(eDefensivePositions position, const std::vector<std::string>& players_to_exclude) {
     int max_games_found = -1;
-    Player* best_player;
+    Player* best_player = *all_players.begin();
     
     for (Player* player : all_players) {
 

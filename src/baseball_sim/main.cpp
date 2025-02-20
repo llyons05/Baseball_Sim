@@ -6,6 +6,7 @@
 #include <random>
 #include <cstdint>
 #include <time.h>
+#include <chrono>
 
 
 int main() {
@@ -41,23 +42,27 @@ int main() {
 
     std::cout << "Input number of games in the series: ";
     std::cin >> num_games;
-    std::cout << "\nRunning " << num_games << " games...\n";
+    std::cout << "\n";
 
     Team home_team = loader.load_team(home_team_name, home_team_year);
     Team away_team = loader.load_team(away_team_name, away_team_year);
+    Baseball_Game game(home_team, away_team);
 
     int total_wins[2] = {0};
     int total_runs[2] = {0};
 
+    std::cout << "Running " << num_games << " games... ";
+
     #if BASEBALL_DEBUG
+    std::cout << "\n";
     home_team.print_fielders();
     away_team.print_fielders();
 
     home_team.print_batting_order();
     away_team.print_batting_order();
     #endif
-    
-    Baseball_Game game(home_team, away_team);
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     for (int i = 0; i < num_games; i++) {
         Game_Result result = game.play_game();
@@ -70,6 +75,9 @@ int main() {
 
         game.reset();
     }
+
+    float duration = (std::chrono::steady_clock::now() - begin).count()/(1e+9);
+    std::cout << "Completed in " << duration << " seconds (" << num_games/duration << " games/s)\n\n";
 
     std::cout << "Result of " << num_games << " games:\n";
     std::cout << home_team.team_name << ": " << total_wins[HOME_TEAM] << " wins\t Total runs: " << total_runs[HOME_TEAM] << "\n";
