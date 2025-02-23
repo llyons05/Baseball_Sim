@@ -191,6 +191,8 @@ class Scraping_Client:
             table_parser = self.try_scraping_pitching_tables(base_player_page_url)
         elif stat_type == "appearances":
             table_parser = self.try_scraping_appearance_tables(base_player_page_url)
+        elif stat_type == "baserunning":
+            table_parser = self.try_scraping_baserunning_tables(base_player_page_url)
 
         if table_parser is None:
             return EMPTY_TABLE
@@ -202,7 +204,7 @@ class Scraping_Client:
             }
         ]
 
-        player_data_table = table_parser.parse(row_filters=row_filters)
+        player_data_table = table_parser.parse(row_filters=row_filters, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
         player_data_table.sort(key=lambda d: int(d.get("year_ID", 0)))
         return player_data_table
 
@@ -242,6 +244,16 @@ class Scraping_Client:
         return table_parser
 
 
+    def try_scraping_baserunning_tables(self, base_player_page_url: str) -> Table_Parser | None:
+        player_baserunning_page_url = utils.get_player_batting_page_url(base_player_page_url)
+        table_location = self.get_default_table_location("batting_baserunning")
+        wrapper_div_location = self.get_default_wrapper_div_location("all_batting_baserunning")
+
+        table_parser = self.scrape_table_from_player_page(player_baserunning_page_url, table_location, wrapper_div_location)
+
+        return table_parser
+
+
     def scrape_table_from_player_page(self, player_page_url: str,
                                       table_location: Extra_Types.HTML_TAG_NAVIGATION_PATH,
                                       table_wrapper_div_location: Extra_Types.HTML_TAG_NAVIGATION_PATH) -> Table_Parser | None:
@@ -268,7 +280,7 @@ class Scraping_Client:
 
         response = self.scrape_page_html(batting_url)
         table_parser = Table_Parser(response, batting_table_location, batting_wrapper_div_location)
-        result["batting"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS)
+        result["batting"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
 
         pitching_url = BASE_URL + "/leagues/majors/pitch.shtml"
         pitching_table_location = self.get_default_table_location("teams_standard_pitching")
@@ -276,7 +288,7 @@ class Scraping_Client:
 
         response = self.scrape_page_html(pitching_url)
         table_parser = Table_Parser(response, pitching_table_location, pitching_wrapper_div_location)
-        result["pitching"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS)
+        result["pitching"] = table_parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
 
         return result
 
@@ -292,7 +304,7 @@ if __name__ == "__main__":
     pass
 
 
-DEFAULT_FORBIDDEN_CHARS = {",": " ", "\"": ""}
+DEFAULT_FORBIDDEN_CHARS = {",": " ", "\"": "", "%": ""}
 
 BASE_URL = utils.BASE_URL
 DEFAULT_EVADE_SLEEP_MIN: int = 4 # seconds

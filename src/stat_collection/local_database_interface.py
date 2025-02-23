@@ -10,13 +10,14 @@ PLAYERS_DIR: str = f"{PARENT_DIR}/players"
 LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
-PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances"]
+PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
     "batting": "batting",
-    "pitching": "pitching"
+    "pitching": "pitching",
+    "baserunning": "batting"
 }
 
 
@@ -164,7 +165,6 @@ def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES) -> TEAM
     """
     Given the stat type, returns what type of team file should be read to retrieve the correct players.
     For example, if our player_stat_type is 'pitching', then this will return the team data file type where the pitchers are located.
-    If gather_all_players is True, then this will return the file type that contains a list of all players.
     """
 
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]

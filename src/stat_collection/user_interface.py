@@ -80,38 +80,18 @@ def choose_year() -> int:
 
 
 def choose_player_stat_type() -> DI.PLAYER_STAT_TYPES:
-    stat_type = ""
-    while stat_type not in ("batting", "pitching", "appearances"):
-        stat_type = input(f"What player stats should be scraped? ({colored("batting", "red")}, {colored("pitching", "blue")}, {colored("appearances", "green")}): ")
-    
-    print()
-    return stat_type
+    prompt = "What player stats should be scraped?"
+    return get_user_choice_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
 
 
 def should_overwrite_data() -> bool:
-    answer: str = ""
-    while answer.lower() not in ("y", "n"):
-        print(f"Should previously saved data be used when available? ({colored("Y", "green")}/{colored("n", "red")})", end=": ")
-        answer = input().lower()
-    print()
-    
-    if answer == "y":
-        return False
-    
-    return True
+    prompt = "Should previously saved data be used when available?"
+    return get_yes_or_no(prompt, True)
 
 
 def should_gather_non_pitcher_stats() -> bool:
-    answer: str = ""
-    while answer.lower() not in ("y", "n"):
-        print(f"Should non-pitchers have their pitching stats gathered? ({colored("Y", "green")}/{colored("n", "red")})", end=": ")
-        answer = input().lower()
-    print()
-    
-    if answer == "y":
-        return True
-
-    return False
+    prompt = "Should non-pitchers have their pitching stats gathered?"
+    return get_yes_or_no(prompt)
 
 
 def validate_user_string_input_list(input_str: str, min_single_value_size: int = -1, max_single_value_size: int = math.inf, delimiter: str = ",", allowed_values: list[str] = []) -> bool:
@@ -168,38 +148,20 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
 
 
 def choose_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
-    stat_type = ""
-    while stat_type not in ("batting", "pitching", "appearances"):
-        stat_type = input(f"What player stats should be viewed? ({colored("batting", "red")}, {colored("pitching", "blue")}, {colored("appearances", "green")}): ")
-    
-    print()
-    return stat_type
+    prompt = "What player stats should be viewed?"
+    return get_user_choice_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
 
 
 def should_download_missing_team_data_file(team_abbreviation: str, year: int, missing_data_type: DI.TEAM_DATA_FILE_TYPES) -> bool:
     print(f"{colored("ERROR: It looks like a", "red")} {colored(f"{year} {team_abbreviation}", "green")} {colored(f"{missing_data_type} file does not exist locally.", "red")}\n")
-
-    user_input = ""
-    while user_input not in ("y", "n"):
-        user_input = input(f"Would you like to scrape it from baseball reference? ({colored("Y", "green")}/{colored("n", "red")}): ").lower()
-
-    if user_input == "y":
-        return True
-    
-    return False
+    prompt = "Would you like to scrape it from baseball reference?"
+    return get_yes_or_no(prompt)
 
 
 def should_download_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -> bool:
     print(f"{colored("ERROR: It looks like", "red")} {colored(stat_type, "green")} {colored("data for", "red")} {colored(player_id, "green")} {colored("does not exist locally.", "red")}\n")
-
-    user_input = ""
-    while user_input not in ("y", "n"):
-        user_input = input(f"Would you like to scrape it from baseball reference? ({colored("Y", "green")}/{colored("n", "red")}): ").lower()
-
-    if user_input == "y":
-        return True
-    
-    return False
+    prompt = "Would you like to scrape it from baseball reference?"
+    return get_yes_or_no(prompt)
 
 
 def display_all_teams_table() -> None:
@@ -218,6 +180,36 @@ def display_team_roster_file(team_abbreviation: str, year: int) -> None:
     headers_to_display = ["NAME", "pos", "ID"]
     utils.print_csv(filename, headers_to_display)
     print()
+
+
+def get_yes_or_no(prompt: str, inverted: bool = False) -> bool:
+    result = get_user_choice_from_prompt(prompt, ["y", "n"])
+
+    if not inverted:
+        return result == "y"
+
+    return result == "n"
+
+
+def get_user_choice_from_prompt(prompt: str, choices: list[str]) -> str:
+    choice = ""
+    prompt_str = get_user_choice_prompt_str(prompt, choices)
+
+    while choice.lower() not in choices:
+        choice = input(prompt_str)
+    
+    print()
+    return choice
+
+
+def get_user_choice_prompt_str(prompt: str, choices: list[str]) -> str:
+    result = prompt + " ("
+    colors = ["green", "red", "blue", "yellow"]
+    for i, choice in enumerate(choices):
+        result += colored(choice, colors[i%4])
+        if i < len(choices)-1:
+            result += "/"
+    return result + "): "
 
 
 def wait_for_user_input(prompt: str = "") -> str:
