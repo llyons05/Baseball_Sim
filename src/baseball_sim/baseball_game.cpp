@@ -19,11 +19,20 @@ Baseball_Game::Baseball_Game (Team& home_team, Team& away_team) {
 
 
 Game_Result Baseball_Game::play_game() {
-    while ((half_inning_count < MAX_HALF_INNINGS) || (score[HOME_TEAM] == score[AWAY_TEAM]) || (half_inning_count % 2 == 1)) {
+    while (half_inning_count < MAX_HALF_INNINGS-1) {
         int runs_scored = play_half_inning();
         score[team_batting] += runs_scored;
         team_batting = !team_batting;
     }
+
+    if (score[HOME_TEAM] <= score[AWAY_TEAM]) {
+        while ((half_inning_count%2 == 1) || (score[HOME_TEAM] == score[AWAY_TEAM])) {
+            int runs_scored = play_half_inning();
+            score[team_batting] += runs_scored;
+            team_batting = !team_batting;
+        }
+    }
+
     #if BASEBALL_DEBUG
     print_game_result();
     #endif
@@ -59,6 +68,6 @@ void Baseball_Game::print_game_result() {
     else {
         std::cout << teams[AWAY_TEAM].team_name << " wins!" << "\n";
     }
-    std::cout << "TOTAL INNINGS: " << half_inning_count/2 << "\n";
+    std::cout << "TOTAL INNINGS: " << (float)half_inning_count/2 << "\n";
     std::cout << "FINAL SCORE: " << score[HOME_TEAM] << " - " << score[AWAY_TEAM] << "\n\n";
 }

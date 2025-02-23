@@ -157,7 +157,7 @@ int Half_Inning::play() {
     }
 
     #if BASEBALL_DEBUG
-    std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n\n";
+    std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n";
     #endif
 
     return runs_scored;
@@ -261,7 +261,7 @@ void Base_State::print() {
 
     for (int i = 0; i <= THIRD_BASE; i++) {
         if (players_on_base[i] != NULL)
-            std::cout << "PLAYER ON BASE " << i + 1 << ": " << players_on_base[i]->name << "\n";
+            std::cout << "\t\tPLAYER ON BASE " << i + 1 << ": " << players_on_base[i]->name << "\n";
     }
     #endif
 }
