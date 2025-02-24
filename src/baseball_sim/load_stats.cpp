@@ -42,7 +42,7 @@ vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) 
 
     for (const Table_Row& player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
         string player_id = player_data.get_stat("ID", "");
-        string name = player_data.get_stat("NAME", "");
+        string name = player_data.get_stat("name_display", "");
         vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
 
         for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {

@@ -5,10 +5,10 @@
 using namespace std;
 
 
-string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances"};
+string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning"};
 string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info"};
 
-std::map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING}}, {TEAM_PITCHING, {PLAYER_PITCHING}}};
+std::map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING}}};
 
 Player_Stats::Player_Stats(const string& player_id, int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) {
     this->player_id = player_id;

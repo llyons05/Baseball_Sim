@@ -73,3 +73,4 @@ NOTES:
     Batting order can currently include players who are not in the field
         - Have set_up_batting_order only pull from the fielders
     Add documentation
+    fix roster scraping, not every table is in the updated form
