@@ -177,7 +177,7 @@ def display_player_data_table(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -
 
 def display_team_roster_file(team_abbreviation: str, year: int) -> None:
     filename = DI.get_team_data_file_path(team_abbreviation, year, "roster")
-    headers_to_display = ["NAME", "pos", "ID"]
+    headers_to_display = ["name_display", "pos", "ID"]
     utils.print_csv(filename, headers_to_display)
     print()
 
