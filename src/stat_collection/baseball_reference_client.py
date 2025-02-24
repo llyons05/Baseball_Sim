@@ -56,15 +56,10 @@ class Scraping_Client:
         Takes in the html response from the main team page that has that year's roster on it.
         Returns a Table containing the roster data for the team.
         """
+        roster = self.parse_default_player_list_table(main_team_roster_page_html, "appearances", "all_appearances")
+        for row in roster.rows:
+            row["ID"] = utils.get_player_id_from_url(row["URL"])
 
-        parser = Table_Parser(main_team_roster_page_html, self.get_default_table_location("appearances"), self.get_default_wrapper_div_location("all_appearances"))
-
-        extra_row_vals = deepcopy(DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS)
-        for val in extra_row_vals[:3]:
-            val["location"]["tag_navigation_path"][0]["tag_name"] = "th"
-            val["location"]["tag_navigation_path"][0]["attributes"]["data-stat"] = "player"
-
-        roster = parser.parse(extra_row_vals, DEFAULT_PLAYER_TABLE_ROW_FILTERS, ["player", "ranker"], DEFAULT_FORBIDDEN_CHARS)
         return roster
 
 
@@ -320,18 +315,6 @@ DEFAULT_PLAYER_TABLE_ROW_FILTERS: list[Extra_Types.TABLE_ROW_FILTER] = [
         ]
 
 DEFAULT_PLAYER_TABLE_EXTRA_ROW_VALS: list[Extra_Types.EXTRA_ROW_VALUE] = [
-            {
-                "name": "NAME",
-                "location": {
-                    "attribute_name": "csk",
-                    "tag_navigation_path": [
-                        {
-                            "tag_name": "td",
-                            "attributes": {"data-stat": "name_display"}
-                        }
-                    ]
-                }
-            },  
             {
                 "name": "ID",
                 "location": {
