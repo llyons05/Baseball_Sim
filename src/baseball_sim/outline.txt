@@ -73,3 +73,5 @@ NOTES:
     Add documentation
     fix roster scraping, not every table is in the updated form
     use BR advanced batting pitch summary for pitch-by-pitch stats
+    make sure to update batting order if pitcher gets switched out
+    add stolen bases

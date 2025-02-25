@@ -196,7 +196,14 @@ int Base_State::get_player_advancement(eBases starting_base, eAt_Bat_Result batt
     }
 
     const int times_in_situation = players_on_base[starting_base]->stats.get_stat<int>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][0], 1);
-    const float extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][1], 0)/times_in_situation;
+    float extra_base_percentage;
+    if (times_in_situation == 0) { 
+        extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, "extra_bases_taken_perc", 0.0)/100;
+    }
+    else {
+        extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][1], 0)/times_in_situation;
+    }
+
     const float normal_base_percentage = 1 - extra_base_percentage;
     float outcomes[2] = {normal_base_percentage, extra_base_percentage};
 

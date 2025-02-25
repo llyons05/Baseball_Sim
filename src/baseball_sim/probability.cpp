@@ -27,6 +27,9 @@ int get_random_event(float event_probs[], int num_events) {
     }
 
     std::cout << "PROBABILITY ERROR\n";
+    for (int i = 0; i < num_events; i++) {
+        std::cout << "\tevent " << i << ": " << event_probs[i] << "\n";
+    }
     std::quick_exit(1);
     return -1;
 }

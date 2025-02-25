@@ -112,7 +112,7 @@ Team_Stats Stat_Loader::load_team_stats(const string& team_abbreviation, int yea
 vector<map<string, string>> Stat_Loader::read_csv_file(const string& filename) {
     vector<map<string, string>> result;
     ifstream csv_file = open_file(filename);
-    
+
     string current_line;
     getline(csv_file, current_line);
 
