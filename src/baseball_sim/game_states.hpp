@@ -13,11 +13,11 @@ enum eBases {
 
 enum eAt_Bat_Result {
     BATTER_OUT,
-    BATTER_WALKED,
     SINGLE,
     DOUBLE,
     TRIPLE,
     HOME_RUN,
+    BATTER_WALKED,
     NUM_AT_BAT_RESULTS
 };
 
@@ -38,11 +38,9 @@ class At_Bat {
         eAt_Bat_Result get_ab_result();
 
     private:
-        const static int num_outcomes = 3;
+        const static int num_true_outcomes = 3;
 
-        void calculate_probabilities(float prob_array[num_outcomes]);
-        float get_probability_numerator(const std::string& batter_stat, const std::string& pitcher_stat, const std::string& league_stat, eLeague_Stat_Types league_stat_type);
-        int get_random_event(float event_probs[], int num_events);
+        int get_true_outcome();
         eAt_Bat_Result get_hit_result();
 };
 
@@ -56,6 +54,7 @@ class Base_State {
         int advance_runners(Player* batter, eAt_Bat_Result result);
         int handle_walk(Player* batter);
         int handle_hit(Player* batter, eAt_Bat_Result result);
+        int get_player_advancement(eBases starting_base, eAt_Bat_Result batter_bases_advanced, int max_base);
 
         void print();
 };

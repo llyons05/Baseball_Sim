@@ -1,8 +1,9 @@
 CFLAGS = -g -march=native -Wall
-DEBUG_MODE = -DBASEBALL_DEBUG=1
+DEBUG_FLAGS = -DBASEBALL_DEBUG=1
+SOURCE_FILES = main.cpp table.cpp statistics.cpp probability.cpp team.cpp load_stats.cpp game_states.cpp baseball_game.cpp
 
 sim: 
-	g++ $(CFLAGS) -o simulation.exe main.cpp table.cpp statistics.cpp team.cpp load_stats.cpp game_states.cpp baseball_game.cpp
+	g++ $(CFLAGS) -o simulation.exe $(SOURCE_FILES)
 
 debug:
-	g++ $(CFLAGS) $(DEBUG_MODE) -o simulation.exe main.cpp table.cpp statistics.cpp team.cpp load_stats.cpp game_states.cpp baseball_game.cpp
+	g++ $(CFLAGS) $(DEBUG_FLAGS) -o simulation.exe $(SOURCE_FILES)

@@ -68,9 +68,8 @@ NOTES:
     What to do when player stats for a year don't exist
     Load Full batting order tables
     Swap teams at Half
-    Implement better base running logic (use baseball reference's Baserunning stats)
-        - Check how often a player on first makes it to third on a single
     Batting order can currently include players who are not in the field
         - Have set_up_batting_order only pull from the fielders
     Add documentation
     fix roster scraping, not every table is in the updated form
+    use BR advanced batting pitch summary for pitch-by-pitch stats
