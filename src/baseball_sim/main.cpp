@@ -44,8 +44,12 @@ int main() {
     std::cin >> num_games;
     std::cout << "\n";
 
+    std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     Team home_team = loader.load_team(home_team_name, home_team_year);
     Team away_team = loader.load_team(away_team_name, away_team_year);
+    float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
+    std::cout << "Data loaded in " << load_duration << " seconds\n\n";
+
     Baseball_Game game(home_team, away_team);
 
     int total_wins[2] = {0};

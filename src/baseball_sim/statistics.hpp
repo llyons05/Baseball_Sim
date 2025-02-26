@@ -37,7 +37,7 @@ class Player_Stats {
         }
 
     private:
-        int current_table_row_indices[NUM_PLAYER_STAT_TYPES];
+        int current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
         std::string current_team_abbreviation;
 
         void change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, const std::string& team_abbreviation);
