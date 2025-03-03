@@ -17,14 +17,14 @@ enum eDefensivePositions {
     POS_LF,
     POS_CF,
     POS_RF,
-    POS_OF,
+    POS_DH,
     NUM_DEFENSIVE_POSITIONS,
     POS_NONE
 };
 
 
-const std::string DEFENSIVE_POSITIONS[NUM_DEFENSIVE_POSITIONS] = {"pitcher", "catcher", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "OF"};
-const std::map<std::string, std::string> POSITION_TO_APPEARANCE_KEY = {{"pitcher", "games_at_p"}, {"catcher", "games_at_c"}, {"1B", "games_at_1b"}, {"2B", "games_at_2b"}, {"3B", "games_at_3b"}, {"SS", "games_at_ss"}, {"LF", "games_at_lf"}, {"CF", "games_at_cf"}, {"RF", "games_at_rf"}, {"OF", "games_at_of"}};
+const std::string DEFENSIVE_POSITIONS[NUM_DEFENSIVE_POSITIONS] = {"pitcher", "catcher", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"};
+const std::map<std::string, std::string> POSITION_TO_APPEARANCE_KEY = {{"pitcher", "games_at_p"}, {"catcher", "games_at_c"}, {"1B", "games_at_1b"}, {"2B", "games_at_2b"}, {"3B", "games_at_3b"}, {"SS", "games_at_ss"}, {"LF", "games_at_lf"}, {"CF", "games_at_cf"}, {"RF", "games_at_rf"}, {"DH", "games_at_dh"}};
 
 
 class Player {

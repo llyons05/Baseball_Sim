@@ -9,7 +9,7 @@
 #include <random>
 #include <set>
 
-Team::Team(const std::string& team_name, const std::vector<Player*>& players, const Team_Stats& team_stats) {
+Team::Team(const std::string& team_name, const std::vector<Player*>& players, const Team_Stats& team_stats): batting_order(), fielders() {
     this->team_stats = team_stats;
     this->team_name = team_name;
 
@@ -18,9 +18,9 @@ Team::Team(const std::string& team_name, const std::vector<Player*>& players, co
     runs_allowed_by_pitcher = 0;
 
     set_up_pitchers();
-    set_up_fielders();
     set_current_pitcher(pick_starting_pitcher());
     set_up_batting_order();
+    set_up_fielders();
 }
 
 
@@ -98,6 +98,15 @@ Player* Team::pick_relief_pitcher() {
 
 
 void Team::set_current_pitcher(Player* new_pitcher) {
+    if (fielders[POS_DH] == fielders[POS_PITCHER]) {
+        fielders[POS_DH] = new_pitcher;
+        for (int i = 8; i >= 0; i--) { // Loop backwards since pitcher is almost always batting last
+            if (batting_order[i] == fielders[POS_PITCHER]) {
+                batting_order[i] = new_pitcher;
+                break;
+            }
+        }
+    }
     fielders[POS_PITCHER] = new_pitcher;
     available_pitchers.erase(new_pitcher);
     runs_allowed_by_pitcher = 0;
@@ -128,8 +137,11 @@ Player* Team::pick_next_pitcher(int current_half_inning) {
 }
 
 
+// Pitcher must be set before calling
 void Team::set_up_batting_order() {
     int max_games_found = -1;
+
+    // Find the most used batting order
     Table_Row most_common_batting_order;
     for (const Table_Row& row : team_stats.stat_tables[TEAM_COMMON_BATTING_ORDERS].get_rows()) {
         int games = row.get_stat("games", 0);
@@ -138,7 +150,7 @@ void Team::set_up_batting_order() {
             max_games_found = games;
         }
     }
-
+    // Loop through that batting order, add each player to our current batting order
     for (int i = 1; i < 10; i++) {
         std::string pos_in_order = std::to_string(i);
         std::string player_id = most_common_batting_order.get_stat(pos_in_order, "");
@@ -155,15 +167,31 @@ void Team::set_up_batting_order() {
 }
 
 
+// Pitcher and batting order must be set before calling this
 void Team::set_up_fielders() {
     std::vector<std::string> players_added;
-
-    for (int i = 0; i < NUM_DEFENSIVE_POSITIONS; i++) {
+    for (int i = 1; i < POS_DH; i++) {
         eDefensivePositions pos_value = (eDefensivePositions)i;
         Player* best_player = find_best_player_for_defense_pos(pos_value, players_added);
         set_position_in_field(best_player, pos_value);
         players_added.push_back(best_player->id);
     }
+
+    bool pitcher_is_batting = false;
+    for (int i = 0; i < 9; i++) {
+        if (fielders[POS_PITCHER] == batting_order[i]) {
+            pitcher_is_batting = true;
+            break;
+        }
+    }
+
+    Player* dh;
+    if (pitcher_is_batting)
+        dh = fielders[POS_PITCHER];
+    else
+        dh = find_best_player_for_defense_pos(POS_DH, players_added);
+    
+    set_position_in_field(dh, POS_DH);
 }
 
 
@@ -177,16 +205,16 @@ void Team::set_position_in_field(Player* new_player, eDefensivePositions positio
 }
 
 
+// NOTE: only returns players currently in the batting order
 Player* Team::find_best_player_for_defense_pos(eDefensivePositions position, const std::vector<std::string>& players_to_exclude) {
     int max_games_found = -1;
-    Player* best_player = *all_players.begin();
+    Player* best_player = batting_order[0];
     
-    for (Player* player : all_players) {
-
-        int games_at_pos = player->games_at_fielding_position(position);
-        if ((games_at_pos > max_games_found) && (std::find(players_to_exclude.begin(), players_to_exclude.end(), player->id) == players_to_exclude.end())) {
+    for (int i = 0; i < 9; i++) {
+        int games_at_pos = batting_order[i]->games_at_fielding_position(position);
+        if ((games_at_pos > max_games_found) && (std::find(players_to_exclude.begin(), players_to_exclude.end(), batting_order[i]->id) == players_to_exclude.end())) {
             max_games_found = games_at_pos;
-            best_player = player;
+            best_player = batting_order[i];
         }
     }
 
