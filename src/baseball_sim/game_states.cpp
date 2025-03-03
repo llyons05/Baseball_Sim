@@ -56,7 +56,9 @@ int At_Bat::get_true_outcome() {
     float pitcher_probs[num_true_outcomes];
     float league_probs[num_true_outcomes];
 
-    const int batter_plate_appearances = batter->stats.get_stat<int>(PLAYER_BATTING, "b_pa", 1);
+    int batter_plate_appearances = batter->stats.get_stat<int>(PLAYER_BATTING, "b_pa", 1);
+    if (batter_plate_appearances == 0) batter_plate_appearances = 1; // If the batter has no PAs, we just assume they aren't going to get a hit (This makes it easier for baserunning/hit prob calculation)
+
     batter_probs[0] = (batter->stats.get_stat<float>(PLAYER_BATTING, "b_h", 0.0))/batter_plate_appearances;
     batter_probs[1] = (batter->stats.get_stat<float>(PLAYER_BATTING, "b_bb", 0.0)
                     + batter->stats.get_stat<float>(PLAYER_BATTING, "b_hbp", 0.0))/batter_plate_appearances;
@@ -73,6 +75,12 @@ int At_Bat::get_true_outcome() {
     league_probs[1] = (LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "BB", 0.0)
                     + LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "HBP", 0.0))/league_plate_appearances;
     league_probs[2] = 1 - league_probs[0] - league_probs[1];
+
+    if (pitcher_plate_appearances == 0) { // If the pitcher has no PAs, we treat him as half of an avg pitcher
+        pitcher_probs[0] = .35;
+        pitcher_probs[1] = .20;
+        pitcher_probs[2] = 1.0 - pitcher_probs[0] - pitcher_probs[1];
+    }
 
     float outcome_probabilities[num_true_outcomes];
     calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, num_true_outcomes);
@@ -204,7 +212,7 @@ int Base_State::get_player_advancement(eBases starting_base, eAt_Bat_Result batt
         extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][1], 0)/times_in_situation;
     }
 
-    const float normal_base_percentage = 1 - extra_base_percentage;
+    const float normal_base_percentage = 1.0 - extra_base_percentage;
     float outcomes[2] = {normal_base_percentage, extra_base_percentage};
 
     return get_random_event(outcomes, 2) + batter_bases_advanced;

@@ -20,7 +20,7 @@ int get_random_event(float event_probs[], int num_events) {
     const float eps = 1e-7;
     float r = ((float)rand())/RAND_MAX;
     for (int i = 0; i < num_events; i++) {
-        if (r - eps <= event_probs[i]) {
+        if ((r - eps <= event_probs[i]) && (event_probs[i] != 0)) {
             return i;
         }
         r -= event_probs[i];
