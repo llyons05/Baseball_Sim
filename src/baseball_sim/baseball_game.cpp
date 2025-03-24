@@ -6,7 +6,7 @@
 #include <random>
 #include <time.h>
 
-Baseball_Game::Baseball_Game (Team& home_team, Team& away_team) {
+Baseball_Game::Baseball_Game(Team* home_team, Team* away_team) {
     teams[HOME_TEAM] = home_team;
     teams[AWAY_TEAM] = away_team;
 
@@ -49,24 +49,30 @@ int Baseball_Game::play_half_inning() {
 }
 
 
-void Baseball_Game::reset() {
-    teams[HOME_TEAM].reset();
-    teams[AWAY_TEAM].reset();
+void Baseball_Game::reset(bool swap_teams) {
+    teams[HOME_TEAM]->reset();
+    teams[AWAY_TEAM]->reset();
 
     score[HOME_TEAM] = 0;
     score[AWAY_TEAM] = 0;
 
     team_batting = AWAY_TEAM;
     half_inning_count = 0;
+
+    if (swap_teams) {
+        Team* temp = teams[HOME_TEAM];
+        teams[HOME_TEAM] = teams[AWAY_TEAM];
+        teams[AWAY_TEAM] = temp;
+    }
 }
 
 
 void Baseball_Game::print_game_result() {
     if (score[HOME_TEAM] > score[AWAY_TEAM]) {
-        std::cout << teams[HOME_TEAM].team_name << " wins!" << "\n";
+        std::cout << teams[HOME_TEAM]->team_name << " wins!" << "\n";
     }
     else {
-        std::cout << teams[AWAY_TEAM].team_name << " wins!" << "\n";
+        std::cout << teams[AWAY_TEAM]->team_name << " wins!" << "\n";
     }
     std::cout << "TOTAL INNINGS: " << (float)half_inning_count/2 << "\n";
     std::cout << "FINAL SCORE: " << score[HOME_TEAM] << " - " << score[AWAY_TEAM] << "\n\n";

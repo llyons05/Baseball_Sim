@@ -16,9 +16,9 @@ const std::string BASERUNNING_STAT_STRINGS[2][2][3] = {{{"on_first_single", "on_
                                                        {{"on_second_single", "on_second_single_2H"}}};
 
 
-At_Bat::At_Bat(Team& hitting_team, Team& pitching_team) {
-    this->pitcher = pitching_team.fielders[POS_PITCHER];
-    this->batter = hitting_team.batting_order[hitting_team.position_in_batting_order];
+At_Bat::At_Bat(Team* hitting_team, Team* pitching_team) {
+    this->pitcher = pitching_team->fielders[POS_PITCHER];
+    this->batter = hitting_team->batting_order[hitting_team->position_in_batting_order];
 }
 
 
@@ -115,9 +115,9 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 }
 
 
-Half_Inning::Half_Inning(Team& hitting_team, Team& pitching_team, int half_inning_number) {
-    this->hitting_team = &hitting_team;
-    this->pitching_team = &pitching_team;
+Half_Inning::Half_Inning(Team* hitting_team, Team* pitching_team, int half_inning_number) {
+    this->hitting_team = hitting_team;
+    this->pitching_team = pitching_team;
     this->half_inning_number = half_inning_number;
     outs = 0;
     runs_scored = 0;
@@ -133,7 +133,7 @@ int Half_Inning::play() {
     #endif
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
-        At_Bat at_bat(*hitting_team, *pitching_team);
+        At_Bat at_bat(hitting_team, pitching_team);
         eAt_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
         bases.print();
