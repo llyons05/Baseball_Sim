@@ -10,3 +10,7 @@ NOTES:
     make sure to update batting order if pitcher gets switched out
     add stolen bases
     clean up setting the pitcher
+    load only the necessary rows of the table
+        - Maybe load an average row too?
+    Cleaner DH settings
+        - Maybe team takes in a "uses_dh" arg
