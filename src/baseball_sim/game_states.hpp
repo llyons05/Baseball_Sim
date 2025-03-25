@@ -33,7 +33,7 @@ class At_Bat {
         Player* pitcher;
         Player* batter;
 
-        At_Bat(Team& hitting_team, Team& pitching_team);
+        At_Bat(Team* hitting_team, Team* pitching_team);
         eAt_Bat_Result play();
         eAt_Bat_Result get_ab_result();
 
@@ -73,7 +73,7 @@ class Half_Inning {
 
         int half_inning_number;
 
-        Half_Inning(Team& hitting_team, Team& pitching_team, int half_inning_number);
+        Half_Inning(Team* hitting_team, Team* pitching_team, int half_inning_number);
         int play();
         void handle_at_bat_result(eAt_Bat_Result at_bat_result);
 };
@@ -86,9 +86,9 @@ class Game_Result {
         int final_score[2];
         int half_innings_played;
 
-        Game_Result(Team& home_team, Team& away_team, int final_score[2], int half_innings_played) {
-            this->home_team = &home_team;
-            this->away_team = &away_team;
+        Game_Result(Team* home_team, Team* away_team, int final_score[2], int half_innings_played) {
+            this->home_team = home_team;
+            this->away_team = away_team;
             this->final_score[0] = final_score[0];
             this->final_score[1] = final_score[1];
             this->half_innings_played = half_innings_played;

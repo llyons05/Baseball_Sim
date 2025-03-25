@@ -14,6 +14,7 @@ const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANC
 
 League_Stats LEAGUE_AVG_STATS;
 std::unordered_map<string, shared_ptr<Player>> player_cache;
+std::unordered_map<string, shared_ptr<Team>> team_cache;
 
 void Stat_Loader::load_league_avgs() {
     vector<map<string, string>> batting_data = read_csv_file(get_league_data_file_path("batting"));
@@ -27,12 +28,17 @@ void Stat_Loader::load_league_avgs() {
 }
 
 
-Team Stat_Loader::load_team(const string& team_abbreviation, int year) {
+Team* Stat_Loader::load_team(const string& team_abbreviation, int year) {
+    const string cache_id = team_abbreviation + "_" + to_string(year);
+    if (is_team_cached(cache_id)) { // This probably causes issues if duplicate teams play each other but I'm not gonna worry about that
+        return team_cache[cache_id].get();
+    }
+
     Team_Stats team_stats = load_team_stats(team_abbreviation, year);
     vector<Player*> roster = load_team_roster(team_stats, year);
     Team team(team_abbreviation, roster, team_stats);
 
-    return team;
+    return cache_team(team, cache_id);
 }
 
 
@@ -61,9 +67,15 @@ vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) 
 }
 
 
+Team* Stat_Loader::cache_team(const Team& team, const string& cache_id) {
+    team_cache[cache_id] = make_shared<Team>(team);
+    return team_cache[cache_id].get();
+}
+
+
 Player* Stat_Loader::load_player(const string& player_name, const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     const string cache_id = get_player_cache_id(player_id, team_abbreviation, year);
-    if (is_in_cache(cache_id)) { // Check if player was loaded by a different team
+    if (is_player_cached(cache_id)) { // Check if player was loaded by a different team
         return player_cache.at(cache_id).get();
     }
 
@@ -107,7 +119,12 @@ string Stat_Loader::get_player_cache_id(const string& player_id, const string& t
 }
 
 
-bool Stat_Loader::is_in_cache(const std::string& player_cache_id) {
+bool Stat_Loader::is_team_cached(const string& team_cache_id) {
+    return team_cache.count(team_cache_id) > 0;
+}
+
+
+bool Stat_Loader::is_player_cached(const string& player_cache_id) {
     return player_cache.count(player_cache_id) > 0;
 }
 

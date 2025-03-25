@@ -18,19 +18,21 @@ const std::vector<std::string> PITCHING_POSITION_NAMES = {"P", "CL", "SP", "RP"}
 const std::string DEFAULT_POSITION = "P";
 
 extern std::unordered_map<std::string, std::shared_ptr<Player>> player_cache;
+extern std::unordered_map<std::string, std::shared_ptr<Team>> team_cache;
 
 class Stat_Loader {
     
     public:
         Stat_Loader() {}
 
-        Team load_team(const std::string& team_abbreviation, int year);
+        Team* load_team(const std::string& team_abbreviation, int year);
         Player* load_player(const std::string& player_name, const std::string& player_id, int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
         Player_Stats load_necessary_player_stats(const std::string& player_id, int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
         Stat_Table load_player_stat_table(const std::string& player_id, ePlayer_Stat_Types player_stat_type);
         Team_Stats load_team_stats(const std::string& team_abbreviation, int year);
         std::vector<Player*> load_team_roster(Team_Stats& team_stats, int year);
         Player* cache_player(const Player& player, const std::string& cache_id);
+        Team* cache_team(const Team& team, const std::string& cache_id);
         void load_league_avgs();
 
     private:
@@ -50,5 +52,6 @@ class Stat_Loader {
         std::string get_league_data_file_path(const std::string& stat_type);
 
         std::string get_player_cache_id(const std::string& player_id, const std::string& team_abbreviation, int year);
-        bool is_in_cache(const std::string& player_cache_id);
+        bool is_player_cached(const std::string& player_cache_id);
+        bool is_team_cached(const std::string& team_cache_id);
 };

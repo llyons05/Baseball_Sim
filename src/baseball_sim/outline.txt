@@ -1,16 +1,14 @@
 NOTES:
     What to do when player stats for a year don't exist
     Load Full batting order tables
-    Swap teams at Half
-    Batting order can currently include players who are not in the field
-        - Have set_up_batting_order only pull from the fielders
-    Add documentation
-    fix roster scraping, not every table is in the updated form
+    Add better documentation
+    Baseball reference is slowly changing tables, make sure to stay up to date
     use BR advanced batting pitch summary for pitch-by-pitch stats
-    make sure to update batting order if pitcher gets switched out
+    Change pitcher after every game
+        - Give each pitcher a cooldown (ex: 5 games)?
     add stolen bases
-    clean up setting the pitcher
     load only the necessary rows of the table
         - Maybe load an average row too?
     Cleaner DH settings
         - Maybe team takes in a "uses_dh" arg
+    use player cache for find_players

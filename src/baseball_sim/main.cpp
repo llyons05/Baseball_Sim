@@ -19,25 +19,25 @@ int main() {
     srand(time(NULL));
 
     int num_games;
-    std::string home_team_name;
-    std::string away_team_name;
-    int home_team_year;
-    int away_team_year;
+    std::string team_1_name;
+    std::string team_2_name;
+    int team_1_year;
+    int team_2_year;
     
-    std::cout << "Input Home Team Abbreviation (Ex: NYY or LAD): ";
-    std::cin >> home_team_name;
+    std::cout << "Input Team 1 Abbreviation (Ex: NYY or LAD): ";
+    std::cin >> team_1_name;
     std::cout << "\n";
 
-    std::cout << "Input Home Team Year (Ex: 1924 or 2024): ";
-    std::cin >> home_team_year;
+    std::cout << "Input Team 1 Year (Ex: 1924 or 2024): ";
+    std::cin >> team_1_year;
     std::cout << "\n";
 
-    std::cout << "Input Away Team Abbreviation (Ex: NYY or LAD): ";
-    std::cin >> away_team_name;
+    std::cout << "Input Team 2 Abbreviation (Ex: NYY or LAD): ";
+    std::cin >> team_2_name;
     std::cout << "\n";
 
-    std::cout << "Input Away Team Year (Ex: 1924 or 2024): ";
-    std::cin >> away_team_year;
+    std::cout << "Input Team 2 Year (Ex: 1924 or 2024): ";
+    std::cin >> team_2_year;
     std::cout << "\n";
 
     std::cout << "Input number of games in the series: ";
@@ -45,12 +45,12 @@ int main() {
     std::cout << "\n";
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
-    Team home_team = loader.load_team(home_team_name, home_team_year);
-    Team away_team = loader.load_team(away_team_name, away_team_year);
+    Team* team_1 = loader.load_team(team_1_name, team_1_year);
+    Team* team_2 = loader.load_team(team_2_name, team_2_year);
+    Team* teams[2] = {team_1, team_2};
+
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
-
-    Baseball_Game game(home_team, away_team);
 
     int total_wins[2] = {0};
     int total_runs[2] = {0};
@@ -59,31 +59,35 @@ int main() {
 
     #if BASEBALL_DEBUG
     std::cout << "\n";
-    home_team.print_fielders();
-    away_team.print_fielders();
+    team_1->print_fielders();
+    team_2->print_fielders();
 
-    home_team.print_batting_order();
-    away_team.print_batting_order();
+    team_1->print_batting_order();
+    team_2->print_batting_order();
     #endif
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     for (int i = 0; i < num_games; i++) {
+        int home_id = i%2;
+        int away_id = (i+1)%2;
+        Baseball_Game game(teams[home_id], teams[away_id]);
         Game_Result result = game.play_game();
 
-        if (result.final_score[HOME_TEAM] > result.final_score[AWAY_TEAM]) total_wins[HOME_TEAM]++;
-        else if (result.final_score[HOME_TEAM] < result.final_score[AWAY_TEAM]) total_wins[AWAY_TEAM]++;
+        if (result.final_score[HOME_TEAM] > result.final_score[AWAY_TEAM]) total_wins[home_id]++;
+        else if (result.final_score[HOME_TEAM] < result.final_score[AWAY_TEAM]) total_wins[away_id]++;
 
-        total_runs[HOME_TEAM] += result.final_score[HOME_TEAM];
-        total_runs[AWAY_TEAM] += result.final_score[AWAY_TEAM];
+        total_runs[home_id] += result.final_score[HOME_TEAM];
+        total_runs[away_id] += result.final_score[AWAY_TEAM];
 
-        game.reset();
+        teams[0]->reset();
+        teams[1]->reset();
     }
 
     float duration = (std::chrono::steady_clock::now() - begin).count()/(1e+9);
     std::cout << "Completed in " << duration << " seconds (" << num_games/duration << " games/s)\n\n";
 
     std::cout << "Result of " << num_games << " games:\n";
-    std::cout << home_team.team_name << ": " << total_wins[HOME_TEAM] << " wins\t Total runs: " << total_runs[HOME_TEAM] << "\n";
-    std::cout << away_team.team_name << ": " << total_wins[AWAY_TEAM] << " wins\t Total runs: " << total_runs[AWAY_TEAM] << "\n";
+    std::cout << team_1->team_name << ": " << total_wins[0] << " wins\t Total runs: " << total_runs[0] << "\n";
+    std::cout << team_2->team_name << ": " << total_wins[1] << " wins\t Total runs: " << total_runs[1] << "\n";
 }
