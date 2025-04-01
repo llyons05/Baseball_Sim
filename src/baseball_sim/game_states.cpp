@@ -56,24 +56,24 @@ int At_Bat::get_true_outcome() {
     float pitcher_probs[num_true_outcomes];
     float league_probs[num_true_outcomes];
 
-    int batter_plate_appearances = batter->stats.get_stat<int>(PLAYER_BATTING, "b_pa", 1);
+    int batter_plate_appearances = batter->stats.get_stat(PLAYER_BATTING, "b_pa", 1);
     if (batter_plate_appearances == 0) batter_plate_appearances = 1; // If the batter has no PAs, we just assume they aren't going to get a hit (This makes it easier for baserunning/hit prob calculation)
 
-    batter_probs[0] = (batter->stats.get_stat<float>(PLAYER_BATTING, "b_h", 0.0))/batter_plate_appearances;
-    batter_probs[1] = (batter->stats.get_stat<float>(PLAYER_BATTING, "b_bb", 0.0)
-                    + batter->stats.get_stat<float>(PLAYER_BATTING, "b_hbp", 0.0))/batter_plate_appearances;
+    batter_probs[0] = (batter->stats.get_stat(PLAYER_BATTING, "b_h", 0.0))/batter_plate_appearances;
+    batter_probs[1] = (batter->stats.get_stat(PLAYER_BATTING, "b_bb", 0.0)
+                    + batter->stats.get_stat(PLAYER_BATTING, "b_hbp", 0.0))/batter_plate_appearances;
     batter_probs[2] = 1.0 - batter_probs[0] - batter_probs[1];
 
-    const int pitcher_plate_appearances = pitcher->stats.get_stat<int>(PLAYER_PITCHING, "p_bfp", 1);
-    pitcher_probs[0] = (pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_h", 0.0))/pitcher_plate_appearances;
-    pitcher_probs[1] = (pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_bb", 0.0)
-                     + pitcher->stats.get_stat<float>(PLAYER_PITCHING, "p_hbp", 0.0))/pitcher_plate_appearances;
+    const int pitcher_plate_appearances = pitcher->stats.get_stat(PLAYER_PITCHING, "p_bfp", 1);
+    pitcher_probs[0] = (pitcher->stats.get_stat(PLAYER_PITCHING, "p_h", 0.0))/pitcher_plate_appearances;
+    pitcher_probs[1] = (pitcher->stats.get_stat(PLAYER_PITCHING, "p_bb", 0.0)
+                     + pitcher->stats.get_stat(PLAYER_PITCHING, "p_hbp", 0.0))/pitcher_plate_appearances;
     pitcher_probs[2] = 1.0 - pitcher_probs[0] - pitcher_probs[1];
 
-    const float league_plate_appearances = LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "PA", 1.0);
-    league_probs[0] = LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "H", 0.0)/league_plate_appearances;
-    league_probs[1] = (LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "BB", 0.0)
-                    + LEAGUE_AVG_STATS.get_stat<float>(LEAGUE_BATTING, batter->stats.current_year, "HBP", 0.0))/league_plate_appearances;
+    const float league_plate_appearances = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "PA", 1.0);
+    league_probs[0] = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", 0.0)/league_plate_appearances;
+    league_probs[1] = (LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "BB", 0.0)
+                    + LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", 0.0))/league_plate_appearances;
     league_probs[2] = 1 - league_probs[0] - league_probs[1];
 
     if (pitcher_plate_appearances == 0) { // If the pitcher has no PAs, we treat him as half of an avg pitcher
@@ -89,10 +89,10 @@ int At_Bat::get_true_outcome() {
 
 
 eAt_Bat_Result At_Bat::get_hit_result() {
-    const int total_hits = batter->stats.get_stat<int>(PLAYER_BATTING, "b_h", 1);
-    const int doubles = batter->stats.get_stat<int>(PLAYER_BATTING, "b_doubles", 0);
-    const int triples = batter->stats.get_stat<int>(PLAYER_BATTING, "b_triples", 0);
-    const int home_runs = batter->stats.get_stat<int>(PLAYER_BATTING, "b_hr", 0);
+    const int total_hits = batter->stats.get_stat(PLAYER_BATTING, "b_h", 1);
+    const int doubles = batter->stats.get_stat(PLAYER_BATTING, "b_doubles", 0);
+    const int triples = batter->stats.get_stat(PLAYER_BATTING, "b_triples", 0);
+    const int home_runs = batter->stats.get_stat(PLAYER_BATTING, "b_hr", 0);
     const int singles = total_hits - doubles - triples - home_runs;
 
     const float single_prob = ((float)singles) / total_hits;
@@ -203,13 +203,13 @@ int Base_State::get_player_advancement(eBases starting_base, eAt_Bat_Result batt
         return batter_bases_advanced;
     }
 
-    const int times_in_situation = players_on_base[starting_base]->stats.get_stat<int>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][0], 1);
+    const int times_in_situation = players_on_base[starting_base]->stats.get_stat(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][0], 1);
     float extra_base_percentage;
     if (times_in_situation == 0) { 
-        extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, "extra_bases_taken_perc", 0.0)/100;
+        extra_base_percentage = players_on_base[starting_base]->stats.get_stat(PLAYER_BASERUNNING, "extra_bases_taken_perc", 0.0)/100;
     }
     else {
-        extra_base_percentage = players_on_base[starting_base]->stats.get_stat<float>(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][1], 0)/times_in_situation;
+        extra_base_percentage = players_on_base[starting_base]->stats.get_stat(PLAYER_BASERUNNING, BASERUNNING_STAT_STRINGS[starting_base][batter_bases_advanced-1][1], 0)/times_in_situation;
     }
 
     const float normal_base_percentage = 1.0 - extra_base_percentage;
