@@ -48,8 +48,8 @@ class Team {
         }
 
 
-        std::set<Player*> filter_players_by_listed_pos(const std::vector<std::string>& positions = {});
-        std::set<Player*> filter_pitchers(const std::vector<std::string>& positions = {});
+        std::set<Player*> filter_players_by_listed_pos(const std::vector<Table_Entry>& positions = {});
+        std::set<Player*> filter_pitchers(const std::vector<Table_Entry>& positions = {});
 
         Player* try_switching_pitcher(int current_half_inning);
         Player* pick_next_pitcher(int current_half_inning);

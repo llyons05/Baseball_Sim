@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <variant>
 
 using namespace std;
 
@@ -75,30 +76,36 @@ map<string, string> match_keys_to_values(const vector<string>& keys, const vecto
 }
 
 
-vector<map<string, float>> convert_rows_to_float(const std::vector<std::map<std::string, std::string>>& rows) {
-    vector<map<string, float>> result;
+vector<map<string, variant<string, float, monostate>>> convert_rows_to_table_entries(const vector<map<string, string>>& rows) {
+    vector<map<string, variant<string, float, monostate>>> result;
     for (const map<string, string>& row : rows) {
-        result.push_back(convert_row_to_float(row));
+        result.push_back(convert_row_to_table_entry(row));
     }
     return result;
 }
 
 
-map<string, float> convert_row_to_float(const map<string, string>& row) {
-    map<string, float> result;
+map<string, variant<string, float, monostate>> convert_row_to_table_entry(const map<string, string>& row) {
+    map<string, variant<string, float, monostate>> result;
     for (auto const& [key, value] : row) {
-        if (is_float(value)) {
-            result.insert({key, stof(value)});
+        variant<string, float, monostate> converted_val;
+        if (value.empty()) {
+            converted_val = monostate{};
         }
+        else if (is_float(value)) {
+            converted_val = stof(value);
+        }
+        else {
+            converted_val = value;
+        }
+        result.insert({key, converted_val});
     }
     return result;
 }
 
 
+// please dont call this with an empty string
 bool is_float(const string& str) {
-    if (str.empty())
-        return false;
-
     char* ptr;
     strtof(str.c_str(), &ptr);
     return (*ptr) == '\0';

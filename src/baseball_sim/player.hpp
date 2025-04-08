@@ -43,7 +43,7 @@ class Player {
 
         int games_at_fielding_position(eDefensivePositions position) const {
             std::string stat_string = POSITION_TO_APPEARANCE_KEY.at(DEFENSIVE_POSITIONS[position]);
-            return stats.get_stat(PLAYER_APPEARANCES, stat_string, 0);
+            return stats.get_stat(PLAYER_APPEARANCES, stat_string, .0f);
         }
 
         bool operator<(const Player& other) const {
