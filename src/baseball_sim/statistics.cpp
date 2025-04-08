@@ -42,10 +42,10 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
 
 Team_Stats::Team_Stats(const string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year) {
     this->team_name = team_id;
-    this->team_cache_id = get_team_cache_id(team_id, year);
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
         this->stat_tables[i] = team_stat_tables[i];
     }
+    this->team_cache_id = get_team_cache_id(stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND"), year);
 }
 
 

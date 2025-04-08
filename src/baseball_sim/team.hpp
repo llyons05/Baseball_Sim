@@ -73,13 +73,9 @@ class Team {
 
         std::set<Player*> find_players(const std::vector<std::string>& player_ids) {
             std::set<Player*> result;
-            for (Player* player : all_players) {
-                for (const std::string& player_id : player_ids) {
-                    if (player->id == player_id) {
-                        result.insert(player);
-                        break;
-                    }
-                }
+            for (const std::string& player_id : player_ids) {
+                Player* player = player_cache.at(get_player_cache_id(player_id, team_stats.team_cache_id)).get();
+                result.insert(player);
             }
             return result;
         }
