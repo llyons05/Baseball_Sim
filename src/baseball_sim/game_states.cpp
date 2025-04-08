@@ -16,9 +16,11 @@ const std::string BASERUNNING_STAT_STRINGS[2][2][3] = {{{"on_first_single", "on_
                                                        {{"on_second_single", "on_second_single_2H"}}};
 
 
-At_Bat::At_Bat(Team* hitting_team, Team* pitching_team) {
+At_Bat::At_Bat(Team* batting_team, Team* pitching_team) {
     this->pitcher = pitching_team->fielders[POS_PITCHER];
-    this->batter = hitting_team->batting_order[hitting_team->position_in_batting_order];
+    this->batter = batting_team->batting_order[batting_team->position_in_batting_order];
+    this->batting_team = batting_team;
+    this->pitching_team = pitching_team;
 }
 
 
@@ -115,10 +117,11 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 }
 
 
-Half_Inning::Half_Inning(Team* hitting_team, Team* pitching_team, int half_inning_number) {
-    this->hitting_team = hitting_team;
+Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number) {
+    this->batting_team = batting_team;
     this->pitching_team = pitching_team;
     this->half_inning_number = half_inning_number;
+    this->bases = Base_State(batting_team, pitching_team);
     outs = 0;
     runs_scored = 0;
 }
@@ -129,11 +132,11 @@ int Half_Inning::play() {
     std::string top_or_bottom = "TOP ";
     if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
     std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
-    std::cout << "TEAM AT BAT: " << hitting_team->team_name << "\n";
+    std::cout << "TEAM AT BAT: " << batting_team->team_name << "\n";
     #endif
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
-        At_Bat at_bat(hitting_team, pitching_team);
+        At_Bat at_bat(batting_team, pitching_team);
         eAt_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
         bases.print();
@@ -151,9 +154,9 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
     if (at_bat_result == BATTER_OUT) {
         outs++;
     }
-    int runs_from_ab = bases.advance_runners(hitting_team->batting_order[hitting_team->position_in_batting_order], at_bat_result);
+    int runs_from_ab = bases.advance_runners(batting_team->batting_order[batting_team->position_in_batting_order], at_bat_result);
     runs_scored += runs_from_ab;
-    hitting_team->position_in_batting_order = (hitting_team->position_in_batting_order + 1) % 9;
+    batting_team->position_in_batting_order = (batting_team->position_in_batting_order + 1) % 9;
 
     pitching_team->runs_allowed_by_pitcher += runs_from_ab;
     pitching_team->try_switching_pitcher(half_inning_number);

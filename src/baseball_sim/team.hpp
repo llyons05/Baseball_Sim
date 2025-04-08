@@ -35,7 +35,7 @@ class Team {
             all_players.push_back(player);
         }
 
-        std::vector<Player*> get_players() {
+        const std::vector<Player*>& get_players() {
             return all_players;
         }
 

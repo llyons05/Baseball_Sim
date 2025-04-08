@@ -30,10 +30,13 @@ class At_Bat {
         int balls;
         int strikes;
 
+        Team* batting_team;
+        Team* pitching_team;
+
         Player* pitcher;
         Player* batter;
 
-        At_Bat(Team* hitting_team, Team* pitching_team);
+        At_Bat(Team* batting_team, Team* pitching_team);
         eAt_Bat_Result play();
         eAt_Bat_Result get_ab_result();
 
@@ -49,7 +52,11 @@ class Base_State {
     public:
         Player* players_on_base[3];
 
-        Base_State() : players_on_base() {}
+        Team* batting_team;
+        Team* pitching_team;
+
+        Base_State() {}
+        Base_State(Team* batting_team, Team* pitching_team) : players_on_base(), batting_team(batting_team), pitching_team(pitching_team) {}
 
         int advance_runners(Player* batter, eAt_Bat_Result result);
         int handle_walk(Player* batter);
@@ -64,7 +71,7 @@ class Half_Inning {
     public:
         const static int NUM_OUTS_TO_END_INNING = 3;
 
-        Team* hitting_team;
+        Team* batting_team;
         Team* pitching_team;
 
         int outs;
@@ -73,7 +80,7 @@ class Half_Inning {
 
         int half_inning_number;
 
-        Half_Inning(Team* hitting_team, Team* pitching_team, int half_inning_number);
+        Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number);
         int play();
         void handle_at_bat_result(eAt_Bat_Result at_bat_result);
 };

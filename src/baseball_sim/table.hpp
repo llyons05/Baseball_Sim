@@ -70,7 +70,7 @@ class Table_Row {
             return true;
         }
 
-        std::map<std::string, Table_Entry> get_row_data() const {
+        const std::map<std::string, Table_Entry>& get_row_data() const {
             return row_data;
         }
 
