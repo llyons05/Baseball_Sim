@@ -14,8 +14,8 @@ using namespace std;
 const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANCES};
 
 League_Stats LEAGUE_AVG_STATS;
-std::unordered_map<string, shared_ptr<Player>> player_cache;
-std::unordered_map<string, shared_ptr<Team>> team_cache;
+unordered_map<string, shared_ptr<Player>> player_cache;
+unordered_map<string, shared_ptr<Team>> team_cache;
 
 void Stat_Loader::load_league_avgs() {
     vector<map<string, string>> batting_data = read_csv_file(get_league_data_file_path("batting"));
@@ -30,7 +30,7 @@ void Stat_Loader::load_league_avgs() {
 
 
 Team* Stat_Loader::load_team(const string& team_abbreviation, int year) {
-    const string cache_id = team_abbreviation + "_" + to_string(year);
+    const string cache_id = get_team_cache_id(team_abbreviation, year);
     if (is_team_cached(cache_id)) { // This probably causes issues if duplicate teams play each other but I'm not gonna worry about that
         return team_cache[cache_id].get();
     }
@@ -52,7 +52,7 @@ Team_Stats Stat_Loader::load_team_stats(const string& team_abbreviation, int yea
         Stat_Table stat_table(file_data, TEAM_STAT_TYPES[i], team_abbreviation + "_" + to_string(year) + "_" + TEAM_STAT_TYPES[i]);
         team_stat_tables[i] = stat_table;
     }
-    return Team_Stats(team_abbreviation, team_stat_tables);
+    return Team_Stats(team_abbreviation, team_stat_tables, year);
 }
 
 
@@ -124,13 +124,6 @@ Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const st
 Player* Stat_Loader::cache_player(const Player& player, const string& cache_id) {
     player_cache[cache_id] = make_shared<Player>(player);
     return player_cache.at(cache_id).get();
-}
-
-
-// We must cache players with their team and year, since it is possible for the same player to play for two teams in the same year
-// Also we might want to have two different versions of the same team play (ex: 2023 NYY vs 2024 NYY)
-string Stat_Loader::get_player_cache_id(const string& player_id, const string& team_abbreviation, int year) {
-    return player_id + "_" + team_abbreviation + "_" + to_string(year);
 }
 
 

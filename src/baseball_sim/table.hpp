@@ -27,7 +27,7 @@ class Table_Row {
         }
 
 
-        Table_Entry get_entry(const std::string& stat_name) const {
+        const Table_Entry& get_entry(const std::string& stat_name) const {
             if (has_stat(stat_name)) {
                 return row_data.at(stat_name);
             }
@@ -114,7 +114,7 @@ class Stat_Table {
         }
 
 
-        std::vector<Table_Row> get_rows() const {
+        const std::vector<Table_Row>& get_rows() const {
             return table_rows;
         }
 

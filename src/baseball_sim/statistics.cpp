@@ -12,6 +12,7 @@ std::map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRE
 
 Player_Stats::Player_Stats(const string& player_id, int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) {
     this->player_id = player_id;
+    this->cache_id = get_player_cache_id(player_id, team_abbreviation, year_to_pull_stats_from);
     this->current_year = year_to_pull_stats_from;
     this->current_team_abbreviation = team_abbreviation;
 
@@ -39,8 +40,9 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
 
 
 
-Team_Stats::Team_Stats(const string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES]) {
+Team_Stats::Team_Stats(const string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year) {
     this->team_name = team_id;
+    this->team_cache_id = get_team_cache_id(team_id, year);
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
         this->stat_tables[i] = team_stat_tables[i];
     }

@@ -23,6 +23,7 @@ class Player_Stats {
 
     public:
         std::string player_id;
+        std::string cache_id;
         Stat_Table stat_tables[NUM_PLAYER_STAT_TYPES];
         int current_year;
 
@@ -59,10 +60,11 @@ extern std::string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES];
 class Team_Stats {
     public:
         std::string team_name;
+        std::string team_cache_id;
         Stat_Table stat_tables[NUM_TEAM_STAT_TYPES];
 
         Team_Stats() {}
-        Team_Stats(const std::string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES]);
+        Team_Stats(const std::string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
 
         Table_Row get_row(eTeam_Stat_Types stat_type, const std::map<std::string, std::vector<Table_Entry>>& row_attributes);
 
@@ -71,7 +73,6 @@ class Team_Stats {
             int row_index = stat_tables[stat_type].find_row(row_attributes);
             return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
         }
-
 };
 
 extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE;

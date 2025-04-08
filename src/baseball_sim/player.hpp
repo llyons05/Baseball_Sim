@@ -54,3 +54,6 @@ class Player {
             return id == other.id;
         }
 };
+
+
+extern std::unordered_map<std::string, std::shared_ptr<Player>> player_cache;

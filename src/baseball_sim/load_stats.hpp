@@ -17,8 +17,6 @@
 const std::vector<std::string> PITCHING_POSITION_NAMES = {"P", "CL", "SP", "RP"};
 const std::string DEFAULT_POSITION = "P";
 
-extern std::unordered_map<std::string, std::shared_ptr<Player>> player_cache;
-extern std::unordered_map<std::string, std::shared_ptr<Team>> team_cache;
 
 class Stat_Loader {
     
@@ -40,7 +38,6 @@ class Stat_Loader {
         std::string get_team_year_dir_path(const std::string& team_abbreviation, int year);
         std::string get_league_data_file_path(const std::string& stat_type);
 
-        std::string get_player_cache_id(const std::string& player_id, const std::string& team_abbreviation, int year);
         bool is_player_cached(const std::string& player_cache_id);
         bool is_team_cached(const std::string& team_cache_id);
         Player* cache_player(const Player& player, const std::string& cache_id);

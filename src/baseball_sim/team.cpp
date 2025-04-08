@@ -61,7 +61,7 @@ set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
 
 
 set<Player*> Team::get_all_pitchers() {
-    vector<Table_Row> pitcher_table = team_stats.stat_tables[TEAM_PITCHING].get_rows();
+    const vector<Table_Row>& pitcher_table = team_stats.stat_tables[TEAM_PITCHING].get_rows();
     vector<string> pitcher_ids;
 
     for (const Table_Row& row : pitcher_table) {

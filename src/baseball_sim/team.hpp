@@ -74,7 +74,7 @@ class Team {
         std::set<Player*> find_players(const std::vector<std::string>& player_ids) {
             std::set<Player*> result;
             for (Player* player : all_players) {
-                for (std::string player_id : player_ids) {
+                for (const std::string& player_id : player_ids) {
                     if (player->id == player_id) {
                         result.insert(player);
                         break;
@@ -86,3 +86,6 @@ class Team {
 
         Player* find_best_player_for_defense_pos(eDefensivePositions position, const std::vector<std::string>& players_to_exclude = {});
 };
+
+
+extern std::unordered_map<std::string, std::shared_ptr<Team>> team_cache;
