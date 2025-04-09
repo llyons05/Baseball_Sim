@@ -79,9 +79,9 @@ def choose_year() -> int:
     return int(year_input)
 
 
-def choose_player_stat_type() -> DI.PLAYER_STAT_TYPES:
-    prompt = "What player stats should be scraped?"
-    return get_user_choice_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
+def choose_player_scraping_stat_types() -> list[DI.PLAYER_STAT_TYPES]:
+    prompt = "What player stats should be scraped (press enter for all stats)?"
+    return get_user_choices_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
 
 
 def should_overwrite_data() -> bool:
@@ -97,6 +97,9 @@ def should_gather_non_pitcher_stats() -> bool:
 def validate_user_string_input_list(input_str: str, min_single_value_size: int = -1, max_single_value_size: int = math.inf, delimiter: str = ",", allowed_values: list[str] = []) -> bool:
     input_str = input_str.strip()
     input_list = parse_user_string_input_list(input_str)
+
+    if not input_str:
+        return False
     
     if (len(input_str.replace(delimiter, "")) < min_single_value_size):
         print()
@@ -116,8 +119,8 @@ def validate_user_string_input_list(input_str: str, min_single_value_size: int =
 
 def parse_user_string_input_list(input_str: str, delimiter: str = ",") -> list[str]:
     input_list = input_str.split(delimiter)
-    for x in range(len(input_list)):
-        input_list[x] = input_list[x].strip()
+    for i in range(len(input_list)):
+        input_list[i] = input_list[i].strip()
 
     return input_list
 
@@ -147,7 +150,7 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
     return player_choice
 
 
-def choose_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
+def choose_player_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
     prompt = "What player stats should be viewed?"
     return get_user_choice_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
 
@@ -183,7 +186,7 @@ def display_team_roster_file(team_abbreviation: str, year: int) -> None:
 
 
 def get_yes_or_no(prompt: str, inverted: bool = False) -> bool:
-    result = get_user_choice_from_prompt(prompt, ["y", "n"])
+    result = get_user_choice_from_prompt(prompt, ["y", "n"])[0]
 
     if not inverted:
         return result == "y"
@@ -200,6 +203,21 @@ def get_user_choice_from_prompt(prompt: str, choices: list[str]) -> str:
     
     print()
     return choice
+
+
+def get_user_choices_from_prompt(prompt: str, choices: list[str], default: list[str] = None) -> list[str]:
+    user_input = ""
+    prompt_str = get_user_choice_prompt_str(prompt, choices)
+
+    while not validate_user_string_input_list(user_input, allowed_values=choices):
+        user_input = input(prompt_str)
+        if not user_input.strip():
+            if default == None:
+                default = choices
+            return default
+    
+    print()
+    return parse_user_string_input_list(user_input)
 
 
 def get_user_choice_prompt_str(prompt: str, choices: list[str]) -> str:

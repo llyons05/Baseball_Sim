@@ -77,6 +77,27 @@ def get_all_teams() -> list[dict[Literal["NAME", "URL", "TEAM_ID"], str]]:
     return utils.read_csv_as_dict_list(filename)
 
 
+def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_STAT_TYPES]) -> list[dict[Literal["ID", "URL", "STAT_TYPES"], str]]:
+    found_players: dict[str, tuple[str, list[PLAYER_STAT_TYPES]]] = dict()
+
+    for stat_type in stat_types:
+        team_file_type_to_read_from = get_team_file_type_to_read_from(stat_type)
+        team_data = read_team_data_file(team_abbreviation, year, team_file_type_to_read_from)
+        for row in team_data:
+            if row["ID"] not in found_players.keys():
+                found_players[row["ID"]] = (row["URL"], [stat_type])
+            else:
+                found_players[row["ID"]][1].append(stat_type)
+    
+    result: list[dict[Literal["ID", "URL", "STAT_TYPES"], str]] = []
+    for player in found_players.keys():
+        url, player_stats = found_players[player]
+        result.append({"ID": player, "URL": url, "STAT_TYPES": player_stats})
+
+    return result
+
+
+
 def create_team_folder(team_abbreviation: str) -> None:
     dir_path: str = get_team_dir_path(team_abbreviation)
     utils.make_dirs(dir_path)
