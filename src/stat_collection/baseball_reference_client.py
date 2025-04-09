@@ -3,7 +3,6 @@ import urllib.request
 import time
 import random
 from typing import Literal
-from copy import deepcopy
 
 import utils
 import local_database_interface as DI
@@ -14,7 +13,7 @@ from table import Table, EMPTY_TABLE
 class Scraping_Client:
 
     def __init__(self):
-        pass
+        self.html_cache = dict()
 
 
     def evade(self) -> None:
@@ -22,11 +21,14 @@ class Scraping_Client:
 
 
     def scrape_page_html(self, url: str):
-        self.evade()
+        if self.is_in_cache(url):
+            return self.html_cache[url]
 
+        self.evade()
         try:
             with urllib.request.urlopen(url) as response:
                 html = response.read()
+                self.html_cache[url] = html
                 return html
         except:
             return None
@@ -287,6 +289,9 @@ class Scraping_Client:
 
         return result
 
+
+    def is_in_cache(self, url: str) -> bool:
+        return url in self.html_cache.keys()
 
     def get_default_table_location(self, table_id: str) -> Extra_Types.HTML_TAG_NAVIGATION_PATH:
         return [{"tag_name": "table", "attributes": {"id": table_id}}]
