@@ -1,29 +1,24 @@
-import os, sys, tqdm, pprint, math
+import math
 from typing import Literal
-from termcolor import cprint, COLORS, colored
+from termcolor import colored
 
 import local_database_interface as DI
 import utils
 
-def get_user_mode() -> Literal["scrape", "view"]:
-    mode: str = ""
-    while mode not in ("s", "v"):
-        print(f"{colored("scrape", "green")} data or {colored("view", "red")} data? ({colored("S", "green")}/{colored("v", "red")})", end=": ")
-        mode = input().lower()
-    print()
-    
+def get_user_mode() -> Literal["scrape", "view", "audit"]:
+    prompt = f"{colored("scrape", "green")} data, {colored("view", "red")} data, or {colored("audit", "blue")}?"
+    mode = get_user_choice_from_prompt(prompt, ["s", "v", "a"])
+
     if mode == "s":
         return "scrape"
-    
-    return "view"
+    if mode == "v":
+        return "view"
+    return "audit"
 
 
 def get_scraping_mode() -> Literal["team", "player", "league"]:
-    mode: str = ""
-    while mode.lower() not in ("t", "p", "l"):
-        print(f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")} or {colored("league statistics", "blue")}? ({colored("T", "green")}/{colored("p", "red")}/{colored("l", "blue")})", end=": ")
-        mode = input().lower()
-    print()
+    prompt = f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")} or {colored("league statistics", "blue")}?"
+    mode: str = get_user_choice_from_prompt(prompt, ["t", "p", "l"])
     
     if mode == "t":
         return "team"
@@ -81,7 +76,7 @@ def choose_year() -> int:
 
 def choose_player_scraping_stat_types() -> list[DI.PLAYER_STAT_TYPES]:
     prompt = "What player stats should be scraped (press enter for all stats)?"
-    return get_user_choices_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
+    return get_user_choices_from_prompt(prompt, list(DI.get_player_stat_types()))
 
 
 def should_overwrite_data() -> bool:
@@ -152,7 +147,7 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
 
 def choose_player_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
     prompt = "What player stats should be viewed?"
-    return get_user_choice_from_prompt(prompt, ["batting", "pitching", "appearances", "baserunning"])
+    return get_user_choice_from_prompt(prompt, list(DI.get_player_stat_types()))
 
 
 def should_download_missing_team_data_file(team_abbreviation: str, year: int, missing_data_type: DI.TEAM_DATA_FILE_TYPES) -> bool:

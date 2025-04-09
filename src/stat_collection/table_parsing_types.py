@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 HTML_ATTRIBUTE_VALUE_PAIRS = dict[str, str]
 

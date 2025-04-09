@@ -1,4 +1,4 @@
-import os, sys, time, csv
+import os
 from typing import Literal, get_args
 
 import utils
@@ -36,7 +36,7 @@ def all_team_folders_exist() -> bool:
     if not os.path.exists(TEAMS_DIR): return False
 
     for team in get_all_teams():
-        if not os.path.exists(get_team_dir_path(team["TEAM_ID"])):
+        if not team_parent_dir_exists(team["TEAM_ID"]):
             return False
     return True
 
@@ -44,7 +44,7 @@ def all_team_folders_exist() -> bool:
 def all_player_folders_exist() -> bool:
     if not os.path.exists(PLAYERS_DIR): return False
 
-    for stat_type in get_args(PLAYER_STAT_TYPES):
+    for stat_type in get_player_stat_types():
         if not os.path.exists(f"{PLAYERS_DIR}/{stat_type}"):
             return False
     return True
@@ -64,7 +64,7 @@ def create_all_team_folders():
 def create_all_player_folders():
     utils.make_dirs(PLAYERS_DIR)
 
-    for stat_type in get_args(PLAYER_STAT_TYPES):
+    for stat_type in get_player_stat_types():
         utils.make_dirs(f"{PLAYERS_DIR}/{stat_type}")
 
 
@@ -95,7 +95,6 @@ def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_S
         result.append({"ID": player, "URL": url, "STAT_TYPES": player_stats})
 
     return result
-
 
 
 def create_team_folder(team_abbreviation: str) -> None:
@@ -163,11 +162,19 @@ def get_league_data_file_path(stat_type: Literal["batting", "pitching"]) -> str:
 
 
 def find_missing_team_data_files(team_abbreviation: str, year: int) -> TEAM_DATA_FILE_TYPES | Literal[""]:
-    for data_type in get_args(TEAM_DATA_FILE_TYPES):
+    for data_type in get_team_data_file_types():
         if not team_data_file_exists(team_abbreviation, year, data_type):
             return data_type
     
     return ""
+
+
+def team_parent_dir_exists(team_abbreviation: str) -> bool:
+    return os.path.exists(get_team_dir_path(team_abbreviation))
+
+
+def team_year_dir_exists(team_abbreviation: str, year: int) -> bool:
+    return os.path.exists(get_team_year_dir_path(team_abbreviation, year))
 
 
 def team_data_file_exists(team_abbreviation: str, year: int, team_data_type: TEAM_DATA_FILE_TYPES) -> bool:
@@ -191,6 +198,14 @@ def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES) -> TEAM
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
     
     return team_file_type_to_read_from
+
+
+def get_player_stat_types() -> tuple[PLAYER_STAT_TYPES, ...]:
+    return get_args(PLAYER_STAT_TYPES)
+
+
+def get_team_data_file_types() -> tuple[TEAM_DATA_FILE_TYPES, ...]:
+    return get_args(TEAM_DATA_FILE_TYPES)
 
 
 if __name__ == "__main__":

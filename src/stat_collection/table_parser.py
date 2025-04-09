@@ -1,8 +1,6 @@
 from bs4 import BeautifulSoup, Comment
-from typing import Literal, TypedDict
 from collections.abc import Callable
 
-import utils
 from table import Table
 import table_parsing_types as Extra_Types
 

@@ -1,6 +1,5 @@
 import tqdm
 
-from baseball_reference_client import Scraping_Client
 import local_database_interface as DI
 import user_interface as UI
 import all_data_handler as Data_Handler
@@ -19,6 +18,9 @@ def main():
         
         elif usermode == "view":
             handle_data_viewing()
+
+        elif usermode == "audit":
+            handle_data_audit()
 
 
 def handle_user_scraping() -> None:
@@ -145,6 +147,77 @@ def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TY
         print("continuing...")
 
     return True
+
+
+def handle_data_audit() -> None:
+    team = UI.get_single_team_choice()
+    year = UI.choose_year()
+    audit_team(team, year)
+    UI.wait_for_user_input("Press enter to continue.")
+
+
+def audit_team(team_abbreviation: str, year: int) -> None:
+    audit_str = f"Local Database Audit Results for {team_abbreviation}-{year}:\n"
+    missing_team_files, team_file_audit_str = audit_team_files(team_abbreviation, year)
+    if len(missing_team_files) > 0: # Cannot continue with the audit if we do not have all the team files
+        print(audit_str + team_file_audit_str)
+        return
+    
+    missing_roster_files, roster_audit_str = audit_team_roster_files(team_abbreviation, year)
+    if len(missing_roster_files) == 0:
+        print(audit_str + f"\tAudit of {team_abbreviation}-{year} successful, no missing files.\n")
+        return
+    
+    short_audit_str = audit_str + f"\tAUDIT FAILED:\n\t{len(missing_roster_files)} missing files.\n"
+    print(short_audit_str)
+
+    display_extended_audit = UI.get_yes_or_no("Would you like to see an extended summary?")
+    if display_extended_audit:
+        print(roster_audit_str)
+    
+    return
+
+
+def audit_team_files(team_abbreviation: str, year: int) -> tuple[list[str], str]:
+    """ Return (list of missing files, description of audit findings) """
+    if not DI.team_parent_dir_exists(team_abbreviation):
+        return [DI.get_team_dir_path(team_abbreviation)], f"\tMissing main team parent directory at {DI.get_team_dir_path(team_abbreviation)}. Run local_database_interface.py to fix this.\n"
+    
+    if not DI.team_year_dir_exists(team_abbreviation, year):
+        return [DI.get_team_year_dir_path(team_abbreviation, year)], f"\tMissing team year directory at {DI.get_team_year_dir_path(team_abbreviation, year)}. Try scraping this team's data again.\n"
+    
+    missing_files = []
+    result_str = ""
+    for file_type in DI.get_team_data_file_types():
+        if not DI.team_data_file_exists(team_abbreviation, year, file_type):
+            missing_files.append(DI.get_team_data_file_path(team_abbreviation, year, file_type))
+            result_str += f"\tMissing team {file_type} file.\n"
+    
+    return missing_files, result_str
+
+
+def audit_team_roster_files(team_abbreviation: str, year: int) -> tuple[list[str], str]:
+    """ Return (list of missing files, description of audit findings) """
+    team_roster = DI.get_player_list(team_abbreviation, year, DI.get_player_stat_types())
+
+    missing_files, audit_str = [], ""
+    for player in team_roster:
+        player_missing_files, player_audit_str = audit_player(player["ID"], player["STAT_TYPES"])
+        missing_files.extend(player_missing_files)
+        audit_str += player_audit_str
+
+    return missing_files, audit_str
+
+
+def audit_player(player_id: str, stat_types: DI.PLAYER_STAT_TYPES) -> tuple[list[str], str]:
+    """ Return (list of missing files, description of audit findings) """
+    missing_files, audit_str = [], ""
+    for stat_type in stat_types:
+        if not DI.player_data_file_exists(player_id, stat_type):
+            missing_files.append(DI.get_player_data_file_path(player_id, stat_type))
+            audit_str += f"\tMissing {stat_type} file for {player_id}.\n"
+    
+    return missing_files, audit_str
 
 
 if __name__ == "__main__":

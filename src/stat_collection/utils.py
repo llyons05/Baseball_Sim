@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from bs4 import BeautifulSoup, Comment
 import csv
 import pandas
 import tabulate
