@@ -7,7 +7,7 @@ import utils
 
 def get_user_mode() -> Literal["scrape", "view", "audit"]:
     prompt = f"{colored("scrape", "green")} data, {colored("view", "red")} data, or {colored("audit", "blue")}?"
-    mode = get_user_choice_from_prompt(prompt, ["s", "v", "a"])
+    mode = get_user_choice_from_prompt(prompt, ["s", "v", "a"]).lower()
 
     if mode == "s":
         return "scrape"
@@ -18,7 +18,7 @@ def get_user_mode() -> Literal["scrape", "view", "audit"]:
 
 def get_scraping_mode() -> Literal["team", "player", "league"]:
     prompt = f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")} or {colored("league statistics", "blue")}?"
-    mode: str = get_user_choice_from_prompt(prompt, ["t", "p", "l"])
+    mode: str = get_user_choice_from_prompt(prompt, ["t", "p", "l"]).lower()
     
     if mode == "t":
         return "team"
