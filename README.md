@@ -10,7 +10,7 @@ Before you can do any actual simulation, you have to get the stat collection par
 Now, you're ready to start scraping stats. To run a simulation with a team, you will need to scrape:
 - The league stats for that team's year
 - The team stats for that team from that year
-- The player stats in all categories (pitching, batting, baserunning, appearances) for that team.
+- The player stats in all categories for all players on that team.
 
 Running `main.py` will give you a series of prompts in the command line which will allow you to do this.
 
