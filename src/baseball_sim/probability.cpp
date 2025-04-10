@@ -3,6 +3,13 @@
 #include <random>
 #include <iostream>
 
+std::mt19937 rand_gen;
+
+void set_up_rand() {
+    rand_gen = std::mt19937(time(NULL));
+}
+
+
 void calculate_event_probabilities(float x[], float y[], float z[], float output[], int num_events) {
     float total = 0;
     for (int i = 0; i < num_events; i++) {
@@ -17,19 +24,6 @@ void calculate_event_probabilities(float x[], float y[], float z[], float output
 
 
 int get_random_event(float event_probs[], int num_events) {
-    const float eps = 1e-7;
-    float r = ((float)rand())/RAND_MAX;
-    for (int i = 0; i < num_events; i++) {
-        if ((r - eps <= event_probs[i]) && (event_probs[i] != 0)) {
-            return i;
-        }
-        r -= event_probs[i];
-    }
-
-    std::cout << "PROBABILITY ERROR\n";
-    for (int i = 0; i < num_events; i++) {
-        std::cout << "\tevent " << i << ": " << event_probs[i] << "\n";
-    }
-    std::quick_exit(1);
-    return -1;
+    std::discrete_distribution<> dist(event_probs, event_probs + num_events);
+    return dist(rand_gen);
 }

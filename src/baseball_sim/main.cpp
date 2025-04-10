@@ -1,5 +1,6 @@
 #include "load_stats.hpp"
 #include "baseball_game.hpp"
+#include "probability.hpp"
 
 #include <iostream>
 #include <string>
@@ -16,7 +17,7 @@ int main() {
 
     Stat_Loader loader;
     loader.load_league_avgs();
-    srand(time(NULL));
+    set_up_rand();
 
     int num_games;
     std::string team_1_name;
