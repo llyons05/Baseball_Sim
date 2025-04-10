@@ -10,14 +10,15 @@ PLAYERS_DIR: str = f"{PARENT_DIR}/players"
 LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
-PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning"]
+PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
     "batting": "batting",
     "pitching": "pitching",
-    "baserunning": "batting"
+    "baserunning": "batting",
+    "batting_against": "pitching"
 }
 
 

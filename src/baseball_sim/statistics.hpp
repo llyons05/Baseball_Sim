@@ -14,6 +14,7 @@ enum ePlayer_Stat_Types {
     PLAYER_PITCHING,
     PLAYER_APPEARANCES,
     PLAYER_BASERUNNING,
+    PLAYER_BATTING_AGAINST,
     NUM_PLAYER_STAT_TYPES
 };
 
@@ -56,6 +57,7 @@ enum eTeam_Stat_Types {
 
 
 extern std::string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES];
+extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE;
 
 class Team_Stats {
     public:
@@ -74,8 +76,6 @@ class Team_Stats {
             return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
         }
 };
-
-extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE;
 
 
 enum eLeague_Stat_Types {

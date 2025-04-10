@@ -5,10 +5,10 @@
 using namespace std;
 
 
-string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning"};
+string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against"};
 string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info"};
 
-std::map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING}}};
+map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST}}};
 
 Player_Stats::Player_Stats(const string& player_id, int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) {
     this->player_id = player_id;
@@ -27,7 +27,7 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
     string year_str = "year_id";
     string team_name_str = "team_name_abbr";
 
-    if (stat_type == PLAYER_BASERUNNING) {
+    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST)) {
         year_str = "year_ID";
         team_name_str = "team_ID";
     }

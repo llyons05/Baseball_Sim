@@ -184,12 +184,24 @@ class Scraping_Client:
         table_parser = None
         if stat_type == "batting":
             table_parser = self.try_scraping_batting_tables(base_player_page_url)
+
         elif stat_type == "pitching":
             table_parser = self.try_scraping_pitching_tables(base_player_page_url)
+
         elif stat_type == "appearances":
-            table_parser = self.try_scraping_appearance_tables(base_player_page_url)
+            table_parser = self.scrape_table_from_player_page(base_player_page_url,
+                                                              self.get_default_table_location("appearances"),
+                                                              self.get_default_wrapper_div_location("all_appearances"))
+
         elif stat_type == "baserunning":
-            table_parser = self.try_scraping_baserunning_tables(base_player_page_url)
+            table_parser = self.scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url),
+                                                              self.get_default_table_location("batting_baserunning"),
+                                                              self.get_default_wrapper_div_location("all_batting_baserunning"))
+    
+        elif stat_type == "batting_against":
+            table_parser = self.scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url),
+                                                              self.get_default_table_location("pitching_batting"),
+                                                              self.get_default_wrapper_div_location("all_pitching_batting"))
 
         if table_parser is None:
             return EMPTY_TABLE
@@ -228,25 +240,6 @@ class Scraping_Client:
 
         if table_parser is None:
             table_parser = self.scrape_table_from_player_page(base_player_page_url, table_location, wrapper_div_location)
-
-        return table_parser
-
-
-    def try_scraping_appearance_tables(self, base_player_page_url: str) -> Table_Parser | None:
-        table_location = self.get_default_table_location("appearances")
-        wrapper_div_location = self.get_default_wrapper_div_location("all_appearances")
-
-        table_parser = self.scrape_table_from_player_page(base_player_page_url, table_location, wrapper_div_location)
-
-        return table_parser
-
-
-    def try_scraping_baserunning_tables(self, base_player_page_url: str) -> Table_Parser | None:
-        player_baserunning_page_url = utils.get_player_batting_page_url(base_player_page_url)
-        table_location = self.get_default_table_location("batting_baserunning")
-        wrapper_div_location = self.get_default_wrapper_div_location("all_batting_baserunning")
-
-        table_parser = self.scrape_table_from_player_page(player_baserunning_page_url, table_location, wrapper_div_location)
 
         return table_parser
 
