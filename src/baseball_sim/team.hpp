@@ -84,4 +84,4 @@ class Team {
 };
 
 
-extern std::unordered_map<std::string, std::shared_ptr<Team>> team_cache;
+extern std::unordered_map<std::string, std::unique_ptr<Team>> team_cache;

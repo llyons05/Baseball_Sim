@@ -14,8 +14,8 @@ using namespace std;
 const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANCES};
 
 League_Stats LEAGUE_AVG_STATS;
-unordered_map<string, shared_ptr<Player>> player_cache;
-unordered_map<string, shared_ptr<Team>> team_cache;
+unordered_map<string, unique_ptr<Player>> player_cache;
+unordered_map<string, unique_ptr<Team>> team_cache;
 
 void Stat_Loader::load_league_avgs() {
     vector<map<string, string>> batting_data = read_csv_file(get_league_data_file_path("batting"));
@@ -82,7 +82,7 @@ vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) 
 
 
 Team* Stat_Loader::cache_team(const Team& team, const string& cache_id) {
-    team_cache[cache_id] = make_shared<Team>(team);
+    team_cache[cache_id] = make_unique<Team>(team);
     return team_cache[cache_id].get();
 }
 
@@ -122,7 +122,7 @@ Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const st
 
 
 Player* Stat_Loader::cache_player(const Player& player, const string& cache_id) {
-    player_cache[cache_id] = make_shared<Player>(player);
+    player_cache[cache_id] = make_unique<Player>(player);
     return player_cache.at(cache_id).get();
 }
 
