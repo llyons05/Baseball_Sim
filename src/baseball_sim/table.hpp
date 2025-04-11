@@ -11,7 +11,7 @@
 #include <variant>
 
 
-typedef std::variant<std::string, float, std::monostate> Table_Entry;
+typedef std::variant<std::monostate, float, std::string> Table_Entry;
 
 class Table_Row {
     public:

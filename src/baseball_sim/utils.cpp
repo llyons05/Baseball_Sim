@@ -76,8 +76,8 @@ map<string, string> match_keys_to_values(const vector<string>& keys, const vecto
 }
 
 
-vector<map<string, variant<string, float, monostate>>> convert_rows_to_table_entries(const vector<map<string, string>>& rows) {
-    vector<map<string, variant<string, float, monostate>>> result;
+vector<map<string, variant<monostate, float, string>>> convert_rows_to_table_entries(const vector<map<string, string>>& rows) {
+    vector<map<string, variant<monostate, float, string>>> result;
     for (const map<string, string>& row : rows) {
         result.push_back(convert_row_to_table_entry(row));
     }
@@ -85,10 +85,10 @@ vector<map<string, variant<string, float, monostate>>> convert_rows_to_table_ent
 }
 
 
-map<string, variant<string, float, monostate>> convert_row_to_table_entry(const map<string, string>& row) {
-    map<string, variant<string, float, monostate>> result;
+map<string, variant<monostate, float, string>> convert_row_to_table_entry(const map<string, string>& row) {
+    map<string, variant<monostate, float, string>> result;
     for (auto const& [key, value] : row) {
-        variant<string, float, monostate> converted_val;
+        variant<monostate, float, string> converted_val;
         if (value.empty()) {
             converted_val = monostate{};
         }
