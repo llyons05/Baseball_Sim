@@ -33,19 +33,19 @@ eAt_Bat_Result At_Bat::get_ab_result() {
     const int outcome = get_true_outcome();
 
     if (outcome == 0) {
-        #if BASEBALL_DEBUG
+        #if BASEBALL_VIEW
         std::cout << "\t" << batter->name << " GOT A HIT!\n";
         #endif
         return get_hit_result();
     }
     if (outcome == 1) {
-        #if BASEBALL_DEBUG
+        #if BASEBALL_VIEW
         std::cout << "\t" << batter->name << " WAS WALKED...\n";
         #endif
         return BATTER_WALKED;
     }
 
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     std::cout << "\t" << batter->name << " IS OUT!\n";
     #endif
 
@@ -124,7 +124,7 @@ eAt_Bat_Result At_Bat::get_hit_result() {
     calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, 4);
     eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(outcome_probabilities, 4) + 1);
 
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     if (result == SINGLE) std::cout << "\t SINGLE\n";
     else if (result == DOUBLE) std::cout << "\t DOUBLE\n";
     else if (result == TRIPLE) std::cout << "\t TRIPLE\n";
@@ -146,7 +146,7 @@ Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, int half_innin
 
 
 int Half_Inning::play() {
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     std::string top_or_bottom = "TOP ";
     if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
     std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
@@ -160,7 +160,7 @@ int Half_Inning::play() {
         bases.print();
     }
 
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n";
     #endif
 
@@ -199,7 +199,7 @@ int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
 
             if (new_base > THIRD_BASE) {
                 runs_scored++;
-                #if BASEBALL_DEBUG
+                #if BASEBALL_VIEW
                 std::cout << "\t -" << players_on_base[i]->name << " SCORED\n";
                 #endif
             }
@@ -214,7 +214,7 @@ int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
     int batter_base = result - 1;
     if (batter_base > THIRD_BASE) {
         runs_scored++;
-        #if BASEBALL_DEBUG
+        #if BASEBALL_VIEW
         std::cout << "\t -" << batter->name << " SCORED\n";
         #endif
     }
@@ -268,7 +268,7 @@ int Base_State::handle_walk(Player* batter) {
 
 
 void Base_State::print() {
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     const char empty_base = 'o';
     const char full_base = (char)254;
 

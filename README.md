@@ -21,4 +21,4 @@ The only prerequisite to running a simulation is having scraped all the necessar
 Once that data is scraped, all you need to do is run `.\simulation.exe`, which will prompt you to type in the team that you want to simulate.
 It will then ask how many games you want, and after that, it will run the simulation and print out the results!
 
-If you want a more detailed version of the games, build the project with the command `make debug` instead.
+If you want a more detailed version of the games, build the project with the command `make view` instead.

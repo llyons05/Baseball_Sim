@@ -14,6 +14,9 @@ int main() {
     #if BASEBALL_DEBUG
         std::cout << "IN DEBUG MODE\n";
     #endif
+    #if BASEBALL_VIEW
+        std::cout << "IN VIEWING MODE\n";
+    #endif
 
     Stat_Loader loader;
     loader.load_league_avgs();
@@ -58,7 +61,7 @@ int main() {
 
     std::cout << "Running " << num_games << " games... ";
 
-    #if BASEBALL_DEBUG
+    #if BASEBALL_DEBUG || BASEBALL_VIEW
     std::cout << "\n";
     team_1->print_fielders();
     team_2->print_fielders();

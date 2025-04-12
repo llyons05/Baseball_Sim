@@ -33,7 +33,7 @@ Game_Result Baseball_Game::play_game() {
         }
     }
 
-    #if BASEBALL_DEBUG
+    #if BASEBALL_VIEW
     print_game_result();
     #endif
 
