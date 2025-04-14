@@ -21,9 +21,10 @@ Team::Team(const string& team_name, const vector<Player*>& players, const Team_S
     all_players = players;
     position_in_batting_order = 0;
     runs_allowed_by_pitcher = 0;
+    current_pitcher_starting_half_inning = 0;
 
     set_up_pitchers();
-    set_current_pitcher(pick_starting_pitcher());
+    set_current_pitcher(pick_starting_pitcher(), 0);
     set_up_batting_order();
     set_up_fielders();
 }
@@ -102,7 +103,7 @@ Player* Team::pick_relief_pitcher() {
 }
 
 
-void Team::set_current_pitcher(Player* new_pitcher) {
+void Team::set_current_pitcher(Player* new_pitcher, int current_half_inning) {
     if (fielders[POS_DH] == fielders[POS_PITCHER]) {
         fielders[POS_DH] = new_pitcher;
         for (int i = 8; i >= 0; i--) { // Loop backwards since pitcher is almost always batting last
@@ -115,14 +116,14 @@ void Team::set_current_pitcher(Player* new_pitcher) {
     fielders[POS_PITCHER] = new_pitcher;
     available_pitchers.erase(new_pitcher);
     runs_allowed_by_pitcher = 0;
+    current_pitcher_starting_half_inning = current_half_inning;
 }
 
 
 Player* Team::try_switching_pitcher(int current_half_inning) {
-    float curr_pitcher_era = get_pitcher()->stats.get_stat(PLAYER_PITCHING, "p_earned_run_avg", 10.0f);
-    if (runs_allowed_by_pitcher > curr_pitcher_era) {
+    if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning);
-        set_current_pitcher(new_pitcher);
+        set_current_pitcher(new_pitcher, current_half_inning);
 
         #if BASEBALL_VIEW
         cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher->name << "\n";
@@ -131,6 +132,18 @@ Player* Team::try_switching_pitcher(int current_half_inning) {
         return new_pitcher;
     }
     return get_pitcher();
+}
+
+
+bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
+    const float era = pitcher->stats.get_stat(PLAYER_PITCHING, "p_earned_run_avg", .0f);
+    if (runs_allowed_by_pitcher > era + 1) return true;
+
+    const float total_innings = pitcher->stats.get_stat(PLAYER_PITCHING, "p_ip", .0f);
+    float total_games = pitcher->stats.get_stat(PLAYER_PITCHING, "p_g", .0f);
+    if (total_games == 0) total_games = 1;
+
+    return ((current_half_inning - current_pitcher_starting_half_inning)/2) > (total_innings/total_games + 1);
 }
 
 
@@ -247,6 +260,7 @@ void Team::print_batting_order() {
 void Team::reset() {
     position_in_batting_order = 0;
     runs_allowed_by_pitcher = 0;
+    current_pitcher_starting_half_inning = 0;
     set_up_pitchers();
-    set_current_pitcher(pick_starting_pitcher());
+    set_current_pitcher(pick_starting_pitcher(), 0);
 }

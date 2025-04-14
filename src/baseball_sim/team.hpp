@@ -26,6 +26,7 @@ class Team {
 
         int position_in_batting_order;
         int runs_allowed_by_pitcher;
+        int current_pitcher_starting_half_inning;
 
         Team(){}
 
@@ -53,7 +54,7 @@ class Team {
 
         Player* try_switching_pitcher(int current_half_inning);
         Player* pick_next_pitcher(int current_half_inning);
-        void set_current_pitcher(Player* new_pitcher);
+        void set_current_pitcher(Player* new_pitcher, int current_half_inning);
         void set_position_in_field(Player* new_player, eDefensivePositions position);
 
         void print_fielders();
@@ -70,6 +71,7 @@ class Team {
         Player* pick_starting_pitcher();
         Player* pick_relief_pitcher();
         std::set<Player*> get_all_pitchers();
+        bool should_swap_pitcher(Player* pitcher, int current_half_inning);
 
         std::set<Player*> find_players(const std::vector<std::string>& player_ids) {
             std::set<Player*> result;
