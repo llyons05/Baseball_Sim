@@ -148,7 +148,7 @@ bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
 
 
 Player* Team::pick_next_pitcher(int current_half_inning) {
-    if (current_half_inning > 12) {
+    if (current_half_inning > 8) {
         return pick_relief_pitcher();
     }
     return pick_starting_pitcher();
