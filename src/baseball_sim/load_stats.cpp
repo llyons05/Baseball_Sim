@@ -29,36 +29,30 @@ void Stat_Loader::load_league_avgs() {
 }
 
 
-Team* Stat_Loader::load_team(const string& team_abbreviation, int year) {
-    const string cache_id = get_team_cache_id(team_abbreviation, year);
-    if (is_team_cached(cache_id)) { // This probably causes issues if duplicate teams play each other but I'm not gonna worry about that
-        return team_cache[cache_id].get();
-    }
-
-    Team_Stats team_stats = load_team_stats(team_abbreviation, year);
+Team* Stat_Loader::load_team(const string& main_team_abbreviation, int year) {
+    Team_Stats team_stats = load_team_stats(main_team_abbreviation, year);
     vector<Player*> roster = load_team_roster(team_stats, year);
-    Team team(team_abbreviation, roster, team_stats);
+    Team team(team_stats.year_specific_abbreviation, roster, team_stats);
 
-    return cache_team(team, cache_id);
+    return cache_team(team, team_stats.team_cache_id);
 }
 
 
-Team_Stats Stat_Loader::load_team_stats(const string& team_abbreviation, int year) {
+Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, int year) {
     Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES];
 
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
-        string filename = get_team_data_file_path(team_abbreviation, year, TEAM_STAT_TYPES[i]);
+        string filename = get_team_data_file_path(main_team_abbreviation, year, TEAM_STAT_TYPES[i]);
         vector<map<string, string>> file_data = read_csv_file(filename);
-        Stat_Table stat_table(file_data, TEAM_STAT_TYPES[i], team_abbreviation + "_" + to_string(year) + "_" + TEAM_STAT_TYPES[i]);
+        Stat_Table stat_table(file_data, TEAM_STAT_TYPES[i], main_team_abbreviation + "_" + to_string(year) + "_" + TEAM_STAT_TYPES[i]);
         team_stat_tables[i] = stat_table;
     }
-    return Team_Stats(team_abbreviation, team_stat_tables, year);
+    return Team_Stats(main_team_abbreviation, team_stat_tables, year);
 }
 
 
 vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
     vector<Player*> result;
-    string team_abbreviation = team_stats.stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
 
     for (const Table_Row& player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
         string player_id = player_data.get_stat<string>("ID", "");
@@ -74,7 +68,7 @@ vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) 
             }
         }
 
-        result.push_back(load_player(name, player_id, year, team_abbreviation, stats_to_load));
+        result.push_back(load_player(name, player_id, year, team_stats.year_specific_abbreviation, stats_to_load));
     }
 
     return result;
@@ -142,13 +136,13 @@ string Stat_Loader::get_player_data_file_path(const string& player_id, const str
 }
 
 
-string Stat_Loader::get_team_data_file_path(const string& team_abbreviation, int year, const string& team_data_file_type) {
-    return get_team_year_dir_path(team_abbreviation, year) + "/" + team_abbreviation + "_" + to_string(year) + "_" + team_data_file_type + ".csv";
+string Stat_Loader::get_team_data_file_path(const string& main_team_abbreviation, int year, const string& team_data_file_type) {
+    return get_team_year_dir_path(main_team_abbreviation, year) + "/" + main_team_abbreviation + "_" + to_string(year) + "_" + team_data_file_type + ".csv";
 }
 
 
-string Stat_Loader::get_team_year_dir_path(const string& team_abbreviation, int year) {
-    return TEAMS_FILE_PATH + "/" + team_abbreviation + "/" + to_string(year);
+string Stat_Loader::get_team_year_dir_path(const string& main_team_abbreviation, int year) {
+    return TEAMS_FILE_PATH + "/" + main_team_abbreviation + "/" + to_string(year);
 }
 
 

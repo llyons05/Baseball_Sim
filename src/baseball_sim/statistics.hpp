@@ -29,7 +29,6 @@ class Player_Stats {
         int current_year;
 
         Player_Stats(){}
-
         Player_Stats(const std::string& player_id, int year, const std::string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
 
         template <class T>
@@ -61,12 +60,13 @@ extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYE
 
 class Team_Stats {
     public:
-        std::string team_name;
+        std::string main_team_abbreviation;
+        std::string year_specific_abbreviation;
         std::string team_cache_id;
         Stat_Table stat_tables[NUM_TEAM_STAT_TYPES];
 
         Team_Stats() {}
-        Team_Stats(const std::string& team_id, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
+        Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
 
         Table_Row get_row(eTeam_Stat_Types stat_type, const std::map<std::string, std::vector<Table_Entry>>& row_attributes);
 
