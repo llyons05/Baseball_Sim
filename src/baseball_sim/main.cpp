@@ -52,8 +52,6 @@ int main() {
     Team* team_1 = loader.load_team(team_1_name, team_1_year);
     Team* team_2 = loader.load_team(team_2_name, team_2_year);
     Team* teams[2] = {team_1, team_2};
-    std::cout << team_1->team_stats.team_cache_id << "\n";
-    std::cout << team_2->team_stats.team_cache_id << "\n";
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
