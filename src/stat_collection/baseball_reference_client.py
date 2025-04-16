@@ -37,18 +37,13 @@ class Scraping_Client:
     def scrape_team_data(self, team_roster_page_url: str) -> dict[DI.TEAM_DATA_FILE_TYPES, Table]:
         response = self.scrape_page_html(team_roster_page_url)
 
-        roster_data = self.parse_team_roster_table(response)
-        batting_data = self.parse_team_batting_table(response)
-        pitching_data = self.parse_team_pitching_table(response)
-        basic_team_info_data = self.parse_team_info_table(response, team_roster_page_url)
-        batting_order_data = self.get_team_common_batting_orders_table(team_roster_page_url)
-
         result: dict[DI.TEAM_DATA_FILE_TYPES, Table] = dict()
-        result["roster"] = roster_data
-        result["batting"] = batting_data
-        result["pitching"] = pitching_data
-        result["team_info"] = basic_team_info_data
-        result["common_batting_orders"] = batting_order_data
+        result["roster"] = self.parse_team_roster_table(response)
+        result["batting"] = self.parse_team_batting_table(response)
+        result["pitching"] = self.parse_team_pitching_table(response)
+        result["team_info"] = self.parse_team_info_table(response, team_roster_page_url)
+        result["common_batting_orders"] = self.get_team_common_batting_orders_table(team_roster_page_url)
+        result["schedule"] = self.get_team_schedule_table(team_roster_page_url)
 
         return result
 
@@ -134,6 +129,19 @@ class Scraping_Client:
         ]
 
         table = parser.parse(extra_row_values, forbidden_chars={" Games": ""})
+        return table
+
+
+    def get_team_schedule_table(self, main_team_roster_page_url: str) -> Table:
+        """
+        Takes in the url to main team page that has that year's roster on it.
+        Returns a table with the schedule of that team for that year.
+        """
+        url = utils.get_team_schedule_url(main_team_roster_page_url)
+        response = self.scrape_page_html(url)
+        parser = Table_Parser(response, self.get_default_table_location("team_schedule"), self.get_default_wrapper_div_location("all_team_schedule"))
+
+        table = parser.parse(row_filters=DEFAULT_PLAYER_TABLE_ROW_FILTERS, column_filters=["boxscore", "team_ID", "starttime", "preview"], forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
         return table
 
 

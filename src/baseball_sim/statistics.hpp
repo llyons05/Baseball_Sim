@@ -51,6 +51,7 @@ enum eTeam_Stat_Types {
     TEAM_PITCHING,
     TEAM_COMMON_BATTING_ORDERS,
     TEAM_INFO,
+    TEAM_SCHEDULE,
     NUM_TEAM_STAT_TYPES
 };
 

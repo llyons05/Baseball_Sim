@@ -34,6 +34,10 @@ def get_team_batting_order_url(team_roster_url: str) -> str:
     return team_roster_url.replace(".shtml", "-batting-orders.shtml")
 
 
+def get_team_schedule_url(team_roster_url: str) -> str:
+    return team_roster_url.replace(".shtml", "-schedule-scores.shtml")
+
+
 def get_player_id_from_url(player_page_url: str) -> str:
     return player_page_url.split("/")[-1].split(".shtml")[0]
 

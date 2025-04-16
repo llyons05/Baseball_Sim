@@ -1,5 +1,5 @@
 NOTES:
-    What to do when player stats for a year don't exist
+    Fix team scraping method so we can scrape one stat at a time
     Load Full batting order tables
     Add better documentation
     Baseball reference is slowly changing tables, make sure to stay up to date

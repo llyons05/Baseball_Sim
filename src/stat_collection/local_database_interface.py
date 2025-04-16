@@ -11,7 +11,7 @@ LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against"]
-TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders"]
+TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",

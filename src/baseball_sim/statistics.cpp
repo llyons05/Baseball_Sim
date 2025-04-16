@@ -6,7 +6,7 @@ using namespace std;
 
 
 string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against"};
-string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info"};
+string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
 
 map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST}}};
 

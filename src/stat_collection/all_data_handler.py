@@ -20,6 +20,7 @@ def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, 
             DI.save_team_data_file(team_abbreviation, year, team_data["pitching"], "pitching")
             DI.save_team_data_file(team_abbreviation, year, team_data["team_info"], "team_info")
             DI.save_team_data_file(team_abbreviation, year, team_data["common_batting_orders"], "common_batting_orders")
+            DI.save_team_data_file(team_abbreviation, year, team_data["schedule"], "schedule")
         
         return True
     
