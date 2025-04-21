@@ -7,7 +7,7 @@ import utils
 
 def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, overwrite_data: bool = True) -> bool:
     client = Scraping_Client()
-    year_page_url = client.scrape_team_page_for_roster_url(team_url, year)
+    year_page_url = client._scrape_team_page_for_roster_url(team_url, year)
 
     if year_page_url != None:
         print(f"Saving {year} {team_abbreviation} data...")
@@ -41,13 +41,14 @@ def scrape_and_save_player_data(player_page_url: str, player_id: str, stat_types
     return True
 
 
-def scrape_and_save_league_data(overwrite_data: bool = True) -> bool:
+def scrape_and_save_league_data(year: int, stat_types: list[DI.LEAGUE_DATA_FILE_TYPES], overwrite_data: bool = True) -> bool:
     client = Scraping_Client()
-    
-    print("Scraping League average statistics...")
-    if (not DI.league_data_file_exists("batting") or not DI.league_data_file_exists("pitching")) or overwrite_data:
-        league_data = client.scrape_league_avg_tables()
-        DI.save_league_data_file("batting", league_data["batting"])
-        DI.save_league_data_file("pitching", league_data["pitching"])
+    print(f"Scraping {year} League average statistics...")
+    DI.create_league_year_dir(year)
+
+    for stat_type in stat_types:
+        if not DI.league_data_file_exists(stat_type, year) or overwrite_data:
+            league_data = client.scrape_league_avg_table(year, stat_type)
+            DI.save_league_data_file(year, stat_type, league_data)
     
     return True

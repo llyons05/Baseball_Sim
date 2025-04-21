@@ -27,8 +27,14 @@ def get_scraping_mode() -> Literal["team", "player", "league"]:
     return "league"
 
 
-def get_roster_scraping_selection() -> list[str]:
-    roster_prompt_text = "Input the abbreviations for the teams whose rosters should be saved."
+def get_audit_mode() -> Literal["team", "season"]:
+    prompt = "Audit team or season?"
+    mode = get_user_choice_from_prompt(prompt, ["team", "season"]).lower()
+    return mode
+
+
+def get_team_data_scraping_selection() -> list[str]:
+    roster_prompt_text = "Input the abbreviations for the teams whose team data should be saved."
     roster_example_text = f"Press enter to save all teams, or type teams comma separated (ex: {colored("NYY", "blue")}, {colored("WSN", "red")}, {colored("PIT", "yellow")}): "
 
     all_teams = [x["TEAM_ID"] for x in DI.get_all_teams()]
@@ -72,6 +78,11 @@ def choose_year() -> int:
     print()
 
     return int(year_input)
+
+
+def choose_league_scraping_stat_types() -> list[DI.LEAGUE_DATA_FILE_TYPES]:
+    prompt = "What league stats should be scraped (press enter for all stats)?"
+    return get_user_choices_from_prompt(prompt, list(DI.get_league_data_file_types()))
 
 
 def choose_player_scraping_stat_types() -> list[DI.PLAYER_STAT_TYPES]:

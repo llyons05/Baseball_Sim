@@ -19,7 +19,6 @@ int main() {
     #endif
 
     Stat_Loader loader;
-    loader.load_league_avgs();
     set_up_rand();
 
     int num_games;
@@ -52,6 +51,9 @@ int main() {
     Team* team_1 = loader.load_team(team_1_name, team_1_year);
     Team* team_2 = loader.load_team(team_2_name, team_2_year);
     Team* teams[2] = {team_1, team_2};
+
+    loader.load_league_year(team_1_year);
+    loader.load_league_year(team_2_year);
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";

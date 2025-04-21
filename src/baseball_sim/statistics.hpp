@@ -18,18 +18,16 @@ enum ePlayer_Stat_Types {
     NUM_PLAYER_STAT_TYPES
 };
 
-extern std::string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES];
+extern std::string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES];
 
-class Player_Stats {
-
+class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_STAT_TYPES> {
     public:
         std::string player_id;
         std::string cache_id;
-        Stat_Table stat_tables[NUM_PLAYER_STAT_TYPES];
-        int current_year;
+        unsigned int current_year;
 
         Player_Stats(){}
-        Player_Stats(const std::string& player_id, int year, const std::string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
+        Player_Stats(const std::string& player_id, unsigned int year, const std::string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
 
         template <class T>
         T get_stat(ePlayer_Stat_Types stat_type, const std::string& stat_name, const T& default_val) const {
@@ -38,7 +36,7 @@ class Player_Stats {
         }
 
     private:
-        int current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
+        unsigned int current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
         std::string current_team_abbreviation;
 
         void change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, const std::string& team_abbreviation);
@@ -56,61 +54,47 @@ enum eTeam_Stat_Types {
 };
 
 
-extern std::string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES];
+extern std::string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES];
 extern std::map<eTeam_Stat_Types, std::vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE;
 
-class Team_Stats {
+class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_TYPES> {
     public:
         std::string main_team_abbreviation;
         std::string year_specific_abbreviation;
         std::string team_cache_id;
-        Stat_Table stat_tables[NUM_TEAM_STAT_TYPES];
 
         Team_Stats() {}
         Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
-
-        Table_Row get_row(eTeam_Stat_Types stat_type, const std::map<std::string, std::vector<Table_Entry>>& row_attributes);
-
-        template <class T>
-        T get_stat(eTeam_Stat_Types stat_type, const std::map<std::string, std::vector<Table_Entry>>& row_attributes, const std::string& stat_name, const T& default_val) {
-            int row_index = stat_tables[stat_type].find_row(row_attributes);
-            return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
-        }
 };
 
 
 enum eLeague_Stat_Types {
     LEAGUE_BATTING,
     LEAGUE_PITCHING,
+    LEAGUE_STANDINGS,
     NUM_LEAGUE_STAT_TYPES
 };
 
-class League_Stats {
+extern std::string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES];
+
+typedef Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> League_Stats;
+
+// Holds League Stats for all loaded years
+class All_League_Stats_Wrapper {
     public:
-        Stat_Table stat_tables[NUM_LEAGUE_STAT_TYPES];
-
-        League_Stats() {}
-        League_Stats(Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]);
-
-        Table_Row get_row(eLeague_Stat_Types stat_type, int year) {
-            return stat_tables[stat_type].get_rows().at(get_row_index(year));
-        }
+        All_League_Stats_Wrapper(){}
+        void add_year(unsigned int year, const League_Stats& year_table);
+        bool holds_year(unsigned int year) const;
 
         template <class T>
-        T get_stat(eLeague_Stat_Types stat_type, int year, const std::string& stat_name, const T& default_val) {
-            int row_index = get_row_index(year);
-            return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
+        T get_stat(eLeague_Stat_Types stat_type, unsigned int year, const std::string& stat_name, const T& default_val) const {
+            return league_stat_tables.at(year).get_stat(stat_type, stat_name, 0, default_val);
         }
 
     private:
-        int start_year;
-
-        int get_row_index(int year) {
-            if (year > start_year) {
-                return start_year;
-            }
-            return start_year - year;
-        }
+        // Years are keys, values are League Stats for that year
+        std::map<unsigned int, League_Stats> league_stat_tables;
 };
 
-extern League_Stats LEAGUE_AVG_STATS;
+
+extern All_League_Stats_Wrapper ALL_LEAGUE_STATS;

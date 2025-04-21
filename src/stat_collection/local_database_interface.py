@@ -12,6 +12,7 @@ RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
+LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "standings"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
@@ -130,14 +131,19 @@ def read_player_data_file(player_id: str, stat_type: PLAYER_STAT_TYPES) -> Table
     return utils.read_csv_as_table(filename)
 
 
-def save_league_data_file(stat_type: Literal["batting", "pitching"], league_data: Table) -> str:
-    filename = get_league_data_file_path(stat_type)
+def create_league_year_dir(year: int) -> None:
+    dir_path: str = get_league_year_dir_path(year)
+    utils.make_dirs(dir_path)
+
+
+def save_league_data_file(year: int, stat_type: LEAGUE_DATA_FILE_TYPES, league_data: Table) -> str:
+    filename = get_league_data_file_path(stat_type, year)
     utils.save_table_to_csv(filename, league_data)
-    print(f"Saved League {stat_type} table to {filename}")
+    print(f"Saved {year} League {stat_type} table to {filename}")
     return filename
 
 
-def read_league_data_file(stat_type: Literal["batting", "pitching"]) -> Table:
+def read_league_data_file(stat_type: LEAGUE_DATA_FILE_TYPES) -> Table:
     filename = get_league_data_file_path(stat_type)
     return utils.read_csv_as_table(filename)
 
@@ -147,7 +153,7 @@ def get_team_dir_path(team_abbreviation: str) -> str:
 
 
 def get_team_year_dir_path(team_abbreviation: str, year: int) -> str:
-    return f"{TEAMS_DIR}/{team_abbreviation}/{year}"
+    return f"{get_team_dir_path(team_abbreviation)}/{year}"
 
 
 def get_team_data_file_path(team_abbreviation: str, year: int, team_data_type: TEAM_DATA_FILE_TYPES) -> str:
@@ -158,8 +164,12 @@ def get_player_data_file_path(player_id: str, stat_type: PLAYER_STAT_TYPES) -> s
     return f"{PLAYERS_DIR}/{stat_type}/{player_id}_{stat_type}.csv"
 
 
-def get_league_data_file_path(stat_type: Literal["batting", "pitching"]) -> str:
-    return f"{LEAGUE_DIR}/league_{stat_type}_avg.csv"
+def get_league_year_dir_path(year: int) -> str:
+    return f"{LEAGUE_DIR}/{year}"
+
+
+def get_league_data_file_path(stat_type: LEAGUE_DATA_FILE_TYPES, year: int) -> str:
+    return f"{get_league_year_dir_path(year)}/{year}_league_{stat_type}.csv"
 
 
 def find_missing_team_data_files(team_abbreviation: str, year: int) -> TEAM_DATA_FILE_TYPES | Literal[""]:
@@ -186,18 +196,21 @@ def player_data_file_exists(player_id: str, stat_type: PLAYER_STAT_TYPES) -> boo
     return os.path.exists(get_player_data_file_path(player_id, stat_type))
 
 
-def league_data_file_exists(stat_type: Literal["batting", "pitching"]) -> bool:
-    return os.path.exists(get_league_data_file_path(stat_type))
+def league_year_dir_exists(year: int) -> bool:
+    return os.path.exists(get_league_year_dir_path(year))
+
+
+def league_data_file_exists(stat_type: LEAGUE_DATA_FILE_TYPES, year: int) -> bool:
+    return os.path.exists(get_league_data_file_path(stat_type, year))
 
 
 def get_team_file_type_to_read_from(player_stat_type: PLAYER_STAT_TYPES) -> TEAM_DATA_FILE_TYPES:
     """
     Given the stat type, returns what type of team file should be read to retrieve the correct players.
-    For example, if our player_stat_type is 'pitching', then this will return the team data file type where the pitchers are located.
+    For example, if our player_stat_type is 'pitching', then this will return the team data file type where the list of a team's pitchers are located.
     """
 
     team_file_type_to_read_from = PLAYER_LIST_LOCATIONS_FOR_STATS[player_stat_type]
-    
     return team_file_type_to_read_from
 
 
@@ -207,6 +220,10 @@ def get_player_stat_types() -> tuple[PLAYER_STAT_TYPES, ...]:
 
 def get_team_data_file_types() -> tuple[TEAM_DATA_FILE_TYPES, ...]:
     return get_args(TEAM_DATA_FILE_TYPES)
+
+
+def get_league_data_file_types() -> tuple[LEAGUE_DATA_FILE_TYPES, ...]:
+    return get_args(LEAGUE_DATA_FILE_TYPES)
 
 
 if __name__ == "__main__":

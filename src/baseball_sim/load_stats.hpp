@@ -25,7 +25,7 @@ class Stat_Loader {
 
         Team* load_team(const std::string& main_team_abbreviation, int year);
         Player* load_player(const std::string& player_name, const std::string& player_id, int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
-        void load_league_avgs();
+        void load_league_year(unsigned int year);
 
     private:
         const std::string DATABASE_FILE_PATH = "../stat_collection/data";
@@ -36,7 +36,8 @@ class Stat_Loader {
         std::string get_player_data_file_path(const std::string& player_id, const std::string& stat_type);
         std::string get_team_data_file_path(const std::string& main_team_abbreviation, int year, const std::string& team_data_file_type);
         std::string get_team_year_dir_path(const std::string& main_team_abbreviation, int year);
-        std::string get_league_data_file_path(const std::string& stat_type);
+        std::string get_league_data_file_path(const std::string& league_data_file_type, int year);
+        std::string get_league_year_dir_path(int year);
 
         bool is_player_cached(const std::string& player_cache_id);
         bool is_team_cached(const std::string& team_cache_id);

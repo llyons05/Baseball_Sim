@@ -78,10 +78,10 @@ int At_Bat::get_true_outcome() {
         pitcher_probs[2] = 1 - pitcher_probs[0] - pitcher_probs[1];
     }
 
-    const float league_plate_appearances = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "PA", 1.f);
-    league_probs[0] = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", .0f)/league_plate_appearances;
-    league_probs[1] = (LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "BB", .0f)
-                    + LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", .0f))/league_plate_appearances;
+    const float league_plate_appearances = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "PA", 1.f);
+    league_probs[0] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", .0f)/league_plate_appearances;
+    league_probs[1] = (ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "BB", .0f)
+                    + ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", .0f))/league_plate_appearances;
     league_probs[2] = 1 - league_probs[0] - league_probs[1];
 
 
@@ -114,10 +114,10 @@ eAt_Bat_Result At_Bat::get_hit_result() {
         pitcher_probs[0] = 1 - pitcher_probs[1] - pitcher_probs[2] - pitcher_probs[3];
     }
 
-    const int league_total_hits = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", 1.f);
-    league_probs[1] = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "2B", .0f)/league_total_hits;
-    league_probs[2] = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "3B", .0f)/league_total_hits;
-    league_probs[3] = LEAGUE_AVG_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HR", .0f)/league_total_hits;
+    const int league_total_hits = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", 1.f);
+    league_probs[1] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "2B", .0f)/league_total_hits;
+    league_probs[2] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "3B", .0f)/league_total_hits;
+    league_probs[3] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HR", .0f)/league_total_hits;
     league_probs[0] = 1 - league_probs[1] - league_probs[2] - league_probs[3];
     
     float outcome_probabilities[4];

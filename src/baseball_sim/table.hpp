@@ -132,3 +132,23 @@ class Stat_Table {
     private:
         std::vector<Table_Row> table_rows;
 };
+
+
+// Container for multiple stat_tables
+template <class Stat_Type, unsigned int num_stat_types>
+class Stat_Table_Container {
+    public:
+        Stat_Table stat_tables[num_stat_types];
+
+        Stat_Table_Container(): stat_tables() {};
+        Stat_Table_Container(Stat_Table stat_tables[num_stat_types]) {
+            for (unsigned int i = 0; i < num_stat_types; i++) {
+                this->stat_tables[i] = stat_tables[i];
+            }
+        }
+
+        template <class T>
+        T get_stat(Stat_Type stat_type, const std::string& stat_name, unsigned int row_index, const T& default_val) const {
+            return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
+        }
+};

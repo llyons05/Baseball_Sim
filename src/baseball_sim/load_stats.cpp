@@ -13,19 +13,22 @@ using namespace std;
 
 const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANCES};
 
-League_Stats LEAGUE_AVG_STATS;
+All_League_Stats_Wrapper ALL_LEAGUE_STATS;
 unordered_map<string, unique_ptr<Player>> player_cache;
 unordered_map<string, unique_ptr<Team>> team_cache;
 
-void Stat_Loader::load_league_avgs() {
-    vector<map<string, string>> batting_data = read_csv_file(get_league_data_file_path("batting"));
-    vector<map<string, string>> pitching_data = read_csv_file(get_league_data_file_path("pitching"));
+void Stat_Loader::load_league_year(unsigned int year) {
+    if (ALL_LEAGUE_STATS.holds_year(year)) return; // If this year is already loaded we don't need to do it again
 
-    Stat_Table batting_table(batting_data, "batting", "league_avg_batting");
-    Stat_Table pitching_table(pitching_data, "pitching", "league_avg_pitching");
+    Stat_Table league_year_stat_tables[NUM_LEAGUE_STAT_TYPES];
 
-    Stat_Table arr[NUM_LEAGUE_STAT_TYPES] = {batting_table, pitching_table};
-    LEAGUE_AVG_STATS = League_Stats(arr);
+    for (int i = 0; i < NUM_LEAGUE_STAT_TYPES; i++) {
+        const string filename = get_league_data_file_path(LEAGUE_STAT_NAMES[i], year);
+        vector<map<string, string>> file_data = read_csv_file(filename);
+        league_year_stat_tables[i] = Stat_Table(file_data, LEAGUE_STAT_NAMES[i], filename);
+    }
+
+    ALL_LEAGUE_STATS.add_year(year, League_Stats(league_year_stat_tables));
 }
 
 
@@ -42,10 +45,9 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
     Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES];
 
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
-        string filename = get_team_data_file_path(main_team_abbreviation, year, TEAM_STAT_TYPES[i]);
+        string filename = get_team_data_file_path(main_team_abbreviation, year, TEAM_STAT_NAMES[i]);
         vector<map<string, string>> file_data = read_csv_file(filename);
-        Stat_Table stat_table(file_data, TEAM_STAT_TYPES[i], main_team_abbreviation + "_" + to_string(year) + "_" + TEAM_STAT_TYPES[i]);
-        team_stat_tables[i] = stat_table;
+        team_stat_tables[i] = Stat_Table(file_data, TEAM_STAT_NAMES[i], filename);
     }
     return Team_Stats(main_team_abbreviation, team_stat_tables, year);
 }
@@ -53,7 +55,7 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
 
 vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
     vector<Player*> result;
-
+    
     for (const Table_Row& player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
         string player_id = player_data.get_stat<string>("ID", "");
         string name = player_data.get_stat<string>("name_display", "");
@@ -105,12 +107,12 @@ Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, i
 
 
 Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const string& team_abbreviation, int year, ePlayer_Stat_Types player_stat_type) {
-    string stat_type = PLAYER_STAT_TYPES[player_stat_type];
+    string stat_type = PLAYER_STAT_NAMES[player_stat_type];
     string filename = get_player_data_file_path(player_id, stat_type);
 
     vector<map<string, string>> player_file_data = read_csv_file(filename);
 
-    Stat_Table stat_container(player_file_data, stat_type, player_id + "_" + stat_type);
+    Stat_Table stat_container(player_file_data, stat_type, filename);
     return stat_container;
 }
 
@@ -146,6 +148,11 @@ string Stat_Loader::get_team_year_dir_path(const string& main_team_abbreviation,
 }
 
 
-std::string Stat_Loader::get_league_data_file_path(const string& stat_type) {
-    return LEAGUE_FILE_PATH  + "/" + "league_" + stat_type + "_avg.csv";
+std::string Stat_Loader::get_league_data_file_path(const string& league_data_file_type, int year) {
+    return get_league_year_dir_path(year) + "/" + to_string(year) + "_league_" + league_data_file_type + ".csv";
+}
+
+
+std::string Stat_Loader::get_league_year_dir_path(int year) {
+    return LEAGUE_FILE_PATH + "/" + to_string(year);
 }

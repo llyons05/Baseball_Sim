@@ -5,19 +5,19 @@
 using namespace std;
 
 
-string PLAYER_STAT_TYPES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against"};
-string TEAM_STAT_TYPES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
+string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against"};
+string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
+string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "standings"};
 
 map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST}}};
 
-Player_Stats::Player_Stats(const string& player_id, int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) {
+Player_Stats::Player_Stats(const string& player_id, unsigned int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) : Stat_Table_Container(player_stat_tables){
     this->player_id = player_id;
     this->cache_id = get_player_cache_id(player_id, team_abbreviation, year_to_pull_stats_from);
     this->current_year = year_to_pull_stats_from;
     this->current_team_abbreviation = team_abbreviation;
 
     for (int i = 0; i < NUM_PLAYER_STAT_TYPES; i++) {
-        this->stat_tables[i] = player_stat_tables[i];
         change_stat_table_target_row((ePlayer_Stat_Types)i, current_year, current_team_abbreviation);
     }
 }
@@ -39,25 +39,18 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
 }
 
 
-
-Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year) {
-    for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
-        this->stat_tables[i] = team_stat_tables[i];
-    }
+Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year): Stat_Table_Container(team_stat_tables) {
     this->main_team_abbreviation = main_team_abbreviation;
     this->year_specific_abbreviation = stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
     this->team_cache_id = get_team_cache_id(year_specific_abbreviation, year);
 }
 
 
-Table_Row Team_Stats::get_row(eTeam_Stat_Types stat_type, const map<string, vector<Table_Entry>>& row_attributes) {
-    return stat_tables[stat_type].filter_rows(row_attributes)[0];
+bool All_League_Stats_Wrapper::holds_year(unsigned int year) const {
+    return league_stat_tables.find(year) != league_stat_tables.end();
 }
 
 
-League_Stats::League_Stats(Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]) {
-    for (int i = 0; i < NUM_LEAGUE_STAT_TYPES; i++) {
-        stat_tables[i] = league_stat_tables[i];
-    }
-    start_year = stat_tables[0].get_stat("year_ID", 0, .0f);
+void All_League_Stats_Wrapper::add_year(unsigned int year, const League_Stats& year_table) {
+    league_stat_tables.insert({year, year_table});
 }

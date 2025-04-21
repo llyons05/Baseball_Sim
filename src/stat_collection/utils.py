@@ -38,6 +38,10 @@ def get_team_schedule_url(team_roster_url: str) -> str:
     return team_roster_url.replace(".shtml", "-schedule-scores.shtml")
 
 
+def get_team_id_from_url(team_page_url: str) -> str:
+    return team_page_url.split("/")[-2]
+
+
 def get_player_id_from_url(player_page_url: str) -> str:
     return player_page_url.split("/")[-1].split(".shtml")[0]
 
@@ -48,6 +52,14 @@ def get_player_batting_page_url(base_player_page_url: str) -> str:
 
 def get_player_pitching_page_url(base_player_page_url: str) -> str:
     return base_player_page_url.replace(".shtml", "-pitch.shtml")
+
+
+def get_base_league_year_url(year: int) -> str:
+    return f"{BASE_URL}/leagues/majors/{year}.shtml"
+
+
+def get_league_standings_url(base_league_year_url: str) -> str: 
+    return base_league_year_url.replace(".shtml", "-standings.shtml")
 
 
 def save_table_to_csv(filename: str, table: Table) -> None:

@@ -38,12 +38,15 @@ def handle_user_scraping() -> None:
 
 def handle_league_stats_scraping():
     overwrite_data = UI.should_overwrite_data()
-    Data_Handler.scrape_and_save_league_data(overwrite_data)
+    year = UI.choose_year()
+    stat_types = UI.choose_league_scraping_stat_types()
+
+    Data_Handler.scrape_and_save_league_data(year, stat_types, overwrite_data)
     UI.wait_for_user_input("Done. Press enter to continue.")
 
 
 def handle_team_data_scraping():
-    teams_to_scrape = UI.get_roster_scraping_selection()
+    teams_to_scrape = UI.get_team_data_scraping_selection()
     year = UI.choose_year()
     scrape_and_save_teams_data(teams_to_scrape, year)
     UI.wait_for_user_input("Done. Press enter to continue.")
@@ -129,7 +132,6 @@ def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
     return True
 
 
-
 def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TYPES, team_abbreviation: str, year: int) -> bool:
     if not DI.player_data_file_exists(player_id, stat_type):
         print(f"There was no local {stat_type} file for {player_id}, scraping baseball reference...")
@@ -150,13 +152,19 @@ def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TY
 
 
 def handle_data_audit() -> None:
-    team = UI.get_single_team_choice()
-    year = UI.choose_year()
-    audit_team(team, year)
+    audit_mode = UI.get_audit_mode()
+    if audit_mode == "season":
+        print("Not implemented")
+    elif audit_mode == "team":
+        audit_team()
+
     UI.wait_for_user_input("Press enter to continue.")
 
 
-def audit_team(team_abbreviation: str, year: int) -> None:
+def audit_team() -> None:
+    team_abbreviation = UI.get_single_team_choice()
+    year = UI.choose_year()
+
     audit_str = f"Local Database Audit Results for {team_abbreviation}-{year}:\n"
     missing_team_files, team_file_audit_str = audit_team_files(team_abbreviation, year)
     if len(missing_team_files) > 0: # Cannot continue with the audit if we do not have all the team files
@@ -174,7 +182,6 @@ def audit_team(team_abbreviation: str, year: int) -> None:
     display_extended_audit = UI.get_yes_or_no("Would you like to see an extended summary?")
     if display_extended_audit:
         print(roster_audit_str)
-    
     return
 
 
