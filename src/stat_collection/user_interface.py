@@ -81,12 +81,17 @@ def choose_year() -> int:
 
 
 def choose_league_scraping_stat_types() -> list[DI.LEAGUE_DATA_FILE_TYPES]:
-    prompt = "What league stats should be scraped (press enter for all stats)?"
+    prompt = "What league stats should be scraped?"
     return get_user_choices_from_prompt(prompt, list(DI.get_league_data_file_types()))
 
 
+def choose_team_scraping_stat_types() -> list[DI.TEAM_DATA_FILE_TYPES]:
+    prompt = "What team stats should be scraped?"
+    return get_user_choices_from_prompt(prompt, list(DI.get_team_data_file_types()))
+
+
 def choose_player_scraping_stat_types() -> list[DI.PLAYER_STAT_TYPES]:
-    prompt = "What player stats should be scraped (press enter for all stats)?"
+    prompt = "What player stats should be scraped?"
     return get_user_choices_from_prompt(prompt, list(DI.get_player_stat_types()))
 
 
@@ -213,6 +218,7 @@ def get_user_choice_from_prompt(prompt: str, choices: list[str]) -> str:
 
 def get_user_choices_from_prompt(prompt: str, choices: list[str], default: list[str] = None) -> list[str]:
     user_input = ""
+    prompt += " Press enter for all or select from"
     prompt_str = get_user_choice_prompt_str(prompt, choices)
 
     while not validate_user_string_input_list(user_input, allowed_values=choices):

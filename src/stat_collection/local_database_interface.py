@@ -172,12 +172,13 @@ def get_league_data_file_path(stat_type: LEAGUE_DATA_FILE_TYPES, year: int) -> s
     return f"{get_league_year_dir_path(year)}/{year}_league_{stat_type}.csv"
 
 
-def find_missing_team_data_files(team_abbreviation: str, year: int) -> TEAM_DATA_FILE_TYPES | Literal[""]:
+def find_missing_team_data_files(team_abbreviation: str, year: int) -> list[TEAM_DATA_FILE_TYPES]:
+    missing_data_types = []
     for data_type in get_team_data_file_types():
         if not team_data_file_exists(team_abbreviation, year, data_type):
-            return data_type
+            missing_data_types.append(data_type)
     
-    return ""
+    return missing_data_types
 
 
 def team_parent_dir_exists(team_abbreviation: str) -> bool:

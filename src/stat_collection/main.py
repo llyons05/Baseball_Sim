@@ -48,28 +48,24 @@ def handle_league_stats_scraping():
 def handle_team_data_scraping():
     teams_to_scrape = UI.get_team_data_scraping_selection()
     year = UI.choose_year()
-    scrape_and_save_teams_data(teams_to_scrape, year)
+    stat_types = UI.choose_team_scraping_stat_types()
+    overwrite_data = UI.should_overwrite_data()
+
+    scrape_and_save_teams_data(teams_to_scrape, year, stat_types, overwrite_data)
     UI.wait_for_user_input("Done. Press enter to continue.")
 
 
-def scrape_and_save_teams_data(teams: list[str], year: int) -> None:
+def scrape_and_save_teams_data(teams: list[str], year: int, stat_types: list[DI.TEAM_DATA_FILE_TYPES], overwrite_data: bool = True) -> bool:
     all_teams = DI.get_all_teams()
-    overwrite_data = utils.get_current_year() == year
 
+    all_scrapes_successful = True
     for team_data in all_teams:
         if team_data["TEAM_ID"] in teams:
-            Data_Handler.scrape_and_save_team_data(team_data["URL"], team_data["TEAM_ID"], year, overwrite_data)
-
-
-def scrape_and_save_single_team_data(team: str, year: int) -> bool:
-    all_teams = DI.get_all_teams()
-    overwrite_data = utils.get_current_year() == year
-
-    for team_data in all_teams:
-        if team_data["TEAM_ID"] == team:
-            return Data_Handler.scrape_and_save_team_data(team_data["URL"], team_data["TEAM_ID"], year, overwrite_data)
+            scrape_successful = Data_Handler.scrape_and_save_team_data(team_data["URL"], team_data["TEAM_ID"], year, stat_types, overwrite_data)
+            if not scrape_successful:
+                all_scrapes_successful = False
     
-    return False
+    return all_scrapes_successful
 
 
 def handle_player_stats_scraping() -> None:
@@ -116,13 +112,12 @@ def handle_data_viewing() -> None:
 
 
 def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
-    missing_data_file = DI.find_missing_team_data_files(team_abbreviation, year)
+    missing_data_files = DI.find_missing_team_data_files(team_abbreviation, year)
 
-    if missing_data_file:
+    if missing_data_files:
+        print(f"{team_abbreviation} {year} {"/".join(missing_data_files)} file not found locally, scraping baseball reference...")
 
-        print(f"{team_abbreviation} {year} {missing_data_file} file not found locally, scraping baseball reference...")
-
-        data_successfully_found = scrape_and_save_single_team_data(team_abbreviation, year)
+        data_successfully_found = scrape_and_save_teams_data([team_abbreviation], year, missing_data_files, True)
         if not data_successfully_found:
             UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved")
             return False
