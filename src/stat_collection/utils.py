@@ -92,7 +92,7 @@ def save_dict_list_to_csv(filename: str, dict_list: list[dict], headers: list = 
 def read_csv_as_dict_list(filename: str, headers_to_get: list[str] = []) -> list[dict]:
     result = []
 
-    with open(filename, "r", encoding='utf-8') as csv_file:
+    with open(filename, "r") as csv_file:
         csv_reader = csv.reader(csv_file)
         headers = csv_reader.__next__()
 
@@ -127,7 +127,7 @@ def get_dict_list_headers(dict_list: list[dict]) -> list:
 def read_csv_as_table(filename: str) -> Table:
     result = []
 
-    with open(filename, "r", encoding='utf-8') as csv_file:
+    with open(filename, "r") as csv_file:
         csv_reader = csv.reader(csv_file)
         headers = csv_reader.__next__()
         for row in csv_reader:
