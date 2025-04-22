@@ -28,10 +28,12 @@ class Table_Row {
 
 
         const Table_Entry& get_entry(const std::string& stat_name) const {
-            if (has_stat(stat_name)) {
+            try {
                 return row_data.at(stat_name);
             }
-            throw invalidStatNameException("Table row", "Unknown", stat_name, "");
+            catch (const std::out_of_range& e) {
+                throw invalidStatNameException("Table row", "Unknown", stat_name, "");
+            }
         }
 
 
