@@ -37,9 +37,9 @@ def handle_user_scraping() -> None:
 
 
 def handle_league_stats_scraping():
-    overwrite_data = UI.should_overwrite_data()
     year = UI.choose_year()
     stat_types = UI.choose_league_scraping_stat_types()
+    overwrite_data = UI.should_overwrite_data()
 
     Data_Handler.scrape_and_save_league_data(year, stat_types, overwrite_data)
     UI.wait_for_user_input("Done. Press enter to continue.")
