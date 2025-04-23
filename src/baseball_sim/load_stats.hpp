@@ -3,6 +3,7 @@
 #include "statistics.hpp"
 #include "team.hpp"
 #include "table.hpp"
+#include "season.hpp"
 
 #include <vector>
 #include <string>
@@ -25,9 +26,11 @@ class Stat_Loader {
 
         Team* load_team(const std::string& main_team_abbreviation, int year);
         Player* load_player(const std::string& player_name, const std::string& player_id, int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
-        void load_league_year(unsigned int year);
+        void load_league_year_stats(unsigned int year);
+        Season load_season(unsigned int year);
 
     private:
+        const std::string RESOURCES_FILE_PATH = "../stat_collection/resources";
         const std::string DATABASE_FILE_PATH = "../stat_collection/data";
         const std::string PLAYERS_FILE_PATH = DATABASE_FILE_PATH + "/players";
         const std::string TEAMS_FILE_PATH = DATABASE_FILE_PATH + "/teams";
@@ -48,4 +51,8 @@ class Stat_Loader {
         std::vector<Player*> load_team_roster(Team_Stats& team_stats, int year);
         Player_Stats load_necessary_player_stats(const std::string& player_id, int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
         Stat_Table load_player_stat_table(const std::string& player_id, const std::string& team_abbreviation, int year, ePlayer_Stat_Types player_stat_type);
+
+        Stat_Table load_all_teams_table();
+        std::vector<Team*> load_all_saved_teams_from_year(unsigned int year);
+        std::vector<std::string> load_all_real_team_abbrs_from_year(unsigned int year);
 };

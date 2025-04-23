@@ -28,8 +28,9 @@ class Team {
         int runs_allowed_by_pitcher;
         int current_pitcher_starting_half_inning;
 
-        Team(){}
+        unsigned int wins, losses;
 
+        Team(){}
         Team(const std::string& team_name, const std::vector<Player*>& players, const Team_Stats& team_stats);
 
         void add_player(Player* player) {

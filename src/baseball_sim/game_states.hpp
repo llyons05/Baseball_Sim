@@ -92,12 +92,20 @@ class Game_Result {
         Team* away_team;
         int final_score[2];
         int half_innings_played;
+        eTeam winner;
 
         Game_Result(Team* home_team, Team* away_team, int final_score[2], int half_innings_played) {
             this->home_team = home_team;
             this->away_team = away_team;
-            this->final_score[0] = final_score[0];
-            this->final_score[1] = final_score[1];
+            this->final_score[HOME_TEAM] = final_score[HOME_TEAM];
+            this->final_score[AWAY_TEAM] = final_score[AWAY_TEAM];
             this->half_innings_played = half_innings_played;
+            
+            if (final_score[HOME_TEAM] > final_score[AWAY_TEAM]) {
+                winner = HOME_TEAM;
+            }
+            else {
+                winner = AWAY_TEAM;
+            }
         }
 };

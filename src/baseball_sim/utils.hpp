@@ -6,6 +6,7 @@
 #include <map>
 #include <variant>
 
+bool file_exists(const std::string& filename);
 std::ifstream open_file(const std::string& filename);
 std::vector<std::map<std::string, std::string>> read_csv_file(const std::string& filename);
 std::vector<std::string> read_csv_line(const std::string& line);

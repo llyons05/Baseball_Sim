@@ -54,3 +54,8 @@ bool All_League_Stats_Wrapper::holds_year(unsigned int year) const {
 void All_League_Stats_Wrapper::add_year(unsigned int year, const League_Stats& year_table) {
     league_stat_tables.insert({year, year_table});
 }
+
+
+const League_Stats& All_League_Stats_Wrapper::get_year(unsigned int year) {
+    return league_stat_tables.at(year);
+}

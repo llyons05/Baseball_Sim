@@ -7,6 +7,7 @@
 #include "utils.hpp"
 
 #include <unordered_map>
+#include <algorithm>
 
 using namespace std;
 
@@ -17,7 +18,64 @@ All_League_Stats_Wrapper ALL_LEAGUE_STATS;
 unordered_map<string, unique_ptr<Player>> player_cache;
 unordered_map<string, unique_ptr<Team>> team_cache;
 
-void Stat_Loader::load_league_year(unsigned int year) {
+
+Season Stat_Loader::load_season(unsigned int year) {
+    if (year <= 1948) {
+        cout << "ERROR: Simulating seasons earlier than (and including) 1948 is not supported. Please try a different season :)\n";
+        throw exception();
+    }
+
+    load_league_year_stats(year);
+    vector<string> real_team_abbrs = load_all_real_team_abbrs_from_year(year);
+    vector<Team*> locally_saved_teams = load_all_saved_teams_from_year(year);
+    
+    for (const string& abbr : real_team_abbrs) {
+        if (!is_team_cached(get_team_cache_id(abbr, year))) {
+            cout << "Data not found locally for "+ abbr + "_"+ to_string(year) + ". You must scrape stats for this team before simulating this season.\n";
+            throw exception();
+        }
+    }
+    return Season(locally_saved_teams, year);
+}
+
+
+// Returns the abbreviations of all the teams that played during this year.
+// Note that it returns the abbreviations of each team's name in that year,
+// not the main team abbreviations, so we cannot load directly from this list of abbreviations.
+// NOTE: League stats for this year must be loaded before this is called.
+std::vector<std::string> Stat_Loader::load_all_real_team_abbrs_from_year(unsigned int year) {
+    const Stat_Table& standings_table = ALL_LEAGUE_STATS.get_year(year).stat_tables[LEAGUE_STANDINGS];
+    vector<string> real_team_abbrs_from_year;
+    for (const Table_Row& row : standings_table.get_rows()) {
+        real_team_abbrs_from_year.push_back(row.get_stat<string>("ID", "NO ID FOUND"));
+    }
+    return real_team_abbrs_from_year;
+}
+
+
+vector<Team*> Stat_Loader::load_all_saved_teams_from_year(unsigned int year) {
+    vector<Team*> loaded_teams;
+    const Stat_Table all_teams_table = load_all_teams_table();
+    for (const Table_Row& team_row : all_teams_table.get_rows()) {
+        string team_abbr = team_row.get_stat<string>("TEAM_ID", "NO ID FOUND");
+        string team_year_dir = get_team_year_dir_path(team_abbr, year);
+
+        if (file_exists(team_year_dir)) { // If file doesn't exist, for now we just assume the team didn't exist that year (this is verified later)
+            loaded_teams.push_back(load_team(team_abbr, year));
+        }
+    }
+    return loaded_teams;
+}
+
+
+Stat_Table Stat_Loader::load_all_teams_table() {
+    string filename = RESOURCES_FILE_PATH + "/all_teams.csv";
+    vector<map<string, string>> table_data = read_csv_file(filename);
+    return Stat_Table(table_data, "teams", "all_teams");
+}
+
+
+void Stat_Loader::load_league_year_stats(unsigned int year) {
     if (ALL_LEAGUE_STATS.holds_year(year)) return; // If this year is already loaded we don't need to do it again
 
     Stat_Table league_year_stat_tables[NUM_LEAGUE_STAT_TYPES];

@@ -12,3 +12,4 @@ NOTES:
         - Maybe team takes in a "uses_dh" arg
     Change table format to only hold columns to save space on repeated headers
     Add season auditing
+    Make UI interactions a seperate file

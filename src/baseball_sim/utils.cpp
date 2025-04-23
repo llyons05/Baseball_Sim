@@ -6,8 +6,15 @@
 #include <map>
 #include <iostream>
 #include <variant>
+#include <filesystem>
 
 using namespace std;
+
+
+bool file_exists(const string& filename) {
+    return filesystem::exists(filename);
+}
+
 
 ifstream open_file(const string& filename) {
     ifstream file(filename);

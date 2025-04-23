@@ -10,6 +10,10 @@
 #include <chrono>
 
 
+std::string get_simulation_type();
+void play_single_game();
+void play_season();
+
 int main() {
     #if BASEBALL_DEBUG
         std::cout << "IN DEBUG MODE\n";
@@ -17,9 +21,60 @@ int main() {
     #if BASEBALL_VIEW
         std::cout << "IN VIEWING MODE\n";
     #endif
-
-    Stat_Loader loader;
     set_up_rand();
+
+    std::string sim_type = get_simulation_type();
+
+    if (sim_type == "m") play_single_game();
+    else if (sim_type == "s") play_season();
+    
+    return 0;
+}
+
+
+std::string get_simulation_type() {
+    std::string sim_type = "";
+    while ((sim_type != "m") && (sim_type != "s")) {
+        std::cout << "Simulate single matchup or full season? (m/s): ";
+        std::cin >> sim_type;
+        std::cout << "\n";
+    }
+
+    return sim_type;
+}
+
+
+void play_season() {
+    Stat_Loader loader;
+
+    unsigned int season_year;
+    std::cout << "Input season to simulate: ";
+    std::cin >> season_year;
+    std::cout << "\n";
+
+    unsigned int sims_per_game;
+    std::cout << "Input simulations per game: ";
+    std::cin >> sims_per_game;
+    std::cout << "\n";
+
+    std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
+    
+    Season season = loader.load_season(season_year);
+
+    float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
+    std::cout << "Data loaded in " << load_duration << " seconds\n\n";
+
+    std::vector<Team*> final_standings = season.run_games(sims_per_game);
+    std::cout << "FINAL STANDINGS:\n";
+    for (unsigned int i = 0; i < final_standings.size(); i++) {
+        std::cout << "\t" << i+1 << ": " << final_standings[i]->team_stats.year_specific_abbreviation << "\t";
+        std::cout << final_standings[i]->wins << "-" << final_standings[i]->losses << "\n";
+    }
+}
+
+
+void play_single_game() {
+    Stat_Loader loader;
 
     int num_games;
     std::string team_1_name;
@@ -52,8 +107,8 @@ int main() {
     Team* team_2 = loader.load_team(team_2_name, team_2_year);
     Team* teams[2] = {team_1, team_2};
 
-    loader.load_league_year(team_1_year);
-    loader.load_league_year(team_2_year);
+    loader.load_league_year_stats(team_1_year);
+    loader.load_league_year_stats(team_2_year);
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
@@ -77,7 +132,7 @@ int main() {
     for (int i = 0; i < num_games; i++) {
         int home_id = i%2;
         int away_id = (i+1)%2;
-        Baseball_Game game(teams[home_id], teams[away_id]);
+        Baseball_Game game(teams[home_id], teams[away_id], 0);
         Game_Result result = game.play_game();
 
         if (result.final_score[HOME_TEAM] > result.final_score[AWAY_TEAM]) total_wins[home_id]++;

@@ -23,6 +23,9 @@ Team::Team(const string& team_name, const vector<Player*>& players, const Team_S
     runs_allowed_by_pitcher = 0;
     current_pitcher_starting_half_inning = 0;
 
+    wins = 0;
+    losses = 0;
+
     set_up_pitchers();
     set_current_pitcher(pick_starting_pitcher(), 0);
     set_up_batting_order();

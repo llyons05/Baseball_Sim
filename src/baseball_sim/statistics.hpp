@@ -85,6 +85,7 @@ class All_League_Stats_Wrapper {
         All_League_Stats_Wrapper(){}
         void add_year(unsigned int year, const League_Stats& year_table);
         bool holds_year(unsigned int year) const;
+        const League_Stats& get_year(unsigned int year);
 
         template <class T>
         T get_stat(eLeague_Stat_Types stat_type, unsigned int year, const std::string& stat_name, const T& default_val) const {

@@ -6,7 +6,7 @@
 #include <random>
 #include <time.h>
 
-Baseball_Game::Baseball_Game(Team* home_team, Team* away_team) {
+Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, unsigned int day_of_year) {
     teams[HOME_TEAM] = home_team;
     teams[AWAY_TEAM] = away_team;
 
@@ -15,6 +15,8 @@ Baseball_Game::Baseball_Game(Team* home_team, Team* away_team) {
 
     team_batting = AWAY_TEAM;
     half_inning_count = 0;
+
+    this->day_of_year = day_of_year;
 }
 
 
@@ -46,24 +48,6 @@ int Baseball_Game::play_half_inning() {
     int runs_scored = inning.play();
     half_inning_count++;
     return runs_scored;
-}
-
-
-void Baseball_Game::reset(bool swap_teams) {
-    teams[HOME_TEAM]->reset();
-    teams[AWAY_TEAM]->reset();
-
-    score[HOME_TEAM] = 0;
-    score[AWAY_TEAM] = 0;
-
-    team_batting = AWAY_TEAM;
-    half_inning_count = 0;
-
-    if (swap_teams) {
-        Team* temp = teams[HOME_TEAM];
-        teams[HOME_TEAM] = teams[AWAY_TEAM];
-        teams[AWAY_TEAM] = temp;
-    }
 }
 
 
