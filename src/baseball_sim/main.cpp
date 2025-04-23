@@ -59,6 +59,7 @@ void play_season() {
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     
+    std::cout << "Loading " << season_year << " Season, could take up to a minute...\n";
     Season season = loader.load_season(season_year);
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
