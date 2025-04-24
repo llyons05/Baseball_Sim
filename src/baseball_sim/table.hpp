@@ -1,45 +1,68 @@
 #pragma once
 
-#include "baseball_exceptions.hpp"
-#include "utils.hpp"
-
 #include <vector>
 #include <string>
 #include <map>
 #include <iostream>
 #include <stdexcept>
 #include <variant>
+#include <tuple>
 
 
 typedef std::variant<std::monostate, float, std::string> Table_Entry;
 
-class Table_Row {
+
+class Stat_Table {
     public:
+        std::string stat_table_id;
 
-        Table_Row(){}
-        Table_Row(const std::map<std::string, Table_Entry>& row_data) {
-            this->row_data = row_data;
+        Stat_Table() {}
+        Stat_Table(const std::map<std::string, std::vector<Table_Entry>>& table_data, const std::string& stat_table_id = "") {
+            if (!is_table_data_valid(table_data)) {
+                std::cerr << "ERROR: ROWS OF MISMATCHED SIZES IN TABLE " << stat_table_id << "\n";
+                throw std::exception();
+            }
+
+            this->stat_table_id = stat_table_id;
+            this->table_data = table_data;
+
+            if (this->table_data.size() == 0) {
+                column_size = 0;
+            }
+            else {
+                column_size = this->table_data.begin()->second.size();
+            }
         }
 
 
-        bool has_stat(const std::string& stat_name) const {
-            return row_data.find(stat_name) != row_data.end();
+        int find_row(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
+            for (unsigned int i = 0; i < size(); i++) {
+                if (row_has_attributes(i, search_attributes)) {
+                    return i;
+                }
+            }
+            return -1;
         }
 
 
-        const Table_Entry& get_entry(const std::string& stat_name) const {
-            try {
-                return row_data.at(stat_name);
+        /* Return a vector of row indexes corresponding to rows with the given attributes. If search attributes is empty, returns all rows. */
+        std::vector<unsigned int> filter_rows(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
+            std::vector<unsigned int> result;
+            for (unsigned int i = 0; i < size(); i++) {
+                if (row_has_attributes(i, search_attributes)) result.push_back(i);
             }
-            catch (const std::out_of_range& e) {
-                throw invalidStatNameException("Table row", "Unknown", stat_name, "");
-            }
+            return result;
         }
 
 
         template <class T>
-        T get_stat(const std::string& stat_name, const T& default_val) const {
-            const Table_Entry& entry = get_entry(stat_name);
+        T get_stat(const std::string& stat_name, unsigned int row_index, const T& default_val) const {
+            if (row_index >= size()) {
+                std::cerr << "Invalid row index (" << row_index << ") when accessing stat " << stat_name << " in table " << stat_table_id << "\n";
+                throw std::exception();
+            }
+
+            const Table_Entry& entry = get_entry(row_index, stat_name);
             if (std::holds_alternative<std::monostate>(entry)) {
                 return default_val;
             }
@@ -47,19 +70,34 @@ class Table_Row {
         }
 
 
-        /*
-        Takes in a dictionary in the format: {"attribute_name": "expected_value", etc...}
-        and checks to see if:
-            1. The row has an attribute with that name,
-            2. That the value associated with the attribute is equal to the expected value.
+        bool has_stat(const std::string& stat_name) const {
+            return table_data.find(stat_name) != table_data.end();
+        }
 
-        If the dictionary that is passed is empty, it will return true.
-        */
-        bool has_attributes(const std::map<std::string, std::vector<Table_Entry>>& attributes) const {
+
+        unsigned int size() const {
+            return column_size;
+        }
+
+    private:
+        std::map<std::string, std::vector<Table_Entry>> table_data;
+        unsigned int column_size = 0;
+
+        const Table_Entry& get_entry(unsigned int row, const std::string& column) const {
+            try {
+                return table_data.at(column).at(row);
+            }
+            catch (const std::out_of_range&) {
+                std::cerr << "Stat " + column + " not in table " + stat_table_id + "at row " << row << "\n";
+                throw std::out_of_range("Stat " + column + " not in table " + stat_table_id + "\n");
+            }
+        }
+
+        bool row_has_attributes(unsigned int row, const std::map<std::string, std::vector<Table_Entry>>& attributes) const {
             for (auto const& [attr_name, attr_values] : attributes) {
                 bool found_attribute = false;
                 if (has_stat(attr_name)) {
-                    const Table_Entry& existing_value = get_entry(attr_name);
+                    const Table_Entry& existing_value = get_entry(row, attr_name);
                     for (const Table_Entry& value : attr_values) {
                         if (value == existing_value) {
                             found_attribute = true;
@@ -72,69 +110,19 @@ class Table_Row {
             return true;
         }
 
-        const std::map<std::string, Table_Entry>& get_row_data() const {
-            return row_data;
-        }
-
-    private:
-        std::map<std::string, Table_Entry> row_data;
-};
-
-
-class Stat_Table {
-    public:
-        std::string stat_type;
-        std::string stat_table_id;
-
-        Stat_Table() {}
-        Stat_Table(const std::vector<std::map<std::string, std::string>>& stat_table, const std::string& stat_type, const std::string& stat_table_id = "") {
-            this->stat_type = stat_type;
-            this->stat_table_id = stat_table_id;
-
-            for (const std::map<std::string, Table_Entry>& row : convert_rows_to_table_entries(stat_table)) {
-                this->table_rows.push_back(Table_Row(row));
+        bool is_table_data_valid(const std::map<std::string, std::vector<Table_Entry>>& data) const {
+            if (data.size() == 0) { // Empty tables are ok
+                return true;
             }
-        }
-
-
-        int find_row(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
-            for (unsigned int i = 0; i < table_rows.size(); i++) {
-                if (table_rows[i].has_attributes(search_attributes)) {
-                    return i;
+            unsigned int first_col_size = data.begin()->second.size();
+            for (const auto&[header, column] : data) {
+                if (column.size() != first_col_size) { // then we have columns of mismatched sizes, this is not ok
+                    return false;
                 }
             }
-            return -1;
+            return true;
         }
-
-
-        std::vector<Table_Row> filter_rows(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
-            std::vector<Table_Row> result;
-            for (const Table_Row& row : table_rows) {
-                if (row.has_attributes(search_attributes)) result.push_back(row);
-            }
-            return result;
-        }
-
-
-        const std::vector<Table_Row>& get_rows() const {
-            return table_rows;
-        }
-
-
-        template <class T>
-        T get_stat(const std::string& stat_name, unsigned int row_index, T default_val) const {
-            if ((row_index < 0) || (row_index >= table_rows.size())) {
-                std::cerr << "Invalid row index (" << row_index << ") when accessing stat " << stat_name << " in table " << stat_table_id << "\n";
-                throw std::exception();
-            }
-
-            return table_rows[row_index].get_stat(stat_name, default_val);
-        }
-
-    private:
-        std::vector<Table_Row> table_rows;
 };
-
 
 // Container for multiple stat_tables
 template <class Stat_Type, unsigned int num_stat_types>

@@ -46,8 +46,8 @@ Season Stat_Loader::load_season(unsigned int year) {
 std::vector<std::string> Stat_Loader::load_all_real_team_abbrs_from_year(unsigned int year) {
     const Stat_Table& standings_table = ALL_LEAGUE_STATS.get_year(year).stat_tables[LEAGUE_STANDINGS];
     vector<string> real_team_abbrs_from_year;
-    for (const Table_Row& row : standings_table.get_rows()) {
-        real_team_abbrs_from_year.push_back(row.get_stat<string>("ID", "NO ID FOUND"));
+    for (unsigned int i = 0; i < standings_table.size(); i++) {
+        real_team_abbrs_from_year.push_back(standings_table.get_stat<string>("ID", i, "NO ID FOUND"));
     }
     return real_team_abbrs_from_year;
 }
@@ -56,8 +56,9 @@ std::vector<std::string> Stat_Loader::load_all_real_team_abbrs_from_year(unsigne
 vector<Team*> Stat_Loader::load_all_saved_teams_from_year(unsigned int year) {
     vector<Team*> loaded_teams;
     const Stat_Table all_teams_table = load_all_teams_table();
-    for (const Table_Row& team_row : all_teams_table.get_rows()) {
-        string team_abbr = team_row.get_stat<string>("TEAM_ID", "NO ID FOUND");
+
+    for (unsigned int i = 0; i < all_teams_table.size(); i++) {
+        string team_abbr = all_teams_table.get_stat<string>("TEAM_ID", i, "NO ID FOUND");
         string team_year_dir = get_team_year_dir_path(team_abbr, year);
 
         if (file_exists(team_year_dir)) { // If file doesn't exist, for now we just assume the team didn't exist that year (this is verified later)
@@ -70,8 +71,8 @@ vector<Team*> Stat_Loader::load_all_saved_teams_from_year(unsigned int year) {
 
 Stat_Table Stat_Loader::load_all_teams_table() {
     string filename = RESOURCES_FILE_PATH + "/all_teams.csv";
-    vector<map<string, string>> table_data = read_csv_file(filename);
-    return Stat_Table(table_data, "teams", "all_teams");
+    map<string, vector<Table_Entry>> table_data = read_csv_file(filename);
+    return Stat_Table(table_data, "all_teams");
 }
 
 
@@ -82,8 +83,8 @@ void Stat_Loader::load_league_year_stats(unsigned int year) {
 
     for (int i = 0; i < NUM_LEAGUE_STAT_TYPES; i++) {
         const string filename = get_league_data_file_path(LEAGUE_STAT_NAMES[i], year);
-        vector<map<string, string>> file_data = read_csv_file(filename);
-        league_year_stat_tables[i] = Stat_Table(file_data, LEAGUE_STAT_NAMES[i], filename);
+        map<string, vector<Table_Entry>> file_data = read_csv_file(filename);
+        league_year_stat_tables[i] = Stat_Table(file_data, filename);
     }
 
     ALL_LEAGUE_STATS.add_year(year, League_Stats(league_year_stat_tables));
@@ -104,8 +105,8 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
 
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
         string filename = get_team_data_file_path(main_team_abbreviation, year, TEAM_STAT_NAMES[i]);
-        vector<map<string, string>> file_data = read_csv_file(filename);
-        team_stat_tables[i] = Stat_Table(file_data, TEAM_STAT_NAMES[i], filename);
+        map<string, vector<Table_Entry>> file_data = read_csv_file(filename);
+        team_stat_tables[i] = Stat_Table(file_data, filename);
     }
     return Team_Stats(main_team_abbreviation, team_stat_tables, year);
 }
@@ -113,14 +114,15 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
 
 vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
     vector<Player*> result;
-    
-    for (const Table_Row& player_data : team_stats.stat_tables[TEAM_ROSTER].get_rows()) {
-        string player_id = player_data.get_stat<string>("ID", "");
-        string name = player_data.get_stat<string>("name_display", "");
+    const Stat_Table& roster_table = team_stats.stat_tables[TEAM_ROSTER];
+
+    for (unsigned int i = 0; i < roster_table.size(); i++) {
+        string player_id = roster_table.get_stat<string>("ID", i, "");
+        string name = roster_table.get_stat<string>("name_display", i, "");
         vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
 
         for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-            vector<Table_Row> search_results = team_stats.stat_tables[team_stat_type].filter_rows({{"ID", {player_id}}});
+            vector<unsigned int> search_results = team_stats.stat_tables[team_stat_type].filter_rows({{"ID", {player_id}}});
             if (!search_results.empty()) {
                 for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
                     stats_to_load.push_back(player_stat_type);
@@ -157,8 +159,8 @@ Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, i
     Stat_Table all_player_stats[NUM_PLAYER_STAT_TYPES];
 
     for (ePlayer_Stat_Types stat_type : stats_to_load) {
-        Stat_Table stat_container = load_player_stat_table(player_id, team_abbreviation, year, stat_type);
-        all_player_stats[stat_type] = stat_container;
+        Stat_Table stat_table = load_player_stat_table(player_id, team_abbreviation, year, stat_type);
+        all_player_stats[stat_type] = stat_table;
     }
     return Player_Stats(player_id, year, team_abbreviation, all_player_stats);
 }
@@ -167,11 +169,10 @@ Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, i
 Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const string& team_abbreviation, int year, ePlayer_Stat_Types player_stat_type) {
     string stat_type = PLAYER_STAT_NAMES[player_stat_type];
     string filename = get_player_data_file_path(player_id, stat_type);
+    map<string, vector<Table_Entry>> player_file_data = read_csv_file(filename);
 
-    vector<map<string, string>> player_file_data = read_csv_file(filename);
-
-    Stat_Table stat_container(player_file_data, stat_type, filename);
-    return stat_container;
+    Stat_Table stat_table(player_file_data, filename);
+    return stat_table;
 }
 
 

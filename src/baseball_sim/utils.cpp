@@ -1,5 +1,7 @@
 #include "utils.hpp"
 
+#include "table.hpp"
+
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -30,19 +32,21 @@ ifstream open_file(const string& filename) {
 }
 
 
-vector<map<string, string>> read_csv_file(const string& filename) {
-    vector<map<string, string>> result;
+map<string, vector<Table_Entry>> read_csv_file(const string& filename) {
+    map<string, vector<Table_Entry>> result;
     ifstream csv_file = open_file(filename);
 
     string current_line;
     getline(csv_file, current_line);
 
-    vector<string> headers = read_csv_line(current_line);
+    const vector<string> headers = read_csv_line(current_line);
+    for (const string& header : headers) {
+        result[header] = vector<Table_Entry>();
+    }
 
     while (getline(csv_file, current_line)) {
         vector<string> line_data = read_csv_line(current_line);
-        map<string, string> parsed_line_data = match_keys_to_values(headers, line_data);
-        result.push_back(parsed_line_data);
+        populate_row(line_data, headers, result);
     }
 
     return result;
@@ -63,56 +67,37 @@ vector<string> read_csv_line(const string& line) {
 }
 
 
-/*
-Creates a dictionary from a list of keys and values.
-If there are fewer values than keys, the extra keys will be inserted with an empty string as their value.
-If there are more values than keys, the extra values will be ignored.
-*/
-map<string, string> match_keys_to_values(const vector<string>& keys, const vector<string>& values) {
-    map<string, string> result;
-
-    for (unsigned int i = 0; i < keys.size(); i++) {
-        if (i < values.size()) {
-            result.insert( {keys[i], values[i]} );
-        }
-        else {
-            result.insert( {keys[i], ""} );
-        }
+// Used when reading in a csv, fits in the row data to its corresponding column in target.
+// Assumes that row_data[i] corresponds to headers[i]. If len(row_data) < len(headers), the extra columns are filled in as null. If len(row_data) > len(headers), the extra data is left out.
+// Also converts the strings into Table_Entry's along the way (i.e. converts them into floats or null values as needed).
+void populate_row(const vector<string>& row_data, const vector<string>& headers, map<string, vector<Table_Entry>>& target) {
+    for (unsigned int i = 0; i < headers.size(); i++) {
+        if (i < row_data.size())
+            target.at(headers[i]).push_back(convert_string_to_table_entry(row_data[i]));
+        else
+            target.at(headers[i]).push_back(convert_string_to_table_entry(""));
     }
-    return result;
 }
 
 
-vector<map<string, variant<monostate, float, string>>> convert_rows_to_table_entries(const vector<map<string, string>>& rows) {
-    vector<map<string, variant<monostate, float, string>>> result;
-    for (const map<string, string>& row : rows) {
-        result.push_back(convert_row_to_table_entry(row));
+Table_Entry convert_string_to_table_entry(const string& str) {
+    variant<monostate, float, string> converted_val;
+    if (str.empty()) {
+        converted_val = monostate{};
     }
-    return result;
+    else if (is_float(str)) {
+        converted_val = stof(str);
+    }
+    else {
+        converted_val = str;
+    }
+    return converted_val;
 }
 
 
-map<string, variant<monostate, float, string>> convert_row_to_table_entry(const map<string, string>& row) {
-    map<string, variant<monostate, float, string>> result;
-    for (auto const& [key, value] : row) {
-        variant<monostate, float, string> converted_val;
-        if (value.empty()) {
-            converted_val = monostate{};
-        }
-        else if (is_float(value)) {
-            converted_val = stof(value);
-        }
-        else {
-            converted_val = value;
-        }
-        result.insert({key, converted_val});
-    }
-    return result;
-}
-
-
-// please dont call this with an empty string
 bool is_float(const string& str) {
+    if (str.empty()) return false;
+
     char* ptr;
     strtof(str.c_str(), &ptr);
     return (*ptr) == '\0';

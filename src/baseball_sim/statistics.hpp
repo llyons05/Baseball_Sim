@@ -1,6 +1,5 @@
 #pragma once
 
-#include "baseball_exceptions.hpp"
 #include "table.hpp"
 
 #include <vector>

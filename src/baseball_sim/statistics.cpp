@@ -1,6 +1,7 @@
 #include "statistics.hpp"
 
 #include "table.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
@@ -34,7 +35,7 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
 
     current_table_row_indices[stat_type] = stat_tables[stat_type].find_row(map<string, vector<Table_Entry>>({{year_str, {(float)year}}, {team_name_str, {team_abbreviation}}}));
     if (current_table_row_indices[stat_type] < 0) {
-        current_table_row_indices[stat_type] = stat_tables[stat_type].get_rows().size() - 1;
+        current_table_row_indices[stat_type] = stat_tables[stat_type].size() - 1;
     }
 }
 

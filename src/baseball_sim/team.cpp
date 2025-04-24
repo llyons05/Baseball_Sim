@@ -37,12 +37,11 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
     vector<string> player_ids;
 
     for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-        Stat_Table* stat_table = &team_stats.stat_tables[team_stat_type];
+        const Stat_Table& stat_table = team_stats.stat_tables[team_stat_type];
+        vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", positions}});
 
-        vector<Table_Row> search_results = stat_table->filter_rows({{"team_position", positions}});
-
-        for (const Table_Row& search_result : search_results) {
-            player_ids.push_back(search_result.get_stat<string>("ID", ""));
+        for (unsigned int search_result : search_results) {
+            player_ids.push_back(stat_table.get_stat<string>("ID", search_result, ""));
         }
     }
 
@@ -51,13 +50,12 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
 
 
 set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
-    Stat_Table* stat_table = &team_stats.stat_tables[TEAM_PITCHING];
-
-    vector<Table_Row> search_results = stat_table->filter_rows({{"team_position", pitcher_types}});
+    const Stat_Table& stat_table = team_stats.stat_tables[TEAM_PITCHING];
+    vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
     vector<string> pitcher_ids;
 
-    for (const Table_Row& search_result : search_results) {
-        pitcher_ids.push_back(search_result.get_stat<string>("ID", ""));
+    for (unsigned int search_result : search_results) {
+        pitcher_ids.push_back(stat_table.get_stat<string>("ID", search_result, ""));
     }
 
     return find_players(pitcher_ids);
@@ -65,11 +63,11 @@ set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
 
 
 set<Player*> Team::get_all_pitchers() {
-    const vector<Table_Row>& pitcher_table = team_stats.stat_tables[TEAM_PITCHING].get_rows();
+    const Stat_Table& pitcher_table = team_stats.stat_tables[TEAM_PITCHING];
     vector<string> pitcher_ids;
 
-    for (const Table_Row& row : pitcher_table) {
-        pitcher_ids.push_back(row.get_stat<string>("ID", ""));
+    for (unsigned int i = 0; i < pitcher_table.size(); i++) {
+        pitcher_ids.push_back(pitcher_table.get_stat<string>("ID", i, ""));
     }
 
     return find_players(pitcher_ids);
@@ -160,21 +158,22 @@ Player* Team::pick_next_pitcher(int current_half_inning) {
 
 // Pitcher must be set before calling
 void Team::set_up_batting_order() {
-    int max_games_found = -1;
+    const Stat_Table& batting_order_table = team_stats.stat_tables[TEAM_COMMON_BATTING_ORDERS];
 
-    // Find the most used batting order
-    Table_Row most_common_batting_order;
-    for (const Table_Row& row : team_stats.stat_tables[TEAM_COMMON_BATTING_ORDERS].get_rows()) {
-        int games = row.get_stat("games", .0f);
+    // Finding the most used batting order
+    int max_games_found = -1;
+    int most_common_batting_order_row = -1;
+    for (unsigned int i = 0; i < batting_order_table.size(); i++) {
+        int games = batting_order_table.get_stat("games", i, .0f);
         if (games > max_games_found) {
-            most_common_batting_order = row;
+            most_common_batting_order_row = i;
             max_games_found = games;
         }
     }
     // Loop through that batting order, add each player to our current batting order
     for (int i = 1; i < 10; i++) {
         string pos_in_order = to_string(i);
-        string player_id = most_common_batting_order.get_stat<string>(pos_in_order, "");
+        string player_id = batting_order_table.get_stat<string>(pos_in_order, most_common_batting_order_row, "");
         if (player_id == "Pitcher") {
             batting_order[i - 1] = fielders[POS_PITCHER];
         }
