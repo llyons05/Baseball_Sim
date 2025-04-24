@@ -23,9 +23,8 @@ Season::Season(const vector<Team*>& teams, unsigned int year) {
 void Season::populate_matchups() {
     vector<Team*> loaded_teams;
     for (Team* team : teams) {
-        const Stat_Table& schedule_table = team->team_stats.stat_tables[TEAM_SCHEDULE];
-        for (unsigned int i = 0; i < schedule_table.size(); i++) {
-            Team* away_team = team_cache.at(get_team_cache_id(schedule_table.get_stat<string>("opp_ID", i, "NO TEAM FOUND"), year)).get();
+        for (unsigned int i = 0; i < team->team_stats[TEAM_SCHEDULE].size(); i++) {
+            Team* away_team = team_cache.at(get_team_cache_id(team->team_stats.get_stat<string>(TEAM_SCHEDULE, "opp_ID", i, "NO TEAM FOUND"), year)).get();
 
             if (find(loaded_teams.begin(), loaded_teams.end(), away_team) != loaded_teams.end()) {
                 unsigned int day_of_year = 0; // TODO: Get day of year from matchup

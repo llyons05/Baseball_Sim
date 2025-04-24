@@ -21,12 +21,14 @@ Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, unsigned int day_
 
 
 Game_Result Baseball_Game::play_game() {
+    // Play first 8.5 innings
     while (half_inning_count < MAX_HALF_INNINGS-1) {
         int runs_scored = play_half_inning();
         score[team_batting] += runs_scored;
         team_batting = !team_batting;
     }
 
+    // keep playing innings until someone wins
     if (score[HOME_TEAM] <= score[AWAY_TEAM]) {
         while ((half_inning_count%2 == 1) || (score[HOME_TEAM] == score[AWAY_TEAM])) {
             int runs_scored = play_half_inning();

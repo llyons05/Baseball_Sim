@@ -21,7 +21,7 @@ unordered_map<string, unique_ptr<Team>> team_cache;
 
 Season Stat_Loader::load_season(unsigned int year) {
     if (year <= 1948) {
-        cout << "ERROR: Simulating seasons earlier than (and including) 1948 is not supported. Please try a different season :)\n";
+        cerr << "ERROR: Simulating seasons earlier than (and including) 1948 is not supported. Please try a different season :)\n";
         throw exception();
     }
 
@@ -31,7 +31,7 @@ Season Stat_Loader::load_season(unsigned int year) {
     
     for (const string& abbr : real_team_abbrs) {
         if (!is_team_cached(get_team_cache_id(abbr, year))) {
-            cout << "Data not found locally for "+ abbr + "_"+ to_string(year) + ". You must scrape stats for this team before simulating this season.\n";
+            cerr << "Data not found locally for "+ abbr + "_"+ to_string(year) + ". You must scrape stats for this team before simulating this season.\n";
             throw exception();
         }
     }
@@ -44,7 +44,7 @@ Season Stat_Loader::load_season(unsigned int year) {
 // not the main team abbreviations, so we cannot load directly from this list of abbreviations.
 // NOTE: League stats for this year must be loaded before this is called.
 std::vector<std::string> Stat_Loader::load_all_real_team_abbrs_from_year(unsigned int year) {
-    const Stat_Table& standings_table = ALL_LEAGUE_STATS.get_year(year).stat_tables[LEAGUE_STANDINGS];
+    const Stat_Table& standings_table = ALL_LEAGUE_STATS.get_year(year)[LEAGUE_STANDINGS];
     vector<string> real_team_abbrs_from_year;
     for (unsigned int i = 0; i < standings_table.size(); i++) {
         real_team_abbrs_from_year.push_back(standings_table.get_stat<string>("ID", i, "NO ID FOUND"));
@@ -114,15 +114,14 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
 
 vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
     vector<Player*> result;
-    const Stat_Table& roster_table = team_stats.stat_tables[TEAM_ROSTER];
 
-    for (unsigned int i = 0; i < roster_table.size(); i++) {
-        string player_id = roster_table.get_stat<string>("ID", i, "");
-        string name = roster_table.get_stat<string>("name_display", i, "");
+    for (unsigned int i = 0; i < team_stats[TEAM_ROSTER].size(); i++) {
+        string player_id = team_stats.get_stat<string>(TEAM_ROSTER, "ID", i, "");
+        string name = team_stats.get_stat<string>(TEAM_ROSTER, "name_display", i, "");
         vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
 
         for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-            vector<unsigned int> search_results = team_stats.stat_tables[team_stat_type].filter_rows({{"ID", {player_id}}});
+            vector<unsigned int> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
             if (!search_results.empty()) {
                 for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
                     stats_to_load.push_back(player_stat_type);

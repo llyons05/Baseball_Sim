@@ -37,7 +37,7 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
     vector<string> player_ids;
 
     for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-        const Stat_Table& stat_table = team_stats.stat_tables[team_stat_type];
+        const Stat_Table& stat_table = team_stats[team_stat_type];
         vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", positions}});
 
         for (unsigned int search_result : search_results) {
@@ -50,7 +50,7 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
 
 
 set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
-    const Stat_Table& stat_table = team_stats.stat_tables[TEAM_PITCHING];
+    const Stat_Table& stat_table = team_stats[TEAM_PITCHING];
     vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
     vector<string> pitcher_ids;
 
@@ -63,7 +63,7 @@ set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
 
 
 set<Player*> Team::get_all_pitchers() {
-    const Stat_Table& pitcher_table = team_stats.stat_tables[TEAM_PITCHING];
+    const Stat_Table& pitcher_table = team_stats[TEAM_PITCHING];
     vector<string> pitcher_ids;
 
     for (unsigned int i = 0; i < pitcher_table.size(); i++) {
@@ -158,7 +158,7 @@ Player* Team::pick_next_pitcher(int current_half_inning) {
 
 // Pitcher must be set before calling
 void Team::set_up_batting_order() {
-    const Stat_Table& batting_order_table = team_stats.stat_tables[TEAM_COMMON_BATTING_ORDERS];
+    const Stat_Table& batting_order_table = team_stats[TEAM_COMMON_BATTING_ORDERS];
 
     // Finding the most used batting order
     int max_games_found = -1;

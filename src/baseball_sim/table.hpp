@@ -141,4 +141,11 @@ class Stat_Table_Container {
         T get_stat(Stat_Type stat_type, const std::string& stat_name, unsigned int row_index, const T& default_val) const {
             return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
         }
+
+        const Stat_Table& operator[](Stat_Type stat_type) const {
+            if ((stat_type < 0) || (stat_type >= num_stat_types)) {
+                throw std::out_of_range("Illegal stat_table access in Table_Container\n");
+            }
+            return stat_tables[stat_type];
+        }
 };

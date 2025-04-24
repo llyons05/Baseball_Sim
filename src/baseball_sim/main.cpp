@@ -1,6 +1,7 @@
 #include "load_stats.hpp"
 #include "baseball_game.hpp"
 #include "probability.hpp"
+#include "user_interface.hpp"
 
 #include <iostream>
 #include <string>
@@ -32,30 +33,11 @@ int main() {
 }
 
 
-std::string get_simulation_type() {
-    std::string sim_type = "";
-    while ((sim_type != "m") && (sim_type != "s")) {
-        std::cout << "Simulate single matchup or full season? (m/s): ";
-        std::cin >> sim_type;
-        std::cout << "\n";
-    }
-
-    return sim_type;
-}
-
-
 void play_season() {
     Stat_Loader loader;
 
-    unsigned int season_year;
-    std::cout << "Input season to simulate: ";
-    std::cin >> season_year;
-    std::cout << "\n";
-
-    unsigned int sims_per_game;
-    std::cout << "Input simulations per game: ";
-    std::cin >> sims_per_game;
-    std::cout << "\n";
+    unsigned int season_year = get_user_input<unsigned int>("Input season to simulate: ");
+    unsigned int sims_per_game = get_user_input<unsigned int>("Input simulations per game: ");
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     
@@ -77,31 +59,11 @@ void play_season() {
 void play_single_game() {
     Stat_Loader loader;
 
-    int num_games;
-    std::string team_1_name;
-    std::string team_2_name;
-    int team_1_year;
-    int team_2_year;
-    
-    std::cout << "Input Team 1 Abbreviation (Ex: NYY or LAD): ";
-    std::cin >> team_1_name;
-    std::cout << "\n";
-
-    std::cout << "Input Team 1 Year (Ex: 1924 or 2024): ";
-    std::cin >> team_1_year;
-    std::cout << "\n";
-
-    std::cout << "Input Team 2 Abbreviation (Ex: NYY or LAD): ";
-    std::cin >> team_2_name;
-    std::cout << "\n";
-
-    std::cout << "Input Team 2 Year (Ex: 1924 or 2024): ";
-    std::cin >> team_2_year;
-    std::cout << "\n";
-
-    std::cout << "Input number of games in the series: ";
-    std::cin >> num_games;
-    std::cout << "\n";
+    std::string team_1_name = get_user_input<std::string>("Input Team 1 Abbreviation (Ex: NYY or LAD): ");
+    unsigned int team_1_year = get_user_input<unsigned int>("Input Team 1 Year (Ex: 1924 or 2024): ");
+    std::string team_2_name = get_user_input<std::string>("Input Team 2 Abbreviation (Ex: NYY or LAD): ");
+    unsigned int team_2_year = get_user_input<unsigned int>("Input Team 2 Year (Ex: 1924 or 2024): ");
+    unsigned int num_games = get_user_input<unsigned int>("Input number of games in the series: ");
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     Team* team_1 = loader.load_team(team_1_name, team_1_year);
@@ -130,14 +92,14 @@ void play_single_game() {
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < num_games; i++) {
+    for (unsigned int i = 0; i < num_games; i++) {
         int home_id = i%2;
         int away_id = (i+1)%2;
         Baseball_Game game(teams[home_id], teams[away_id], 0);
         Game_Result result = game.play_game();
 
-        if (result.final_score[HOME_TEAM] > result.final_score[AWAY_TEAM]) total_wins[home_id]++;
-        else if (result.final_score[HOME_TEAM] < result.final_score[AWAY_TEAM]) total_wins[away_id]++;
+        if (result.winner == HOME_TEAM) total_wins[home_id]++;
+        else total_wins[away_id]++;
 
         total_runs[home_id] += result.final_score[HOME_TEAM];
         total_runs[away_id] += result.final_score[AWAY_TEAM];
