@@ -63,10 +63,20 @@ class Stat_Table {
             }
 
             const Table_Entry& entry = get_entry(row_index, stat_name);
-            if (std::holds_alternative<std::monostate>(entry)) {
-                return default_val;
+            return convert_entry(entry, default_val);
+        }
+
+
+        template <class T>
+        std::vector<T> column(const std::string& stat_name, const T& default_val) const {
+            const std::vector<Table_Entry>& table_col = column(stat_name);
+            std::vector<T> result;
+            result.reserve(table_col.size());
+
+            for (const Table_Entry& entry : table_col) {
+                result.push_back(convert_entry(entry, default_val));
             }
-            return std::get<T>(entry);
+            return result;
         }
 
 
@@ -83,13 +93,23 @@ class Stat_Table {
         std::map<std::string, std::vector<Table_Entry>> table_data;
         unsigned int column_size = 0;
 
+        const std::vector<Table_Entry>& column(const std::string& stat_name) const {
+            try {
+                return table_data.at(stat_name);
+            }
+            catch (const std::out_of_range&) {
+                std::cerr << "Stat " + stat_name + " is not a column in table " + stat_table_id + "\n";
+                throw std::out_of_range("");
+            }
+        }
+
         const Table_Entry& get_entry(unsigned int row, const std::string& column) const {
             try {
                 return table_data.at(column).at(row);
             }
             catch (const std::out_of_range&) {
                 std::cerr << "Stat " + column + " not in table " + stat_table_id + "at row " << row << "\n";
-                throw std::out_of_range("Stat " + column + " not in table " + stat_table_id + "\n");
+                throw std::out_of_range("");
             }
         }
 
@@ -121,6 +141,15 @@ class Stat_Table {
                 }
             }
             return true;
+        }
+
+
+        template <class T>
+        T convert_entry(const Table_Entry& entry, const T& default_val) const {
+            if (std::holds_alternative<std::monostate>(entry)) {
+                return default_val;
+            }
+            return std::get<T>(entry);
         }
 };
 

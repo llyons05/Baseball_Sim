@@ -12,4 +12,4 @@ NOTES:
         - Maybe team takes in a "uses_dh" arg
     Add season auditing
     Make an iterator to iterate through table rows
-    Make UI interactions a seperate file
+    return reference from get_stat?

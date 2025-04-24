@@ -63,13 +63,7 @@ set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
 
 
 set<Player*> Team::get_all_pitchers() {
-    const Stat_Table& pitcher_table = team_stats[TEAM_PITCHING];
-    vector<string> pitcher_ids;
-
-    for (unsigned int i = 0; i < pitcher_table.size(); i++) {
-        pitcher_ids.push_back(pitcher_table.get_stat<string>("ID", i, ""));
-    }
-
+    vector<string> pitcher_ids = team_stats[TEAM_PITCHING].column<string>("ID", "");
     return find_players(pitcher_ids);
 }
 
