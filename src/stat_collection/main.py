@@ -162,7 +162,7 @@ def audit_season() -> None:
     audit_str = f"Local Database Audit Results for the {year} season:\n"
     missing_league_files, league_audit_str = audit_league_year_files(year)
     if len(missing_league_files) > 0:
-        print(audit_str + league_audit_str)
+        print(audit_str + "\tAUDIT FAILED:\n" + league_audit_str)
         return
 
     locally_saved_main_abbrs, locally_saved_year_abbrs = DI.get_all_saved_teams_from_year(year)
@@ -176,7 +176,7 @@ def audit_season() -> None:
             standings_audit_str += f"\tMissing or incomplete files for {team}-{year}. Try scraping this team's data again.\n"
     
     if len(missing_teams) > 0:
-        print(audit_str + standings_audit_str)
+        print(audit_str + "\tAUDIT FAILED:\n" + standings_audit_str)
         return
     
     all_missing_player_files, main_roster_audit_str = [], ""
@@ -214,9 +214,15 @@ def audit_team() -> None:
     year = UI.choose_year()
 
     audit_str = f"Local Database Audit Results for {team_abbreviation}-{year}:\n"
+    missing_league_files, league_audit_str = audit_league_year_files(year)
+    if len(missing_league_files) > 0:
+        print(audit_str + "\tAUDIT FAILED:\n" + league_audit_str, end="")
+        print(f"{year} league data files are necessary for simulating {team_abbreviation}-{year}.")
+        return
+
     missing_team_files, team_file_audit_str = audit_team_files(team_abbreviation, year)
     if len(missing_team_files) > 0: # Cannot continue with the audit if we do not have all the team files
-        print(audit_str + team_file_audit_str)
+        print(audit_str + "\tAUDIT FAILED:\n" + team_file_audit_str)
         return
     
     missing_roster_files, roster_audit_str = audit_team_roster_files(team_abbreviation, year)
