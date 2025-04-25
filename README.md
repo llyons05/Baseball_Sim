@@ -33,12 +33,12 @@ For example, if you tried to scrape stats for every player in the 2025 season im
 Before running a simulation, you obviously need to have C++ and Make installed. Once these are installed, it's pretty straightforward.
 First, you need to navigate to `src/baseball_sim`. Then, build the project using the `make` command.
 Now, run `.\simulation.exe`, which will prompt you to choose what kind of simulation you want to run.
-There are two types of simulations you can run: individual games, and whole seasons. 
-- Individual Games
+There are two types of simulations you can run: **individual games**, and **full seasons**. 
+- **Individual Games**
   - You only need stats pertaining to the two teams you want to simulate, as well as the league stats for that year. You can confirm that you have them by auditing the teams in the Python tool.
   - You will be prompted to type in which two teams to simulate, and how many games they should play against each other. The simulation can currently do ~2000 games/second depending on your machine.
   - If you want a more detailed version of the games, build the project with the command `make view` instead (although you can only view one or two games with this).
-- Full Seasons
+- **Full Seasons**
   - You need stats for every team from that season, which can also be checked in the audit tool.
   - You will be prompted to type in the season that you want to simulate, and how many times it should simulate each game to determine the winner.
     Note that the more simulations per game you do, the less realistic the results are. This is mainly due to the fact that if the team that _should_ win a game always wins that game, then the best team in the league would never lose, and the worst team would never win.  
