@@ -10,8 +10,18 @@ std::string get_simulation_type();
 template <class T>
 T get_user_input(const std::string& prompt) {
     T input;
-    std::cout << prompt;
-    std::cin >> input;
+    while (true) {
+        std::cout << prompt;
+        std::cin >> input;
+
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(100, '\n');
+        }
+        else {
+            break;
+        }
+    }
     std::cout << "\n";
     return input;
 }
