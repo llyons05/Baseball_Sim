@@ -10,6 +10,5 @@ NOTES:
         - Maybe load an average row too?
     Cleaner DH settings
         - Maybe team takes in a "uses_dh" arg
-    Add season auditing
     Make an iterator to iterate through table rows
     return reference from get_stat?

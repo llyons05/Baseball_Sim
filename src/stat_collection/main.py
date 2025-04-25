@@ -149,11 +149,64 @@ def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TY
 def handle_data_audit() -> None:
     audit_mode = UI.get_audit_mode()
     if audit_mode == "season":
-        print("Not implemented")
+        audit_season()
     elif audit_mode == "team":
         audit_team()
 
     UI.wait_for_user_input("Press enter to continue.")
+
+
+def audit_season() -> None:
+    year = UI.choose_year()
+
+    audit_str = f"Local Database Audit Results for the {year} season:\n"
+    missing_league_files, league_audit_str = audit_league_year_files(year)
+    if len(missing_league_files) > 0:
+        print(audit_str + league_audit_str)
+        return
+
+    locally_saved_main_abbrs, locally_saved_year_abbrs = DI.get_all_saved_teams_from_year(year)
+    real_team_abbrs = DI.get_all_real_teams_from_year(year)
+
+    standings_audit_str = ""
+    missing_teams = []
+    for team in real_team_abbrs:
+        if team not in locally_saved_year_abbrs:
+            missing_teams.append(team)
+            standings_audit_str += f"\tMissing or incomplete files for {team}-{year}. Try scraping this team's data again.\n"
+    
+    if len(missing_teams) > 0:
+        print(audit_str + standings_audit_str)
+        return
+    
+    all_missing_player_files, main_roster_audit_str = [], ""
+    for team in locally_saved_main_abbrs:
+        missing_player_files, roster_audit_str = audit_team_roster_files(team, year)
+        all_missing_player_files.extend(missing_player_files)
+        main_roster_audit_str += roster_audit_str
+    
+    if len(all_missing_player_files) == 0:
+        print(f"\tAudit of the {year} season succesful, no missing files.\n")
+        return
+    
+    print(audit_str + f"\tAUDIT FAILED:\n\t{len(all_missing_player_files)} missing files.\n")
+    display_extended_audit = UI.get_yes_or_no("Would you like to see an extended summary?")
+    if display_extended_audit:
+        print(main_roster_audit_str)
+    return
+
+
+def audit_league_year_files(year: int) -> tuple[list[str], str]:
+    if not DI.league_year_dir_exists(year):
+        return [DI.get_league_year_dir_path(year)], f"\tMissing main league year directory at {DI.get_league_year_dir_path(year)}. Try scraping {year}'s data again.\n"
+
+    missing_files, audit_str = [], ""
+    for file_type in DI.get_league_data_file_types():
+        if not DI.league_data_file_exists(file_type, year):
+            missing_files.append(DI.get_league_data_file_path(file_type, year))
+            audit_str += f"\tMissing league {file_type} file for {year}.\n"
+    
+    return missing_files, audit_str
 
 
 def audit_team() -> None:

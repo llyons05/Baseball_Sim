@@ -79,6 +79,31 @@ def get_all_teams() -> list[dict[Literal["NAME", "URL", "TEAM_ID"], str]]:
     return utils.read_csv_as_dict_list(filename)
 
 
+def get_all_saved_teams_from_year(year: int) -> tuple[list[str], list[str]]:
+    """ Return main team abbreviations, year-specific abbreviations of all teams that have been locally saved from a year. """
+    all_teams = get_all_teams()
+    main_abbrs: list[str] = []
+    year_abbrs: list[str] = []
+    for team in all_teams:
+        if team_year_dir_exists(team["TEAM_ID"], year) and len(find_missing_team_data_files(team["TEAM_ID"], year)) == 0:
+            info_table = read_team_data_file(team["TEAM_ID"], year, "team_info")
+            abbr = info_table.rows[0]["abbreviation"]
+            main_abbrs.append(team["TEAM_ID"])
+            year_abbrs.append(abbr)
+    
+    return main_abbrs, year_abbrs
+
+
+def get_all_real_teams_from_year(year: int) -> list[str]:
+    """ Return abbreviations of all teams that existed in the league in a given year. """
+    standings_table = read_league_data_file(year, "standings")
+    team_abbrs = []
+    for row in standings_table:
+        team_abbrs.append(row["ID"])
+    
+    return sorted(team_abbrs)
+
+
 def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_STAT_TYPES]) -> list[dict[Literal["ID", "URL", "STAT_TYPES"], str]]:
     found_players: dict[str, tuple[str, list[PLAYER_STAT_TYPES]]] = dict()
 
@@ -143,8 +168,8 @@ def save_league_data_file(year: int, stat_type: LEAGUE_DATA_FILE_TYPES, league_d
     return filename
 
 
-def read_league_data_file(stat_type: LEAGUE_DATA_FILE_TYPES) -> Table:
-    filename = get_league_data_file_path(stat_type)
+def read_league_data_file(year: int, stat_type: LEAGUE_DATA_FILE_TYPES) -> Table:
+    filename = get_league_data_file_path(stat_type, year)
     return utils.read_csv_as_table(filename)
 
 
