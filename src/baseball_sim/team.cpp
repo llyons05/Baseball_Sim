@@ -131,8 +131,8 @@ Player* Team::try_switching_pitcher(int current_half_inning) {
 
 
 bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
-    const float era = pitcher->stats.get_stat(PLAYER_PITCHING, "p_earned_run_avg", .0f);
-    if (runs_allowed_by_pitcher > era + 1) return true;
+    const float league_era = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCHING, pitcher->stats.current_year, "earned_run_avg", .0f);
+    if (runs_allowed_by_pitcher > league_era + 1) return true;
 
     const float total_innings = pitcher->stats.get_stat(PLAYER_PITCHING, "p_ip", .0f);
     float total_games = pitcher->stats.get_stat(PLAYER_PITCHING, "p_g", .0f);
