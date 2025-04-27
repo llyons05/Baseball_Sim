@@ -6,6 +6,9 @@ import local_database_interface as DI
 import utils
 
 def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, stat_types: list[DI.TEAM_DATA_FILE_TYPES], overwrite_data: bool = True) -> bool:
+    if (not overwrite_data) and (len(DI.find_missing_team_data_files(team_abbreviation, year)) == 0): # If we're not overwriting the data and everything already exists we can just move on
+        return True
+
     client = Scraping_Client()
     year_page_url = client._scrape_team_index_page_for_roster_url(team_url, year)
 
