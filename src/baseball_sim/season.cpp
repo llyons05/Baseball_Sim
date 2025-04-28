@@ -23,11 +23,13 @@ Season::Season(const vector<Team*>& teams, unsigned int year) {
 void Season::populate_matchups() {
     vector<Team*> loaded_teams;
     for (Team* team : teams) {
-        for (const string& away_team_abbr : team->team_stats[TEAM_SCHEDULE].column<string>("opp_ID", "")) {
+        const Stat_Table& schedule_table = team->team_stats[TEAM_SCHEDULE];
+        for (unsigned int i = 0; i < schedule_table.size(); i++) {
+            const std::string away_team_abbr = schedule_table.get_stat<string>("opp_ID", i, "");
             Team* away_team = team_cache.at(get_team_cache_id(away_team_abbr, year)).get();
 
             if (find(loaded_teams.begin(), loaded_teams.end(), away_team) != loaded_teams.end()) {
-                unsigned int day_of_year = 0; // TODO: Get day of year from matchup
+                unsigned int day_of_year = get_day_of_year(schedule_table.get_stat<string>("date_game", i, ""), year);
                 matchups.push_back(Matchup(team, away_team, day_of_year));
             }
         }
@@ -35,7 +37,6 @@ void Season::populate_matchups() {
     }
 
     sort(matchups.begin(), matchups.end(), [](const Matchup& a, const Matchup& b){return a.day_of_year < b.day_of_year;});
-    cout << "Num Matchups: "<< matchups.size() << "\n";
 }
 
 

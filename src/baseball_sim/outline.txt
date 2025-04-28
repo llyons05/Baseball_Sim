@@ -11,4 +11,3 @@ NOTES:
     Cleaner DH settings
         - Maybe team takes in a "uses_dh" arg
     Make an iterator to iterate through table rows
-    return reference from get_stat?

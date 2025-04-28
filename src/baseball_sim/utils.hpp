@@ -20,3 +20,5 @@ bool is_float(const std::string& str);
 std::string get_player_cache_id(const std::string& player_id, const std::string& team_abbreviation, int year);
 std::string get_player_cache_id(const std::string& player_id, const std::string& team_cache_id);
 std::string get_team_cache_id(const std::string& team_abbr, int year);
+
+unsigned int get_day_of_year(const std::string& schedule_date_string, unsigned int year);

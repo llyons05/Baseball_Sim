@@ -48,15 +48,21 @@ void play_season() {
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
 
+    std::chrono::steady_clock::time_point sim_start = std::chrono::steady_clock::now();
+
+    std::cout << "Simulating " << season_year << " season " << season_sims << " times...";
     std::vector<Team*> final_standings = season.run_games(season_sims);
+
+    float sim_duration = (std::chrono::steady_clock::now() - sim_start).count()/(1e+9);
+    std::cout << " Completed in " << sim_duration << " seconds\n\n";
+
     std::cout << "FINAL STANDINGS:\n";
     for (unsigned int i = 0; i < final_standings.size(); i++) {
         float wins = (float)final_standings[i]->wins / season_sims;
         float losses = (float)final_standings[i]->losses / season_sims;
 
         std::cout << "    " << i+1 << ":\t" << final_standings[i]->team_stats.year_specific_abbreviation << "\t";
-        std::cout << std::fixed << std::setprecision(1) << wins << "-";
-        std::cout << std::fixed << std::setprecision(1) << losses << "\n";
+        std::cout << std::fixed << std::setprecision(1) << wins << "-" << losses << "\n";
     }
 }
 

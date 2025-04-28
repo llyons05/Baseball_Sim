@@ -9,6 +9,7 @@
 #include <iostream>
 #include <variant>
 #include <filesystem>
+#include <ctime>
 
 using namespace std;
 
@@ -118,4 +119,19 @@ string get_player_cache_id(const string& player_id, const string& team_cache_id)
 
 string get_team_cache_id(const string& team_abbreviation, int year) {
     return team_abbreviation + "_" + to_string(year);
+}
+
+
+unsigned int get_day_of_year(const std::string& schedule_date_string, unsigned int year) {
+    const std::string date_str = schedule_date_string + " " + to_string(year);
+    tm t{};
+    istringstream ss(date_str);
+    ss >> get_time(&t, "%a  %b %d %Y");
+
+    if (ss.fail()) {
+        cerr << "Invalid date string provided: " << date_str << "\n";
+        throw exception();
+    }
+
+    return t.tm_yday;
 }
