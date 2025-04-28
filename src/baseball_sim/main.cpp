@@ -4,6 +4,7 @@
 #include "user_interface.hpp"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <random>
 #include <cstdint>
@@ -37,7 +38,7 @@ void play_season() {
     Stat_Loader loader;
 
     unsigned int season_year = get_user_input<unsigned int>("Input season to simulate: ");
-    unsigned int sims_per_game = get_user_input<unsigned int>("Input simulations per game: ");
+    unsigned int season_sims = get_user_input<unsigned int>("Input number of times to simulate season: ");
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     
@@ -47,11 +48,15 @@ void play_season() {
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
 
-    std::vector<Team*> final_standings = season.run_games(sims_per_game);
+    std::vector<Team*> final_standings = season.run_games(season_sims);
     std::cout << "FINAL STANDINGS:\n";
     for (unsigned int i = 0; i < final_standings.size(); i++) {
-        std::cout << "\t" << i+1 << ": " << final_standings[i]->team_stats.year_specific_abbreviation << "\t";
-        std::cout << final_standings[i]->wins << "-" << final_standings[i]->losses << "\n";
+        float wins = (float)final_standings[i]->wins / season_sims;
+        float losses = (float)final_standings[i]->losses / season_sims;
+
+        std::cout << "    " << i+1 << ":\t" << final_standings[i]->team_stats.year_specific_abbreviation << "\t";
+        std::cout << std::fixed << std::setprecision(1) << wins << "-";
+        std::cout << std::fixed << std::setprecision(1) << losses << "\n";
     }
 }
 

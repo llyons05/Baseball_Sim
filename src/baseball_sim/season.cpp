@@ -40,16 +40,18 @@ void Season::populate_matchups() {
 
 
 // Return the teams in order of win %
-vector<Team*> Season::run_games(unsigned int sims_per_matchup) {
-    for (Matchup& matchup : matchups) {
-        eTeam winner = simulate_matchup(matchup, sims_per_matchup);
-        if (winner == HOME_TEAM) {
-            matchup.home_team->wins++;
-            matchup.away_team->losses++;
-        }
-        else {
-            matchup.away_team->wins++;
-            matchup.home_team->losses++;
+vector<Team*> Season::run_games(unsigned int num_season_sims) {
+    for (unsigned int i = 0; i < num_season_sims; i++){
+        for (Matchup& matchup : matchups) {
+            eTeam winner = simulate_matchup(matchup);
+            if (winner == HOME_TEAM) {
+                matchup.home_team->wins++;
+                matchup.away_team->losses++;
+            }
+            else {
+                matchup.away_team->wins++;
+                matchup.home_team->losses++;
+            }
         }
     }
 
@@ -59,19 +61,13 @@ vector<Team*> Season::run_games(unsigned int sims_per_matchup) {
 }
 
 
-eTeam Season::simulate_matchup(const Matchup& matchup, unsigned int num_simulations) {
-    unsigned int wins[2] = {0, 0};
-    for (unsigned int i = 0; i < num_simulations; i++) {
-        Baseball_Game game = matchup.load_game();
-        Game_Result result = game.play_game();
-        wins[result.winner]++;
+eTeam Season::simulate_matchup(const Matchup& matchup) {
+    Baseball_Game game = matchup.load_game();
+    Game_Result result = game.play_game();
 
-        matchup.home_team->reset();
-        matchup.away_team->reset();
-    }
-
-    if (wins[HOME_TEAM] >= wins[AWAY_TEAM]) return HOME_TEAM;
-    return AWAY_TEAM;
+    matchup.home_team->reset();
+    matchup.away_team->reset();
+    return result.winner;
 }
 
 

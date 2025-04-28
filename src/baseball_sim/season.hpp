@@ -36,5 +36,5 @@ class Season {
 
     private:
         void populate_matchups();
-        eTeam simulate_matchup(const Matchup& matchup, unsigned int num_simulations);
+        eTeam simulate_matchup(const Matchup& matchup);
 };

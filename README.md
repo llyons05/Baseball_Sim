@@ -40,5 +40,4 @@ There are two types of simulations you can run: **individual games**, and **full
   - If you want a more detailed version of the games, build the project with the command `make view` instead (although you can only view one or two games with this).
 - **Full Seasons**
   - You need stats for every team from that season, which can also be checked in the audit tool.
-  - You will be prompted to type in the season that you want to simulate, and how many times it should simulate each game to determine the winner.
-    Note that the more simulations per game you do, the less realistic the results are. This is mainly due to the fact that if the team that _should_ win a game always wins that game, then the best team in the league would never lose, and the worst team would never win.  
+  - You will be prompted to type in the season that you want to simulate, and how many times it should simulate that season. If you choose to simulate the season more than one time, results of all the simulated seasons will be averaged when they are printed out.
