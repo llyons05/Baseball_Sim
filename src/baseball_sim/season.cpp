@@ -53,6 +53,12 @@ vector<Team*> Season::run_games(unsigned int num_season_sims) {
                 matchup.away_team->wins++;
                 matchup.home_team->losses++;
             }
+            #if BASEBALL_VIEW
+            string buf;
+            cout << "Type anything and press enter to go to next game";
+            cin >> buf;
+            #endif
+
         }
     }
 
@@ -63,8 +69,18 @@ vector<Team*> Season::run_games(unsigned int num_season_sims) {
 
 
 eTeam Season::simulate_matchup(const Matchup& matchup) {
+    matchup.home_team->prepare_for_game(matchup.day_of_year, true);
+    matchup.away_team->prepare_for_game(matchup.day_of_year, true);
+
     Baseball_Game game = matchup.load_game();
     Game_Result result = game.play_game();
+
+    for (Player* player : result.home_team->pitchers_used) {
+        player->day_of_last_game_played = matchup.day_of_year;
+    }
+    for (Player* player : result.away_team->pitchers_used) {
+        player->day_of_last_game_played = matchup.day_of_year;
+    }
 
     matchup.home_team->reset();
     matchup.away_team->reset();

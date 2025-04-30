@@ -79,8 +79,9 @@ class Half_Inning {
         Base_State bases;
 
         int half_inning_number;
+        unsigned int day_of_year;
 
-        Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number);
+        Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number, unsigned int day_of_year);
         int play();
         void handle_at_bat_result(eAt_Bat_Result at_bat_result);
 };

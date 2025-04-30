@@ -61,6 +61,7 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
         std::string main_team_abbreviation;
         std::string year_specific_abbreviation;
         std::string team_cache_id;
+        unsigned int days_in_schedule;
 
         Team_Stats() {}
         Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
@@ -85,6 +86,7 @@ class All_League_Stats_Wrapper {
         void add_year(unsigned int year, const League_Stats& year_table);
         bool holds_year(unsigned int year) const;
         const League_Stats& get_year(unsigned int year);
+        unsigned int get_avg_pitcher_cooldown(unsigned int year);
 
         template <class T>
         T get_stat(eLeague_Stat_Types stat_type, unsigned int year, const std::string& stat_name, const T& default_val) const {

@@ -135,10 +135,11 @@ eAt_Bat_Result At_Bat::get_hit_result() {
 }
 
 
-Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number) {
+Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number, unsigned int day_of_year) {
     this->batting_team = batting_team;
     this->pitching_team = pitching_team;
     this->half_inning_number = half_inning_number;
+    this->day_of_year = day_of_year;
     this->bases = Base_State(batting_team, pitching_team);
     outs = 0;
     runs_scored = 0;
@@ -177,7 +178,7 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
     batting_team->position_in_batting_order = (batting_team->position_in_batting_order + 1) % 9;
 
     pitching_team->runs_allowed_by_pitcher += runs_from_ab;
-    pitching_team->try_switching_pitcher(half_inning_number);
+    pitching_team->try_switching_pitcher(half_inning_number, day_of_year);
 }
 
 

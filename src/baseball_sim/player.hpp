@@ -32,6 +32,7 @@ class Player {
     public:
         std::string name, id;
         Player_Stats stats;
+        unsigned int day_of_last_game_played;
 
         Player() {}
 
@@ -39,6 +40,7 @@ class Player {
             this->stats = stats;
             this->name = name;
             id = stats.player_id;
+            day_of_last_game_played = 1000;
         }
 
         int games_at_fielding_position(eDefensivePositions position) const {

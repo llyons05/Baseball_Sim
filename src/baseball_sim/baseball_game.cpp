@@ -21,6 +21,15 @@ Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, unsigned int day_
 
 
 Game_Result Baseball_Game::play_game() {
+    #if BASEBALL_VIEW
+    std::cout << "MATCHUP: " + teams[HOME_TEAM]->team_name + " vs " + teams[AWAY_TEAM]->team_name + "\n";
+    teams[HOME_TEAM]->print_fielders();
+    teams[AWAY_TEAM]->print_fielders();
+
+    teams[HOME_TEAM]->print_batting_order();
+    teams[AWAY_TEAM]->print_batting_order();
+    #endif
+
     // Play first 8.5 innings
     while (half_inning_count < MAX_HALF_INNINGS-1) {
         int runs_scored = play_half_inning();
@@ -46,7 +55,7 @@ Game_Result Baseball_Game::play_game() {
 
 
 int Baseball_Game::play_half_inning() {
-    Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count);
+    Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count, day_of_year);
     int runs_scored = inning.play();
     half_inning_count++;
     return runs_scored;

@@ -44,6 +44,10 @@ Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_sta
     this->main_team_abbreviation = main_team_abbreviation;
     this->year_specific_abbreviation = stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
     this->team_cache_id = get_team_cache_id(year_specific_abbreviation, year);
+
+    unsigned int start_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", 0, ""), year);
+    unsigned int end_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", stat_tables[TEAM_SCHEDULE].size() - 1, ""), year);
+    this->days_in_schedule = end_date - start_date;
 }
 
 
@@ -59,4 +63,10 @@ void All_League_Stats_Wrapper::add_year(unsigned int year, const League_Stats& y
 
 const League_Stats& All_League_Stats_Wrapper::get_year(unsigned int year) {
     return league_stat_tables.at(year);
+}
+
+
+unsigned int All_League_Stats_Wrapper::get_avg_pitcher_cooldown(unsigned int year) {
+    const League_Stats& year_table = get_year(year);
+    return year_table.get_stat(LEAGUE_PITCHING, "G", 0, 0.f)/year_table.get_stat(LEAGUE_PITCHING, "pitchers_used", 0, 1.f);
 }

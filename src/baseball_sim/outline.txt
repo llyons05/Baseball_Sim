@@ -3,11 +3,10 @@ NOTES:
     Add better documentation
     Baseball reference is slowly changing tables, make sure to stay up to date
     use BR advanced batting pitch summary for pitch-by-pitch stats
-    Change pitcher after every game
-        - Give each pitcher a cooldown (ex: 5 games)?
     add stolen bases
     load only the necessary rows of the table
         - Maybe load an average row too?
     Cleaner DH settings
         - Maybe team takes in a "uses_dh" arg
     Make an iterator to iterate through table rows
+    Add walk offs, ie inning can end early if the other team cannot win

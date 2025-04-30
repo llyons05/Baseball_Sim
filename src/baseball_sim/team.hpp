@@ -24,6 +24,7 @@ class Team {
         Player* batting_order[9];
         Player* fielders[NUM_DEFENSIVE_POSITIONS];
         std::set<Player*> available_pitchers;
+        std::vector<Player*> pitchers_used;
 
         int position_in_batting_order;
         int runs_allowed_by_pitcher;
@@ -54,24 +55,26 @@ class Team {
         std::set<Player*> filter_players_by_listed_pos(const std::vector<Table_Entry>& positions = {});
         std::set<Player*> filter_pitchers(const std::vector<Table_Entry>& positions = {});
 
-        Player* try_switching_pitcher(int current_half_inning);
-        Player* pick_next_pitcher(int current_half_inning);
+        Player* try_switching_pitcher(int current_half_inning, unsigned int current_day_of_year);
+        Player* pick_next_pitcher(int current_half_inning, unsigned int current_day_of_year);
         void set_current_pitcher(Player* new_pitcher, int current_half_inning);
         void set_position_in_field(Player* new_player, eDefensivePositions position);
 
         void print_fielders();
         void print_batting_order();
 
+        void prepare_for_game(unsigned int day_of_game, bool keep_batting_order);
         void reset();
 
     private:
+        const unsigned int MAX_PITCHER_COOLDOWN = 20; // days
 
         void set_up_batting_order();
         void set_up_fielders();
         void set_up_pitchers();
 
-        Player* pick_starting_pitcher();
-        Player* pick_relief_pitcher();
+        Player* pick_starting_pitcher(unsigned int current_day_of_year);
+        Player* pick_relief_pitcher(unsigned int current_day_of_year);
         std::set<Player*> get_all_pitchers();
         bool should_swap_pitcher(Player* pitcher, int current_half_inning);
 

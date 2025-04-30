@@ -123,7 +123,7 @@ string get_team_cache_id(const string& team_abbreviation, int year) {
 
 
 unsigned int get_day_of_year(const std::string& schedule_date_string, unsigned int year) {
-    const std::string date_str = schedule_date_string + " " + to_string(year);
+    const string date_str = schedule_date_string + " " + to_string(year);
     tm t{};
     istringstream ss(date_str);
     ss >> get_time(&t, "%a  %b %d %Y");

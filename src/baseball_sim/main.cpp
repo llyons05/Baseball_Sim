@@ -104,6 +104,9 @@ void play_single_game() {
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     for (unsigned int i = 0; i < num_games; i++) {
+        teams[0]->prepare_for_game(0, true);
+        teams[1]->prepare_for_game(0, true);
+
         int home_id = i%2;
         int away_id = (i+1)%2;
         Baseball_Game game(teams[home_id], teams[away_id], 0);

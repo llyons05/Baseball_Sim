@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <random>
 #include <set>
+#include <cassert>
 
 
 using namespace std;
@@ -26,10 +27,17 @@ Team::Team(const string& team_name, const vector<Player*>& players, const Team_S
     wins = 0;
     losses = 0;
 
+    prepare_for_game(0, false);
+}
+
+// Call this before every game the team plays
+void Team::prepare_for_game(unsigned int day_of_game, bool keep_batting_order) {
     set_up_pitchers();
-    set_current_pitcher(pick_starting_pitcher(), 0);
-    set_up_batting_order();
-    set_up_fielders();
+    set_current_pitcher(pick_next_pitcher(0, day_of_game), 0);
+    if (!keep_batting_order) {
+        set_up_batting_order();
+        set_up_fielders();
+    }
 }
 
 
@@ -68,30 +76,63 @@ set<Player*> Team::get_all_pitchers() {
 }
 
 
-Player* Team::pick_starting_pitcher() {
+Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
     Player* new_pitcher = get_pitcher();
+    Player* least_unrested_pitcher = get_pitcher();
     int max_games = -1;
+    unsigned int most_days_of_rest_for_unrested_player = 0;
+
     for (Player* player : available_pitchers) {
-        int games = player->stats.get_stat(PLAYER_PITCHING, "p_gs", .0f);
-        if (games > max_games) {
+        int games = player->stats.get_stat(PLAYER_PITCHING, "p_gs", 1.f);
+        if (games <= 0) games = 1;
+
+        unsigned int cooldown = min(team_stats.days_in_schedule/games, MAX_PITCHER_COOLDOWN);
+        unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
+        bool is_rested = days_of_rest >= cooldown;
+
+        if (is_rested && (games > max_games)) {
             max_games = games;
             new_pitcher = player;
         }
+        else if ((max_games == -1) && (days_of_rest >= most_days_of_rest_for_unrested_player)) { // if our player is unrested and we are yet to find a rested player
+            most_days_of_rest_for_unrested_player = days_of_rest;
+            least_unrested_pitcher = player;
+        }
+    }
+    if (max_games == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
+        new_pitcher = least_unrested_pitcher;
     }
 
     return new_pitcher;
 }
 
 
-Player* Team::pick_relief_pitcher() {
+Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
     Player* new_pitcher = get_pitcher();
-    float highest_win_loss = -1;
+    Player* least_unrested_pitcher = get_pitcher();
+    int most_saves = -1;
+    unsigned int most_days_of_rest_for_unrested_player = 0;
+
     for (Player* player : available_pitchers) {
-        float win_loss = player->stats.get_stat(PLAYER_PITCHING, "p_sv", .0f);
-        if (win_loss > highest_win_loss) {
-            highest_win_loss = win_loss;
+        int saves = player->stats.get_stat(PLAYER_PITCHING, "p_sv", .0f);
+        int games = player->stats.get_stat(PLAYER_PITCHING, "p_g", 1.f);
+        if (games <= 0) games = 1;
+
+        unsigned int cooldown = min(team_stats.days_in_schedule/games, MAX_PITCHER_COOLDOWN);
+        unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
+        bool is_rested = days_of_rest >= cooldown;
+
+        if (is_rested && (saves > most_saves)) {
+            most_saves = saves;
             new_pitcher = player;
         }
+        else if ((most_saves == -1) && (days_of_rest >= most_days_of_rest_for_unrested_player)) { // if our player is unrested and we are yet to find a rested player
+            most_days_of_rest_for_unrested_player = days_of_rest;
+            least_unrested_pitcher = player;
+        }
+    }
+    if (most_saves == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
+        new_pitcher = least_unrested_pitcher;
     }
 
     return new_pitcher;
@@ -110,14 +151,15 @@ void Team::set_current_pitcher(Player* new_pitcher, int current_half_inning) {
     }
     fielders[POS_PITCHER] = new_pitcher;
     available_pitchers.erase(new_pitcher);
+    pitchers_used.push_back(new_pitcher);
     runs_allowed_by_pitcher = 0;
     current_pitcher_starting_half_inning = current_half_inning;
 }
 
 
-Player* Team::try_switching_pitcher(int current_half_inning) {
+Player* Team::try_switching_pitcher(int current_half_inning, unsigned int current_day_of_year) {
     if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
-        Player* new_pitcher = pick_next_pitcher(current_half_inning);
+        Player* new_pitcher = pick_next_pitcher(current_half_inning, current_day_of_year);
         set_current_pitcher(new_pitcher, current_half_inning);
 
         #if BASEBALL_VIEW
@@ -142,11 +184,11 @@ bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
 }
 
 
-Player* Team::pick_next_pitcher(int current_half_inning) {
+Player* Team::pick_next_pitcher(int current_half_inning, unsigned int current_day_of_year) {
     if (current_half_inning > 8) {
-        return pick_relief_pitcher();
+        return pick_relief_pitcher(current_day_of_year);
     }
-    return pick_starting_pitcher();
+    return pick_starting_pitcher(current_day_of_year);
 }
 
 
@@ -154,7 +196,7 @@ Player* Team::pick_next_pitcher(int current_half_inning) {
 void Team::set_up_batting_order() {
     const Stat_Table& batting_order_table = team_stats[TEAM_COMMON_BATTING_ORDERS];
 
-    // Finding the most used batting order
+    // Finding the most used batting order (in the future use discrete distribution and select randomly)
     int max_games_found = -1;
     int most_common_batting_order_row = -1;
     for (unsigned int i = 0; i < batting_order_table.size(); i++) {
@@ -211,6 +253,7 @@ void Team::set_up_fielders() {
 
 void Team::set_up_pitchers() {
     available_pitchers = get_all_pitchers();
+    pitchers_used.clear();
 }
 
 
@@ -257,6 +300,4 @@ void Team::reset() {
     position_in_batting_order = 0;
     runs_allowed_by_pitcher = 0;
     current_pitcher_starting_half_inning = 0;
-    set_up_pitchers();
-    set_current_pitcher(pick_starting_pitcher(), 0);
 }
