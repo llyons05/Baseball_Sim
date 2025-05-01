@@ -15,10 +15,6 @@
 #include <stdexcept>
 
 
-const std::vector<std::string> PITCHING_POSITION_NAMES = {"P", "CL", "SP", "RP"};
-const std::string DEFAULT_POSITION = "P";
-
-
 class Stat_Loader {
     
     public:

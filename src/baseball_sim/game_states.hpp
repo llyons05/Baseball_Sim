@@ -3,6 +3,8 @@
 #include "player.hpp"
 #include "team.hpp"
 
+#include <stdint.h>
+
 enum eBases {
     FIRST_BASE,
     SECOND_BASE,
@@ -11,14 +13,17 @@ enum eBases {
 };
 
 
-enum eAt_Bat_Result {
-    BATTER_OUT,
-    SINGLE,
-    DOUBLE,
-    TRIPLE,
-    HOME_RUN,
-    BATTER_WALKED,
-    NUM_AT_BAT_RESULTS
+enum eTrue_Outcomes {
+    OUTCOME_CONTACT,
+    OUTCOME_WALK,
+    OUTCOME_STRIKEOUT,
+    NUM_TRUE_OUTCOMES
+};
+
+
+struct At_Bat_Result {
+    uint8_t batter_bases_advanced = 0;
+    eTrue_Outcomes true_outcome = OUTCOME_STRIKEOUT;
 };
 
 
@@ -37,14 +42,11 @@ class At_Bat {
         Player* batter;
 
         At_Bat(Team* batting_team, Team* pitching_team);
-        eAt_Bat_Result play();
-        eAt_Bat_Result get_ab_result();
+        At_Bat_Result play();
 
     private:
-        const static int num_true_outcomes = 3;
-
-        int get_true_outcome();
-        eAt_Bat_Result get_hit_result();
+        eTrue_Outcomes get_true_outcome();
+        uint8_t get_batter_bases_advanced();
 };
 
 
@@ -58,10 +60,10 @@ class Base_State {
         Base_State() {}
         Base_State(Team* batting_team, Team* pitching_team) : players_on_base(), batting_team(batting_team), pitching_team(pitching_team) {}
 
-        int advance_runners(Player* batter, eAt_Bat_Result result);
+        int advance_runners(Player* batter, At_Bat_Result result);
         int handle_walk(Player* batter);
-        int handle_hit(Player* batter, eAt_Bat_Result result);
-        int get_player_advancement(eBases starting_base, eAt_Bat_Result batter_bases_advanced, int max_base);
+        int handle_hit(Player* batter, At_Bat_Result result);
+        int get_player_advancement(eBases starting_base, uint8_t batter_bases_advanced, int max_base);
 
         void print();
 };
@@ -83,7 +85,7 @@ class Half_Inning {
 
         Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number, unsigned int day_of_year);
         int play();
-        void handle_at_bat_result(eAt_Bat_Result at_bat_result);
+        void handle_at_bat_result(At_Bat_Result at_bat_result);
 };
 
 

@@ -24,39 +24,32 @@ At_Bat::At_Bat(Team* batting_team, Team* pitching_team) {
 }
 
 
-eAt_Bat_Result At_Bat::play() {
-    return get_ab_result();
-}
+At_Bat_Result At_Bat::play() {
+    At_Bat_Result result;
+    result.true_outcome = get_true_outcome();
 
-
-eAt_Bat_Result At_Bat::get_ab_result() {
-    const int outcome = get_true_outcome();
-
-    if (outcome == 0) {
+    if (result.true_outcome == OUTCOME_CONTACT) {
         #if BASEBALL_VIEW
         std::cout << "\t" << batter->name << " GOT A HIT!\n";
         #endif
-        return get_hit_result();
-    }
-    if (outcome == 1) {
-        #if BASEBALL_VIEW
-        std::cout << "\t" << batter->name << " WAS WALKED...\n";
-        #endif
-        return BATTER_WALKED;
+        result.batter_bases_advanced = get_batter_bases_advanced();
     }
 
     #if BASEBALL_VIEW
+    else if (result.true_outcome == OUTCOME_WALK)
+        std::cout << "\t" << batter->name << " WAS WALKED...\n";
+    else
     std::cout << "\t" << batter->name << " IS OUT!\n";
     #endif
 
-    return BATTER_OUT;
+    return result;
 }
 
 
-int At_Bat::get_true_outcome() {
-    float batter_probs[num_true_outcomes];
-    float pitcher_probs[num_true_outcomes];
-    float league_probs[num_true_outcomes];
+eTrue_Outcomes At_Bat::get_true_outcome() {
+    float batter_probs[NUM_TRUE_OUTCOMES];
+    float pitcher_probs[NUM_TRUE_OUTCOMES];
+    float league_probs[NUM_TRUE_OUTCOMES];
 
     int batter_plate_appearances = batter->stats.get_stat(PLAYER_BATTING, "b_pa", 1.f);
     if (batter_plate_appearances == 0) batter_plate_appearances = 1; // If the batter has no PAs, we just assume they aren't going to get a hit (This makes it easier for baserunning/hit prob calculation)
@@ -68,7 +61,7 @@ int At_Bat::get_true_outcome() {
 
     const int pitcher_plate_appearances = pitcher->stats.get_stat(PLAYER_PITCHING, "p_bfp", .0f);
     if (pitcher_plate_appearances == 0) {
-        for (int i = 0; i < num_true_outcomes; i++)
+        for (int i = 0; i < NUM_TRUE_OUTCOMES; i++)
             pitcher_probs[i] = batter_probs[i];
     }
     else {
@@ -84,14 +77,13 @@ int At_Bat::get_true_outcome() {
                     + ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", .0f))/league_plate_appearances;
     league_probs[2] = 1 - league_probs[0] - league_probs[1];
 
-
-    float outcome_probabilities[num_true_outcomes];
-    calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, num_true_outcomes);
-    return get_random_event(outcome_probabilities, num_true_outcomes);
+    float outcome_probabilities[NUM_TRUE_OUTCOMES];
+    calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, NUM_TRUE_OUTCOMES);
+    return (eTrue_Outcomes) get_random_event(outcome_probabilities, NUM_TRUE_OUTCOMES);
 }
 
 
-eAt_Bat_Result At_Bat::get_hit_result() {
+uint8_t At_Bat::get_batter_bases_advanced() {
     float batter_probs[4];
     float pitcher_probs[4];
     float league_probs[4];
@@ -122,16 +114,16 @@ eAt_Bat_Result At_Bat::get_hit_result() {
     
     float outcome_probabilities[4];
     calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, 4);
-    eAt_Bat_Result result = (eAt_Bat_Result)(get_random_event(outcome_probabilities, 4) + 1);
+    uint8_t bases_advanced = get_random_event(outcome_probabilities, 4) + 1;
 
     #if BASEBALL_VIEW
-    if (result == SINGLE) std::cout << "\t SINGLE\n";
-    else if (result == DOUBLE) std::cout << "\t DOUBLE\n";
-    else if (result == TRIPLE) std::cout << "\t TRIPLE\n";
-    else if (result == HOME_RUN) std::cout << "\t HOME RUN!!!\n";
+    if (bases_advanced == 1) std::cout << "\t SINGLE\n";
+    else if (bases_advanced == 2) std::cout << "\t DOUBLE\n";
+    else if (bases_advanced == 3) std::cout << "\t TRIPLE\n";
+    else if (bases_advanced == 4) std::cout << "\t HOME RUN!!!\n";
     #endif
 
-    return result;
+    return bases_advanced;
 }
 
 
@@ -156,7 +148,7 @@ int Half_Inning::play() {
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
         At_Bat at_bat(batting_team, pitching_team);
-        eAt_Bat_Result at_bat_result = at_bat.play();
+        At_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
         bases.print();
     }
@@ -169,8 +161,8 @@ int Half_Inning::play() {
 }
 
 
-void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
-    if (at_bat_result == BATTER_OUT) {
+void Half_Inning::handle_at_bat_result(At_Bat_Result at_bat_result) {
+    if (at_bat_result.true_outcome == OUTCOME_STRIKEOUT) {
         outs++;
     }
     int runs_from_ab = bases.advance_runners(batting_team->batting_order[batting_team->position_in_batting_order], at_bat_result);
@@ -182,22 +174,21 @@ void Half_Inning::handle_at_bat_result(eAt_Bat_Result at_bat_result) {
 }
 
 
-int Base_State::advance_runners(Player* batter, eAt_Bat_Result result) {
-    if (result == BATTER_OUT) return 0;
-    if (result == BATTER_WALKED) return handle_walk(batter);
+int Base_State::advance_runners(Player* batter, At_Bat_Result result) {
+    if (result.true_outcome == OUTCOME_STRIKEOUT) return 0;
+    if (result.true_outcome == OUTCOME_WALK) return handle_walk(batter);
     return handle_hit(batter, result);
 }
 
 
-int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
+int Base_State::handle_hit(Player* batter, At_Bat_Result result) {
     int runs_scored = 0;
     int max_base = HOME_PLATE + 1; // Makes sure that runners can't pass other runners
     for (int i = THIRD_BASE; i >= FIRST_BASE; i--) {
 
         if (players_on_base[i] != NULL) {
 
-            int new_base = i + get_player_advancement((eBases)i, result, max_base);
-
+            int new_base = i + get_player_advancement((eBases)i, result.batter_bases_advanced, max_base);
             if (new_base > THIRD_BASE) {
                 runs_scored++;
                 #if BASEBALL_VIEW
@@ -212,7 +203,8 @@ int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
             players_on_base[i] = NULL;
         }
     }
-    int batter_base = result - 1;
+
+    int batter_base = result.batter_bases_advanced - 1;
     if (batter_base > THIRD_BASE) {
         runs_scored++;
         #if BASEBALL_VIEW
@@ -226,7 +218,7 @@ int Base_State::handle_hit(Player* batter, eAt_Bat_Result result) {
 }
 
 
-int Base_State::get_player_advancement(eBases starting_base, eAt_Bat_Result batter_bases_advanced, int max_base) {
+int Base_State::get_player_advancement(eBases starting_base, uint8_t batter_bases_advanced, int max_base) {
     if ((starting_base + batter_bases_advanced > THIRD_BASE) || (starting_base + batter_bases_advanced >= max_base - 1)) {
         return batter_bases_advanced;
     }
