@@ -90,7 +90,7 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
         unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
         bool is_rested = days_of_rest >= cooldown;
 
-        if (is_rested && (games > max_games)) {
+        if (is_rested && (games > max_games)) { // Also use winrate here
             max_games = games;
             new_pitcher = player;
         }

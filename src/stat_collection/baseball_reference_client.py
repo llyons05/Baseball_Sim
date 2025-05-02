@@ -138,7 +138,7 @@ class Scraping_Client:
             {"name": "games", "location": {"tag_navigation_path": [{"tag_name": "strong"}]}}
         ]
 
-        table = parser.parse(extra_row_values, forbidden_chars={" Games": ""})
+        table = parser.parse(extra_row_values, forbidden_chars={" Games": "", "1 Game": "1"})
         return table
 
 

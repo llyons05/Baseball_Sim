@@ -149,7 +149,13 @@ class Stat_Table {
             if (std::holds_alternative<std::monostate>(entry)) {
                 return default_val;
             }
-            return std::get<T>(entry);
+            try {
+                return std::get<T>(entry);
+            }
+            catch (const std::bad_variant_access&) {
+                std::cerr << "Bad variant access in " << stat_table_id << " (default val was " << default_val << ")\n";
+                throw std::exception();
+            }
         }
 };
 
