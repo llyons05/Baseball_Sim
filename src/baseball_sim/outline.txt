@@ -10,3 +10,4 @@ NOTES:
         - Maybe team takes in a "uses_dh" arg
     Make an iterator to iterate through table rows
     Add walk offs, ie inning can end early if the other team cannot win
+    auditing should actually check whether player file contains year data
