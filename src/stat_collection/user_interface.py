@@ -6,7 +6,7 @@ import local_database_interface as DI
 import utils
 
 def get_user_mode() -> Literal["scrape", "view", "audit"]:
-    prompt = f"{colored("scrape", "green")} data, {colored("view", "red")} data, or {colored("audit", "blue")}?"
+    prompt = f"{colored('scrape', 'green')} data, {colored('view', 'red')} data, or {colored('audit', 'blue')}?"
     mode = get_user_choice_from_prompt(prompt, ["s", "v", "a"]).lower()
 
     if mode == "s":
@@ -17,7 +17,7 @@ def get_user_mode() -> Literal["scrape", "view", "audit"]:
 
 
 def get_scraping_mode() -> Literal["team", "player", "league"]:
-    prompt = f"scrape {colored("team statistics", "green")} or {colored("player statistics", "red")} or {colored("league statistics", "blue")}?"
+    prompt = f"scrape {colored('team statistics', 'green')} or {colored('player statistics', 'red')} or {colored('league statistics', 'blue')}?"
     mode: str = get_user_choice_from_prompt(prompt, ["t", "p", "l"]).lower()
     
     if mode == "t":
@@ -35,7 +35,7 @@ def get_audit_mode() -> Literal["team", "season"]:
 
 def get_team_data_scraping_selection() -> list[str]:
     roster_prompt_text = "Input the abbreviations for the teams whose team data should be saved."
-    roster_example_text = f"Press enter to save all teams, or type teams comma separated (ex: {colored("NYY", "blue")}, {colored("WSN", "red")}, {colored("PIT", "yellow")}): "
+    roster_example_text = f"Press enter to save all teams, or type teams comma separated (ex: {colored('NYY', 'blue')}, {colored('WSN', 'red')}, {colored('PIT', 'yellow')}): "
 
     all_teams = [x["TEAM_ID"] for x in DI.get_all_teams()]
     roster_input_str = ""
@@ -52,9 +52,9 @@ def get_team_data_scraping_selection() -> list[str]:
     return list(set(parse_user_string_input_list(roster_input_str)))
 
 
-def get_team_stats_scraping_selection() -> list[str]:
+def get_team_player_stats_scraping_selection() -> list[str]:
     roster_prompt_text = "Input the abbreviations for the teams whose players' stats should be saved."
-    roster_example_text = f"Press enter to save all teams, or type comma separated teams (ex: {colored("NYY", "blue")}, {colored("WSN", "red")}, {colored("PIT", "yellow")}): "
+    roster_example_text = f"Press enter to save all teams, or type comma separated teams (ex: {colored('NYY', 'blue')}, {colored('WSN', 'red')}, {colored('PIT', 'yellow')}): "
 
     all_teams = [team["TEAM_ID"] for team in DI.get_all_teams()]
     roster_input_str = ""
@@ -164,18 +164,6 @@ def get_player_choice(team_abbreviation: str, year: int) -> None:
 def choose_player_viewing_stat_type() -> DI.PLAYER_STAT_TYPES:
     prompt = "What player stats should be viewed?"
     return get_user_choice_from_prompt(prompt, list(DI.get_player_stat_types()))
-
-
-def should_download_missing_team_data_file(team_abbreviation: str, year: int, missing_data_type: DI.TEAM_DATA_FILE_TYPES) -> bool:
-    print(f"{colored("ERROR: It looks like a", "red")} {colored(f"{year} {team_abbreviation}", "green")} {colored(f"{missing_data_type} file does not exist locally.", "red")}\n")
-    prompt = "Would you like to scrape it from baseball reference?"
-    return get_yes_or_no(prompt)
-
-
-def should_download_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TYPES) -> bool:
-    print(f"{colored("ERROR: It looks like", "red")} {colored(stat_type, "green")} {colored("data for", "red")} {colored(player_id, "green")} {colored("does not exist locally.", "red")}\n")
-    prompt = "Would you like to scrape it from baseball reference?"
-    return get_yes_or_no(prompt)
 
 
 def display_all_teams_table() -> None:

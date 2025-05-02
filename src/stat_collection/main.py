@@ -69,7 +69,7 @@ def scrape_and_save_teams_data(teams: list[str], year: int, stat_types: list[DI.
 
 
 def handle_player_stats_scraping() -> None:
-    teams_to_scrape = UI.get_team_stats_scraping_selection()
+    teams_to_scrape = UI.get_team_player_stats_scraping_selection()
     year = UI.choose_year()
     stat_types = UI.choose_player_scraping_stat_types()
     overwrite_data = UI.should_overwrite_data()
@@ -86,7 +86,7 @@ def save_all_team_player_data(team_abbreviation: str, year: int, stat_types: lis
         return
 
     player_list = DI.get_player_list(team_abbreviation, year, stat_types)
-    print(f"Saving {team_abbreviation} {year} roster player {"/".join(stat_types)} stats...")
+    print(f"Saving {team_abbreviation} {year} roster player {'/'.join(stat_types)} stats...")
 
     progress_bar = tqdm.tqdm(player_list, unit="player")
     for player in progress_bar:
@@ -115,11 +115,11 @@ def handle_missing_team_data_file(team_abbreviation: str, year: int) -> bool:
     missing_data_files = DI.find_missing_team_data_files(team_abbreviation, year)
 
     if missing_data_files:
-        print(f"{team_abbreviation} {year} {"/".join(missing_data_files)} file not found locally, scraping baseball reference...")
+        print(f"{team_abbreviation} {year} {'/'.join(missing_data_files)} file not found locally, scraping baseball reference...")
 
         data_successfully_found = scrape_and_save_teams_data([team_abbreviation], year, missing_data_files, True)
         if not data_successfully_found:
-            UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved")
+            UI.wait_for_user_input(f"There was an error finding a {year} {team_abbreviation} roster file. Are you sure {team_abbreviation} existed in {year}?. No data was saved.")
             return False
 
         print("continuing...")
