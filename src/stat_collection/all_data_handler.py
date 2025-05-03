@@ -24,6 +24,7 @@ def scrape_and_save_team_data(team_url: str, team_abbreviation: str, year: int, 
         return True
     
     else:
+        print(f"Franchise {team_abbreviation} did not exist in the year {year}. Please try a different franchise or year.")
         return False
 
 
