@@ -26,8 +26,10 @@ Scraping an entire season's worth of stats is as easy as:
 > Should previously saved data be used when available? (y/n): y
 ```  
 Be aware, scraping stats for a whole season means scraping stats for several hundred players, so if you are doing it for the first time it can take several hours (~10 mins/team * 30 teams).
-However, when we save player stats, we are saving stats for their whole career, so once you have them you will never have to scrape them again.
-For example, if you tried to scrape stats for every player in the 2025 season immediately after scraping the 2024 season, it would take nowhere near as long, since most of the players, having also played in 2024, would already be saved.
+This is somewhat remedied by the fact that when we save player stats, we are saving stats for their whole career, so once you have them you will never have to scrape them again (unless you want them updated).
+For example, if you tried to scrape stats for every player in the 2024 season immediately after scraping the 2023 season, it would take nowhere near as long, since most of the players, having also played in 2023, would already be saved.
+However, if an MLB season is currently in progress and you are trying to scrape stats (league/team/player) for it, you should always get the most up-to-date data. In other words, you should always respond **no** to the prompt
+`> Should previously saved data be used when available? (y/n):`. Otherwise, the scraper will just see that stats are saved locally for that player and it won't update them with the newest data.
 
 ## Running the Simulation
 Before running a simulation, you obviously need to have C++ and Make installed. Once these are installed, it's pretty straightforward.
