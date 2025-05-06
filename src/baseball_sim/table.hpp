@@ -6,11 +6,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <variant>
-#include <tuple>
 
 
 typedef std::variant<std::monostate, float, std::string> Table_Entry;
-
 
 class Stat_Table {
     public:

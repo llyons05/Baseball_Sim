@@ -1,5 +1,6 @@
 #include "team.hpp"
 
+#include "config.hpp"
 #include "statistics.hpp"
 #include "player.hpp"
 #include "table.hpp"
@@ -101,6 +102,7 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
     }
     if (max_games == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
         new_pitcher = least_unrested_pitcher;
+        debug_print("No rested starting pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player...");
     }
 
     return new_pitcher;
@@ -133,6 +135,7 @@ Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
     }
     if (most_saves == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
         new_pitcher = least_unrested_pitcher;
+        debug_print("No rested relief pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player...");
     }
 
     return new_pitcher;
@@ -161,11 +164,7 @@ Player* Team::try_switching_pitcher(int current_half_inning, unsigned int curren
     if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning, current_day_of_year);
         set_current_pitcher(new_pitcher, current_half_inning);
-
-        #if BASEBALL_VIEW
-        cout << "NEW PITCHER FOR " << team_name << ": " << new_pitcher->name << "\n";
-        #endif
-
+        game_viewer_print("NEW PITCHER FOR " << team_name << ": " << new_pitcher->name << "\n");
         return new_pitcher;
     }
     return get_pitcher();

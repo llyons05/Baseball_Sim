@@ -1,5 +1,6 @@
 #include "season.hpp"
 
+#include "config.hpp"
 #include "utils.hpp"
 #include "player.hpp"
 #include "team.hpp"
@@ -53,12 +54,12 @@ vector<Team*> Season::run_games(unsigned int num_season_sims) {
                 matchup.away_team->wins++;
                 matchup.home_team->losses++;
             }
-            #if BASEBALL_VIEW
-            string buf;
-            cout << "Type anything and press enter to go to next game";
-            cin >> buf;
-            #endif
 
+            game_viewer_line(
+                string buf;
+                cout << "Type anything and press enter to go to next game";
+                cin >> buf;
+            )
         }
     }
 

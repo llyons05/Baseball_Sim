@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "load_stats.hpp"
 #include "baseball_game.hpp"
 #include "probability.hpp"
@@ -17,12 +18,8 @@ void play_single_game();
 void play_season();
 
 int main() {
-    #if BASEBALL_DEBUG
-        std::cout << "IN DEBUG MODE\n";
-    #endif
-    #if BASEBALL_VIEW
-        std::cout << "IN VIEWING MODE\n";
-    #endif
+    debug_print("IN DEBUG MODE\n");
+    game_viewer_print("IN VIEWING MODE\n");
     set_up_rand();
 
     std::string sim_type = get_simulation_type();
@@ -91,15 +88,6 @@ void play_single_game() {
     int total_runs[2] = {0};
 
     std::cout << "Running " << num_games << " games... ";
-
-    #if BASEBALL_DEBUG || BASEBALL_VIEW
-    std::cout << "\n";
-    team_1->print_fielders();
-    team_2->print_fielders();
-
-    team_1->print_batting_order();
-    team_2->print_batting_order();
-    #endif
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 

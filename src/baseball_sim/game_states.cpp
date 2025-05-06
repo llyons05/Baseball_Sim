@@ -1,5 +1,6 @@
 #include "game_states.hpp"
 
+#include "config.hpp"
 #include "probability.hpp"
 #include "statistics.hpp"
 
@@ -29,18 +30,16 @@ At_Bat_Result At_Bat::play() {
     result.true_outcome = get_true_outcome();
 
     if (result.true_outcome == OUTCOME_CONTACT) {
-        #if BASEBALL_VIEW
-        std::cout << "\t" << batter->name << " GOT A HIT!\n";
-        #endif
+        game_viewer_print("\t" << batter->name << " GOT A HIT!\n")
         result.batter_bases_advanced = get_batter_bases_advanced();
     }
 
-    #if BASEBALL_VIEW
-    else if (result.true_outcome == OUTCOME_WALK)
-        std::cout << "\t" << batter->name << " WAS WALKED...\n";
-    else
-    std::cout << "\t" << batter->name << " IS OUT!\n";
-    #endif
+    game_viewer_line(
+        else if (result.true_outcome == OUTCOME_WALK)
+            std::cout << "\t" << batter->name << " WAS WALKED...\n";
+        else
+        std::cout << "\t" << batter->name << " IS OUT!\n";
+    )
 
     return result;
 }
@@ -116,12 +115,12 @@ uint8_t At_Bat::get_batter_bases_advanced() {
     calculate_event_probabilities(batter_probs, pitcher_probs, league_probs, outcome_probabilities, 4);
     uint8_t bases_advanced = get_random_event(outcome_probabilities, 4) + 1;
 
-    #if BASEBALL_VIEW
-    if (bases_advanced == 1) std::cout << "\t SINGLE\n";
-    else if (bases_advanced == 2) std::cout << "\t DOUBLE\n";
-    else if (bases_advanced == 3) std::cout << "\t TRIPLE\n";
-    else if (bases_advanced == 4) std::cout << "\t HOME RUN!!!\n";
-    #endif
+    game_viewer_line(
+        if (bases_advanced == 1) std::cout << "\t SINGLE\n";
+        else if (bases_advanced == 2) std::cout << "\t DOUBLE\n";
+        else if (bases_advanced == 3) std::cout << "\t TRIPLE\n";
+        else if (bases_advanced == 4) std::cout << "\t HOME RUN!!!\n";
+    )
 
     return bases_advanced;
 }
@@ -139,24 +138,21 @@ Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, int half_innin
 
 
 int Half_Inning::play() {
-    #if BASEBALL_VIEW
-    std::string top_or_bottom = "TOP ";
-    if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
-    std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
-    std::cout << "TEAM AT BAT: " << batting_team->team_name << "\n";
-    #endif
+    game_viewer_line(
+        std::string top_or_bottom = "TOP ";
+        if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
+        std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
+        std::cout << "TEAM AT BAT: " << batting_team->team_name << "\n";
+    );
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
         At_Bat at_bat(batting_team, pitching_team);
         At_Bat_Result at_bat_result = at_bat.play();
         handle_at_bat_result(at_bat_result);
-        bases.print();
+        game_viewer_line(bases.print());
     }
 
-    #if BASEBALL_VIEW
-    std::cout << "HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n";
-    #endif
-
+    game_viewer_print("HALF INNING OVER: RUNS SCORED: " << runs_scored << "\n");
     return runs_scored;
 }
 
@@ -190,10 +186,8 @@ int Base_State::handle_hit(Player* batter, At_Bat_Result result) {
 
             int new_base = i + get_player_advancement((eBases)i, result.batter_bases_advanced, max_base);
             if (new_base > THIRD_BASE) {
+                game_viewer_print("\t -" << players_on_base[i]->name << " SCORED\n");
                 runs_scored++;
-                #if BASEBALL_VIEW
-                std::cout << "\t -" << players_on_base[i]->name << " SCORED\n";
-                #endif
             }
             else {
                 players_on_base[new_base] = players_on_base[i];
@@ -206,10 +200,8 @@ int Base_State::handle_hit(Player* batter, At_Bat_Result result) {
 
     int batter_base = result.batter_bases_advanced - 1;
     if (batter_base > THIRD_BASE) {
+        game_viewer_print("\t -" << batter->name << " SCORED\n");
         runs_scored++;
-        #if BASEBALL_VIEW
-        std::cout << "\t -" << batter->name << " SCORED\n";
-        #endif
     }
     else {
         players_on_base[batter_base] = batter;
@@ -261,7 +253,6 @@ int Base_State::handle_walk(Player* batter) {
 
 
 void Base_State::print() {
-    #if BASEBALL_VIEW
     const char empty_base = 'o';
     const char full_base = (char)254;
 
@@ -293,5 +284,4 @@ void Base_State::print() {
         if (players_on_base[i] != NULL)
             std::cout << "\t\tPLAYER ON BASE " << i + 1 << ": " << players_on_base[i]->name << "\n";
     }
-    #endif
 }

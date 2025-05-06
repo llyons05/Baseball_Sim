@@ -1,5 +1,6 @@
 #include "baseball_game.hpp"
 
+#include "config.hpp"
 #include "game_states.hpp"
 
 #include <iostream>
@@ -21,14 +22,14 @@ Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, unsigned int day_
 
 
 Game_Result Baseball_Game::play_game() {
-    #if BASEBALL_VIEW
-    std::cout << "MATCHUP: " + teams[HOME_TEAM]->team_name + " vs " + teams[AWAY_TEAM]->team_name + "\n";
-    teams[HOME_TEAM]->print_fielders();
-    teams[AWAY_TEAM]->print_fielders();
+    game_viewer_line(
+        std::cout << "MATCHUP: " + teams[HOME_TEAM]->team_name + " vs " + teams[AWAY_TEAM]->team_name + "\n";
+        teams[HOME_TEAM]->print_fielders();
+        teams[AWAY_TEAM]->print_fielders();
 
-    teams[HOME_TEAM]->print_batting_order();
-    teams[AWAY_TEAM]->print_batting_order();
-    #endif
+        teams[HOME_TEAM]->print_batting_order();
+        teams[AWAY_TEAM]->print_batting_order();
+    )
 
     // Play first 8.5 innings
     while (half_inning_count < MAX_HALF_INNINGS-1) {
@@ -46,10 +47,7 @@ Game_Result Baseball_Game::play_game() {
         }
     }
 
-    #if BASEBALL_VIEW
-    print_game_result();
-    #endif
-
+    game_viewer_line(print_game_result());
     return Game_Result(teams[HOME_TEAM], teams[AWAY_TEAM], score, half_inning_count);
 }
 

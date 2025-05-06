@@ -1,5 +1,7 @@
 #include "probability.hpp"
 
+#include "config.hpp"
+
 #include <random>
 #include <iostream>
 #include <cassert>
@@ -25,7 +27,7 @@ void calculate_event_probabilities(float x[], float y[], float z[], float output
 
 
 int get_random_event(float event_probs[], int num_events) {
-    #if BASEBALL_DEBUG
+    debug_line(
         float sum = 0;
         for (int i = 0; i < num_events; sum+=event_probs[i], i++);
         if (abs(1 - sum) > 1e-6) {
@@ -34,7 +36,7 @@ int get_random_event(float event_probs[], int num_events) {
             std::cout << "abs(1-sum) = " << abs(1 - sum) << "\n";
             assert(abs(1 - sum) < 1e-6);
         }
-    #endif
+    )
 
     std::discrete_distribution<> dist(event_probs, event_probs + num_events);
     return dist(rand_gen);

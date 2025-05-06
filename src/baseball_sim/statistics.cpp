@@ -1,5 +1,6 @@
 #include "statistics.hpp"
 
+#include "config.hpp"
 #include "table.hpp"
 #include "utils.hpp"
 
@@ -36,6 +37,7 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, in
     current_table_row_indices[stat_type] = stat_tables[stat_type].find_row(map<string, vector<Table_Entry>>({{year_str, {(float)year}}, {team_name_str, {team_abbreviation}}}));
     if (current_table_row_indices[stat_type] < 0) {
         current_table_row_indices[stat_type] = stat_tables[stat_type].size() - 1;
+        debug_print("Missing stat row of player stat type "<< PLAYER_STAT_NAMES[stat_type] << " in stat table "<< stat_tables[stat_type].stat_table_id << " for player "<< cache_id << "\n");
     }
 }
 
