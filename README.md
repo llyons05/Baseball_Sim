@@ -32,7 +32,7 @@ However, if an MLB season is currently in progress and you are trying to scrape 
 `> Should previously saved data be used when available? (y/n):`. Otherwise, the scraper will just see that stats are saved locally for that player and it won't update them with the newest data.
 
 ## Running the Simulation
-Before running a simulation, you obviously need to have C++ and Make installed. Once these are installed, it's pretty straightforward.
+Before running a simulation, you need to have g++ and Make installed. Once these are installed, it's pretty straightforward.
 First, you need to navigate to `src/baseball_sim`. Then, build the project using the `make` command.
 Now, run `.\simulation.exe`, which will prompt you to choose what kind of simulation you want to run.
 However, for whatever reason I can't get this to work on Linux, so for now **it only works on Windows**.
