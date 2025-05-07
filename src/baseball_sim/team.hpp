@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <set>
 #include <memory>
+#include <cstdint>
 
 enum eTeam {
     AWAY_TEAM,
@@ -26,10 +27,9 @@ class Team {
         std::set<Player*> available_pitchers;
         std::vector<Player*> pitchers_used;
 
-        int position_in_batting_order;
-        int runs_allowed_by_pitcher;
-        int current_pitcher_starting_half_inning;
-
+        unsigned int position_in_batting_order;
+        unsigned int runs_allowed_by_pitcher;
+        unsigned int current_pitcher_starting_half_inning;
         unsigned int wins, losses;
 
         Team(){}
@@ -55,9 +55,9 @@ class Team {
         std::set<Player*> filter_players_by_listed_pos(const std::vector<Table_Entry>& positions = {});
         std::set<Player*> filter_pitchers(const std::vector<Table_Entry>& positions = {});
 
-        Player* try_switching_pitcher(int current_half_inning, unsigned int current_day_of_year);
-        Player* pick_next_pitcher(int current_half_inning, unsigned int current_day_of_year);
-        void set_current_pitcher(Player* new_pitcher, int current_half_inning);
+        Player* try_switching_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year);
+        Player* pick_next_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year);
+        void set_current_pitcher(Player* new_pitcher, unsigned int current_half_inning);
         void set_position_in_field(Player* new_player, eDefensivePositions position);
 
         void print_fielders();
@@ -76,7 +76,7 @@ class Team {
         Player* pick_starting_pitcher(unsigned int current_day_of_year);
         Player* pick_relief_pitcher(unsigned int current_day_of_year);
         std::set<Player*> get_all_pitchers();
-        bool should_swap_pitcher(Player* pitcher, int current_half_inning);
+        bool should_swap_pitcher(Player* pitcher, unsigned int current_half_inning);
 
         std::set<Player*> find_players(const std::vector<std::string>& player_ids) {
             std::set<Player*> result;

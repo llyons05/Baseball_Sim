@@ -30,15 +30,15 @@ class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_
 
         template <class T>
         T get_stat(ePlayer_Stat_Types stat_type, const std::string& stat_name, const T& default_val) const {
-            int row_index = current_table_row_indices[stat_type];
+            size_t row_index = current_table_row_indices[stat_type];
             return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
         }
 
     private:
-        unsigned int current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
+        size_t current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
         std::string current_team_abbreviation;
 
-        void change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, const std::string& team_abbreviation);
+        void change_stat_table_target_row(ePlayer_Stat_Types stat_type, unsigned int year, const std::string& team_abbreviation);
 };
 
 
@@ -62,9 +62,10 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
         std::string year_specific_abbreviation;
         std::string team_cache_id;
         unsigned int days_in_schedule;
+        unsigned int year;
 
         Team_Stats() {}
-        Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year);
+        Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], unsigned int year);
 };
 
 
@@ -94,7 +95,7 @@ class All_League_Stats_Wrapper {
         }
 
     private:
-        // Years are keys, values are League Stats for that year
+        // Keys are years, values are League Stats for that year
         std::map<unsigned int, League_Stats> league_stat_tables;
 };
 

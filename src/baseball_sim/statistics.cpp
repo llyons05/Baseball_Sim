@@ -25,24 +25,30 @@ Player_Stats::Player_Stats(const string& player_id, unsigned int year_to_pull_st
 }
 
 
-void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, int year, const string& team_abbreviation) {
+void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, unsigned int year, const string& team_abbreviation) {
     string year_str = "year_id";
     string team_name_str = "team_name_abbr";
 
-    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST)) {
+    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST)) { // These tables have non-standard headers on baseball reference (at least until BR updates them)
         year_str = "year_ID";
         team_name_str = "team_ID";
     }
 
-    current_table_row_indices[stat_type] = stat_tables[stat_type].find_row(map<string, vector<Table_Entry>>({{year_str, {(float)year}}, {team_name_str, {team_abbreviation}}}));
-    if (current_table_row_indices[stat_type] < 0) {
+    int target_row = stat_tables[stat_type].find_row(map<string, vector<Table_Entry>>({{year_str, {(float)year}}, {team_name_str, {team_abbreviation}}}));
+    if (target_row < 0) {
         current_table_row_indices[stat_type] = stat_tables[stat_type].size() - 1;
-        debug_print("Missing stat row of player stat type "<< PLAYER_STAT_NAMES[stat_type] << " in stat table "<< stat_tables[stat_type].stat_table_id << " for player "<< cache_id << "\n");
+        debug_line(
+            if (stat_tables[stat_type].size() != 0)
+                cout << "Missing stat row of player stat type "<< PLAYER_STAT_NAMES[stat_type] << " in non-empty stat table "<< stat_tables[stat_type].stat_table_id << " for player "<< cache_id << "\n";
+        )
+    }
+    else {
+        current_table_row_indices[stat_type] = target_row;
     }
 }
 
 
-Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], int year): Stat_Table_Container(team_stat_tables) {
+Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], unsigned int year): Stat_Table_Container(team_stat_tables) {
     this->main_team_abbreviation = main_team_abbreviation;
     this->year_specific_abbreviation = stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
     this->team_cache_id = get_team_cache_id(year_specific_abbreviation, year);
@@ -50,6 +56,7 @@ Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_sta
     unsigned int start_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", 0, ""), year);
     unsigned int end_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", stat_tables[TEAM_SCHEDULE].size() - 1, ""), year);
     this->days_in_schedule = end_date - start_date;
+    this->year = year;
 }
 
 

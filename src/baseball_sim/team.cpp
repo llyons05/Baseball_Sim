@@ -47,9 +47,9 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
 
     for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
         const Stat_Table& stat_table = team_stats[team_stat_type];
-        vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", positions}});
+        vector<size_t> search_results = stat_table.filter_rows({{"team_position", positions}});
 
-        for (unsigned int search_result : search_results) {
+        for (size_t search_result : search_results) {
             player_ids.push_back(stat_table.get_stat<string>("ID", search_result, ""));
         }
     }
@@ -60,10 +60,10 @@ set<Player*> Team::filter_players_by_listed_pos(const vector<Table_Entry>& posit
 
 set<Player*> Team::filter_pitchers(const vector<Table_Entry>& pitcher_types) {
     const Stat_Table& stat_table = team_stats[TEAM_PITCHING];
-    vector<unsigned int> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
+    vector<size_t> search_results = stat_table.filter_rows({{"team_position", pitcher_types}});
     vector<string> pitcher_ids;
 
-    for (unsigned int search_result : search_results) {
+    for (size_t search_result : search_results) {
         pitcher_ids.push_back(stat_table.get_stat<string>("ID", search_result, ""));
     }
 
@@ -142,7 +142,7 @@ Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
 }
 
 
-void Team::set_current_pitcher(Player* new_pitcher, int current_half_inning) {
+void Team::set_current_pitcher(Player* new_pitcher, unsigned int current_half_inning) {
     if (fielders[POS_DH] == fielders[POS_PITCHER]) {
         fielders[POS_DH] = new_pitcher;
         for (int i = 8; i >= 0; i--) { // Loop backwards since pitcher is almost always batting last
@@ -160,7 +160,7 @@ void Team::set_current_pitcher(Player* new_pitcher, int current_half_inning) {
 }
 
 
-Player* Team::try_switching_pitcher(int current_half_inning, unsigned int current_day_of_year) {
+Player* Team::try_switching_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year) {
     if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning, current_day_of_year);
         set_current_pitcher(new_pitcher, current_half_inning);
@@ -171,8 +171,8 @@ Player* Team::try_switching_pitcher(int current_half_inning, unsigned int curren
 }
 
 
-bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
-    const float league_era = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCHING, pitcher->stats.current_year, "earned_run_avg", .0f);
+bool Team::should_swap_pitcher(Player* pitcher, unsigned int current_half_inning) {
+    const float league_era = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCHING, team_stats.year, "earned_run_avg", .0f);
     if (runs_allowed_by_pitcher > league_era + 1) return true;
 
     const float total_innings = pitcher->stats.get_stat(PLAYER_PITCHING, "p_ip", .0f);
@@ -183,7 +183,7 @@ bool Team::should_swap_pitcher(Player* pitcher, int current_half_inning) {
 }
 
 
-Player* Team::pick_next_pitcher(int current_half_inning, unsigned int current_day_of_year) {
+Player* Team::pick_next_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year) {
     if (current_half_inning > 8) {
         return pick_relief_pitcher(current_day_of_year);
     }
@@ -198,7 +198,7 @@ void Team::set_up_batting_order() {
     // Finding the most used batting order (in the future use discrete distribution and select randomly)
     int max_games_found = -1;
     int most_common_batting_order_row = -1;
-    for (unsigned int i = 0; i < batting_order_table.size(); i++) {
+    for (size_t i = 0; i < batting_order_table.size(); i++) {
         int games = batting_order_table.get_stat("games", i, .0f);
         if (games > max_games_found) {
             most_common_batting_order_row = i;

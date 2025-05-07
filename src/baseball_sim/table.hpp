@@ -32,9 +32,9 @@ class Stat_Table {
             }
         }
 
-
+        // Return the index of the row with the given attributes, return -1 if no row exists with the given attributes.
         int find_row(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
-            for (unsigned int i = 0; i < size(); i++) {
+            for (size_t i = 0; i < size(); i++) {
                 if (row_has_attributes(i, search_attributes)) {
                     return i;
                 }
@@ -44,9 +44,9 @@ class Stat_Table {
 
 
         /* Return a vector of row indexes corresponding to rows with the given attributes. If search attributes is empty, returns all rows. */
-        std::vector<unsigned int> filter_rows(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
-            std::vector<unsigned int> result;
-            for (unsigned int i = 0; i < size(); i++) {
+        std::vector<size_t> filter_rows(const std::map<std::string, std::vector<Table_Entry>>& search_attributes) const {
+            std::vector<size_t> result;
+            for (size_t i = 0; i < size(); i++) {
                 if (row_has_attributes(i, search_attributes)) result.push_back(i);
             }
             return result;
@@ -54,7 +54,7 @@ class Stat_Table {
 
 
         template <class T>
-        T get_stat(const std::string& stat_name, unsigned int row_index, const T& default_val) const {
+        T get_stat(const std::string& stat_name, size_t row_index, const T& default_val) const {
             if (row_index >= size()) {
                 std::cerr << "Invalid row index (" << row_index << ") when accessing stat " << stat_name << " in table " << stat_table_id << "\n";
                 throw std::exception();
@@ -83,13 +83,13 @@ class Stat_Table {
         }
 
 
-        unsigned int size() const {
+        size_t size() const {
             return column_size;
         }
 
     private:
         std::map<std::string, std::vector<Table_Entry>> table_data;
-        unsigned int column_size = 0;
+        size_t column_size = 0;
 
         const std::vector<Table_Entry>& column(const std::string& stat_name) const {
             try {
@@ -101,7 +101,7 @@ class Stat_Table {
             }
         }
 
-        const Table_Entry& get_entry(unsigned int row, const std::string& column) const {
+        const Table_Entry& get_entry(size_t row, const std::string& column) const {
             try {
                 return table_data.at(column).at(row);
             }
@@ -111,7 +111,7 @@ class Stat_Table {
             }
         }
 
-        bool row_has_attributes(unsigned int row, const std::map<std::string, std::vector<Table_Entry>>& attributes) const {
+        bool row_has_attributes(size_t row, const std::map<std::string, std::vector<Table_Entry>>& attributes) const {
             for (auto const& [attr_name, attr_values] : attributes) {
                 bool found_attribute = false;
                 if (has_stat(attr_name)) {
@@ -132,7 +132,7 @@ class Stat_Table {
             if (data.size() == 0) { // Empty tables are ok
                 return true;
             }
-            unsigned int first_col_size = data.begin()->second.size();
+            size_t first_col_size = data.begin()->second.size();
             for (const auto&[header, column] : data) {
                 if (column.size() != first_col_size) { // then we have columns of mismatched sizes, this is not ok
                     return false;
@@ -158,7 +158,7 @@ class Stat_Table {
 };
 
 // Container for multiple stat_tables
-template <class Stat_Type, unsigned int num_stat_types>
+template <class Stat_Type, unsigned int num_stat_types> // Change this to size_t maybe???
 class Stat_Table_Container {
     public:
         Stat_Table stat_tables[num_stat_types];
@@ -171,7 +171,7 @@ class Stat_Table_Container {
         }
 
         template <class T>
-        T get_stat(Stat_Type stat_type, const std::string& stat_name, unsigned int row_index, const T& default_val) const {
+        T get_stat(Stat_Type stat_type, const std::string& stat_name, size_t row_index, const T& default_val) const {
             return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
         }
 

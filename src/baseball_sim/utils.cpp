@@ -107,7 +107,7 @@ bool is_float(const string& str) {
 
 // We must cache players with their team and year, since it is possible for the same player to play for two teams in the same year
 // Also we might want to have two different versions of the same team play (ex: 2023 NYY vs 2024 NYY)
-string get_player_cache_id(const string& player_id, const string& team_abbreviation, int year) {
+string get_player_cache_id(const string& player_id, const string& team_abbreviation, unsigned int year) {
     return player_id + "_" + team_abbreviation + "_" + to_string(year);
 }
 
@@ -117,7 +117,7 @@ string get_player_cache_id(const string& player_id, const string& team_cache_id)
 }
 
 
-string get_team_cache_id(const string& team_abbreviation, int year) {
+string get_team_cache_id(const string& team_abbreviation, unsigned int year) {
     return team_abbreviation + "_" + to_string(year);
 }
 

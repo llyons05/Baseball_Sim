@@ -87,7 +87,7 @@ void Stat_Loader::load_league_year_stats(unsigned int year) {
 }
 
 
-Team* Stat_Loader::load_team(const string& main_team_abbreviation, int year) {
+Team* Stat_Loader::load_team(const string& main_team_abbreviation, unsigned int year) {
     Team_Stats team_stats = load_team_stats(main_team_abbreviation, year);
     vector<Player*> roster = load_team_roster(team_stats, year);
     Team team(team_stats.year_specific_abbreviation, roster, team_stats);
@@ -96,7 +96,7 @@ Team* Stat_Loader::load_team(const string& main_team_abbreviation, int year) {
 }
 
 
-Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, int year) {
+Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, unsigned int year) {
     Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES];
 
     for (int i = 0; i < NUM_TEAM_STAT_TYPES; i++) {
@@ -108,16 +108,16 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, in
 }
 
 
-vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, int year) {
+vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, unsigned int year) {
     vector<Player*> result;
 
-    for (unsigned int i = 0; i < team_stats[TEAM_ROSTER].size(); i++) {
+    for (size_t i = 0; i < team_stats[TEAM_ROSTER].size(); i++) {
         string player_id = team_stats.get_stat<string>(TEAM_ROSTER, "ID", i, "");
         string name = team_stats.get_stat<string>(TEAM_ROSTER, "name_display", i, "");
         vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
 
         for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-            vector<unsigned int> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
+            vector<size_t> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
             if (!search_results.empty()) {
                 for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
                     stats_to_load.push_back(player_stat_type);
@@ -138,7 +138,7 @@ Team* Stat_Loader::cache_team(const Team& team, const string& cache_id) {
 }
 
 
-Player* Stat_Loader::load_player(const string& player_name, const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
+Player* Stat_Loader::load_player(const string& player_name, const string& player_id, unsigned int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     const string cache_id = get_player_cache_id(player_id, team_abbreviation, year);
     if (is_player_cached(cache_id)) { // Check if player was loaded by a different team
         return player_cache.at(cache_id).get();
@@ -150,7 +150,7 @@ Player* Stat_Loader::load_player(const string& player_name, const string& player
 }
 
 
-Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
+Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, unsigned int year, const string& team_abbreviation, const vector<ePlayer_Stat_Types>& stats_to_load) {
     Stat_Table all_player_stats[NUM_PLAYER_STAT_TYPES];
 
     for (ePlayer_Stat_Types stat_type : stats_to_load) {
@@ -161,7 +161,7 @@ Player_Stats Stat_Loader::load_necessary_player_stats(const string& player_id, i
 }
 
 
-Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const string& team_abbreviation, int year, ePlayer_Stat_Types player_stat_type) {
+Stat_Table Stat_Loader::load_player_stat_table(const string& player_id, const string& team_abbreviation, unsigned int year, ePlayer_Stat_Types player_stat_type) {
     string stat_type = PLAYER_STAT_NAMES[player_stat_type];
     string filename = get_player_data_file_path(player_id, stat_type);
     map<string, vector<Table_Entry>> player_file_data = read_csv_file(filename);
@@ -192,21 +192,21 @@ string Stat_Loader::get_player_data_file_path(const string& player_id, const str
 }
 
 
-string Stat_Loader::get_team_data_file_path(const string& main_team_abbreviation, int year, const string& team_data_file_type) {
+string Stat_Loader::get_team_data_file_path(const string& main_team_abbreviation, unsigned int year, const string& team_data_file_type) {
     return get_team_year_dir_path(main_team_abbreviation, year) + "/" + main_team_abbreviation + "_" + to_string(year) + "_" + team_data_file_type + ".csv";
 }
 
 
-string Stat_Loader::get_team_year_dir_path(const string& main_team_abbreviation, int year) {
+string Stat_Loader::get_team_year_dir_path(const string& main_team_abbreviation, unsigned int year) {
     return TEAMS_FILE_PATH + "/" + main_team_abbreviation + "/" + to_string(year);
 }
 
 
-std::string Stat_Loader::get_league_data_file_path(const string& league_data_file_type, int year) {
+std::string Stat_Loader::get_league_data_file_path(const string& league_data_file_type, unsigned int year) {
     return get_league_year_dir_path(year) + "/" + to_string(year) + "_league_" + league_data_file_type + ".csv";
 }
 
 
-std::string Stat_Loader::get_league_year_dir_path(int year) {
+std::string Stat_Loader::get_league_year_dir_path(unsigned int year) {
     return LEAGUE_FILE_PATH + "/" + to_string(year);
 }

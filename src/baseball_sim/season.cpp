@@ -25,7 +25,7 @@ void Season::populate_matchups() {
     vector<Team*> loaded_teams;
     for (Team* team : teams) {
         const Stat_Table& schedule_table = team->team_stats[TEAM_SCHEDULE];
-        for (unsigned int i = 0; i < schedule_table.size(); i++) {
+        for (size_t i = 0; i < schedule_table.size(); i++) {
             const std::string away_team_abbr = schedule_table.get_stat<string>("opp_ID", i, "");
             Team* away_team = team_cache.at(get_team_cache_id(away_team_abbr, year)).get();
 
