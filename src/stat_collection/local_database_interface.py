@@ -22,6 +22,9 @@ PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] =
     "batting_against": "pitching"
 }
 
+# Stat tables that Baseball Reference has not switched to the new format
+NON_UPDATED_PLAYER_STAT_TABLES: list[PLAYER_STAT_TYPES] = ["baserunning", "batting_against"]
+
 
 def set_up_file_structure():
     utils.make_dirs(PARENT_DIR)
@@ -122,6 +125,45 @@ def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_S
         result.append({"ID": player, "URL": url, "STAT_TYPES": player_stats})
 
     return result
+
+
+def is_player_file_up_to_date(player_id: str, stat_type: PLAYER_STAT_TYPES, year: int) -> bool:
+    """ Return true if the data for the given year exists within the specified player data file. If not (or if the player file doesn't exist), return false. """
+    if not player_data_file_exists(player_id, stat_type):
+        return False
+    
+    player_data = read_player_data_file(player_id, stat_type)
+
+    if stat_type in NON_UPDATED_PLAYER_STAT_TABLES:
+        search_attributes = {"year_ID": str(year)}
+    else:
+        search_attributes = {"year_id": str(year)}
+    search_results = player_data.search_rows(search_attributes)
+
+    if len(search_results) > 0:
+        return True
+
+    if stat_type != "baserunning":
+        return False
+
+    pitching_file_exists = player_data_file_exists(player_id, "pitching")
+    batting_file_exists = player_data_file_exists(player_id, "batting")
+
+    if not batting_file_exists and not pitching_file_exists:
+        return False
+    
+    if not batting_file_exists and pitching_file_exists:
+        return True
+    
+    batting_data = read_player_data_file(player_id, "batting")
+    batting_data_year_rows = batting_data.search_rows({"year_id": str(year)})
+    if len(batting_data_year_rows) == 0:
+        return True
+    
+    base_hits = int(batting_data_year_rows[0].get("b_h", 0)) - int(batting_data_year_rows[0].get("b_hr", 0))
+    walks = int(batting_data_year_rows[0].get("b_bb", 0)) + int(batting_data_year_rows[0].get("b_hbp", 0))
+
+    return (base_hits + walks) == 0
 
 
 def create_team_folder(team_abbreviation: str) -> None:

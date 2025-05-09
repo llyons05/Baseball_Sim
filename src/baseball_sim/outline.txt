@@ -10,7 +10,6 @@ NOTES:
         - Maybe team takes in a "uses_dh" arg
     Make an iterator to iterate through table rows
     Add walk offs, ie inning can end early if the other team cannot win
-    Auditing should actually check whether player file contains year data
     Players who are both starting pitchers and hitters in the same game make the sim think that this team uses a DH, when this may not be the case
         - Ex: Shohei Ohtani (he is literally the only player ever that this applies to apparently)
     Add a stat container to teams and players that accumulates stats as the games are played

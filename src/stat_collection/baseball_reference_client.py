@@ -235,12 +235,7 @@ class Scraping_Client:
         table_id = "players_standard_batting"
         wrapper_div_id = "all_players_standard_batting"
 
-        table_parser = self._scrape_table_from_player_page(player_batting_page_url, table_id, wrapper_div_id)
-
-        if table_parser is None:
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, table_id, wrapper_div_id)
-        
-        return table_parser
+        return self._scrape_table_from_player_page(player_batting_page_url, table_id, wrapper_div_id)
 
 
     def _try_scraping_pitching_tables(self, base_player_page_url: str) -> Table_Parser | None:
@@ -248,12 +243,7 @@ class Scraping_Client:
         table_id = "players_standard_pitching"
         wrapper_div_id = "all_players_standard_pitching"
 
-        table_parser = self._scrape_table_from_player_page(player_pitching_page_url, table_id, wrapper_div_id)
-
-        if table_parser is None:
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, table_id, wrapper_div_id)
-
-        return table_parser
+        return self._scrape_table_from_player_page(player_pitching_page_url, table_id, wrapper_div_id)
 
 
     def _scrape_table_from_player_page(self, player_page_url: str,

@@ -186,10 +186,10 @@ def audit_season() -> None:
         main_roster_audit_str += roster_audit_str
     
     if len(all_missing_player_files) == 0:
-        print(f"\tAudit of the {year} season succesful, no missing files.\n")
+        print(f"\tAudit of the {year} season succesful, no missing or out-of-date files.\n")
         return
     
-    print(audit_str + f"\tAUDIT FAILED:\n\t{len(all_missing_player_files)} missing files.\n")
+    print(audit_str + f"\tAUDIT FAILED:\n\t{len(all_missing_player_files)} missing/out-of-date files.\n")
     display_extended_audit = UI.get_yes_or_no("Would you like to see an extended summary?")
     if display_extended_audit:
         print(main_roster_audit_str)
@@ -227,10 +227,10 @@ def audit_team() -> None:
     
     missing_roster_files, roster_audit_str = audit_team_roster_files(team_abbreviation, year)
     if len(missing_roster_files) == 0:
-        print(audit_str + f"\tAudit of {team_abbreviation}-{year} successful, no missing files.\n")
+        print(audit_str + f"\tAudit of {team_abbreviation}-{year} successful, no missing or out-of-date files.\n")
         return
     
-    short_audit_str = audit_str + f"\tAUDIT FAILED:\n\t{len(missing_roster_files)} missing files.\n"
+    short_audit_str = audit_str + f"\tAUDIT FAILED:\n\t{len(missing_roster_files)} missing/out-of-date files.\n"
     print(short_audit_str)
 
     display_extended_audit = UI.get_yes_or_no("Would you like to see an extended summary?")
@@ -258,26 +258,30 @@ def audit_team_files(team_abbreviation: str, year: int) -> tuple[list[str], str]
 
 
 def audit_team_roster_files(team_abbreviation: str, year: int) -> tuple[list[str], str]:
-    """ Return (list of missing files, description of audit findings) """
+    """ Return (list of missing/out-of-date files, description of audit findings) """
     team_roster = DI.get_player_list(team_abbreviation, year, DI.get_player_stat_types())
 
     missing_files, audit_str = [], ""
     for player in team_roster:
-        player_missing_files, player_audit_str = audit_player(player["ID"], player["STAT_TYPES"])
+        player_missing_files, player_audit_str = audit_player(player["ID"], player["STAT_TYPES"], year)
         missing_files.extend(player_missing_files)
         audit_str += player_audit_str
 
     return missing_files, audit_str
 
 
-def audit_player(player_id: str, stat_types: DI.PLAYER_STAT_TYPES) -> tuple[list[str], str]:
-    """ Return (list of missing files, description of audit findings) """
+def audit_player(player_id: str, stat_types: DI.PLAYER_STAT_TYPES, year: int) -> tuple[list[str], str]:
+    """ Return (list of missing/out-of-date files, description of audit findings) """
     missing_files, audit_str = [], ""
     for stat_type in stat_types:
         if not DI.player_data_file_exists(player_id, stat_type):
             missing_files.append(DI.get_player_data_file_path(player_id, stat_type))
             audit_str += f"\tMissing {stat_type} file for {player_id}.\n"
-    
+
+        elif not DI.is_player_file_up_to_date(player_id, stat_type, year):
+            missing_files.append(DI.get_player_data_file_path(player_id, stat_type))
+            audit_str += f"\tOut-of-date {stat_type} file for {player_id} at {DI.get_player_data_file_path(player_id, stat_type)}.\n"
+            
     return missing_files, audit_str
 
 

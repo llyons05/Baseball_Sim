@@ -41,7 +41,7 @@ class Table:
         for row in self.rows:
             meets_search_criteria = True
             for key in search_attributes.keys():
-                if row[key] != search_attributes[key]:
+                if row.get(key) != search_attributes[key]:
                     meets_search_criteria = False
                     break
             if meets_search_criteria:
