@@ -91,7 +91,7 @@ def save_all_team_player_data(team_abbreviation: str, year: int, stat_types: lis
     progress_bar = tqdm.tqdm(player_list, unit="player")
     for player in progress_bar:
         progress_bar.set_description_str(player["ID"])
-        Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], player["STAT_TYPES"], overwrite_data)
+        Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], player["STAT_TYPES"], year, overwrite_data)
 
 
 def handle_data_viewing() -> None:
@@ -135,7 +135,7 @@ def handle_missing_player_data_file(player_id: str, stat_type: DI.PLAYER_STAT_TY
         data_successfully_found = False
         if search_results:
             player = search_results[0]
-            data_successfully_found = Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], [stat_type])
+            data_successfully_found = Data_Handler.scrape_and_save_player_data(utils.BASE_URL + player["URL"], player["ID"], [stat_type], year)
 
         if not data_successfully_found:
             UI.wait_for_user_input(f"There was an error finding {stat_type} data for {player_id}. No data was saved.")
