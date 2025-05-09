@@ -7,11 +7,11 @@
 using namespace std;
 
 
-string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against"};
+string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"};
 string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
 string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "standings"};
 
-map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING}}, {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST}}};
+map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {{TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING, PLAYER_PITCH_SUMMARY_BATTING}}, {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST, PLAYER_PITCH_SUMMARY_PITCHING}}};
 
 Player_Stats::Player_Stats(const string& player_id, unsigned int year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) : Stat_Table_Container(player_stat_tables){
     this->player_id = player_id;
@@ -29,7 +29,7 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, un
     string year_str = "year_id";
     string team_name_str = "team_name_abbr";
 
-    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST)) { // These tables have non-standard headers on baseball reference (at least until BR updates them)
+    if (is_player_stat_out_of_date(stat_type)) {
         year_str = "year_ID";
         team_name_str = "team_ID";
     }
@@ -45,6 +45,12 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, un
     else {
         current_table_row_indices[stat_type] = target_row;
     }
+}
+
+
+// These tables have non-standard headers on baseball reference (at least until BR updates them)
+bool is_player_stat_out_of_date(ePlayer_Stat_Types stat_type) {
+    return (stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST) || (stat_type == PLAYER_PITCH_SUMMARY_BATTING) || (stat_type == PLAYER_PITCH_SUMMARY_PITCHING);
 }
 
 

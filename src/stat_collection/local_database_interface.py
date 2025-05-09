@@ -10,7 +10,7 @@ PLAYERS_DIR: str = f"{PARENT_DIR}/players"
 LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
-PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against"]
+PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
 LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "standings"]
 
@@ -19,11 +19,15 @@ PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] =
     "batting": "batting",
     "pitching": "pitching",
     "baserunning": "batting",
-    "batting_against": "pitching"
+    "batting_against": "pitching",
+    "pitch_summary_batting": "batting",
+    "pitch_summary_pitching": "pitching"
 }
 
+PLAYER_STATS_DEPENDENT_ON_BATTING: list[PLAYER_STAT_TYPES] = ["baserunning", "pitch_summary_batting"]
+
 # Stat tables that Baseball Reference has not switched to the new format
-NON_UPDATED_PLAYER_STAT_TABLES: list[PLAYER_STAT_TYPES] = ["baserunning", "batting_against"]
+NON_UPDATED_PLAYER_STAT_TABLES: list[PLAYER_STAT_TYPES] = ["baserunning", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"]
 
 
 def set_up_file_structure():
@@ -114,6 +118,12 @@ def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_S
         team_file_type_to_read_from = get_team_file_type_to_read_from(stat_type)
         team_data = read_team_data_file(team_abbreviation, year, team_file_type_to_read_from)
         for row in team_data:
+            if (team_file_type_to_read_from == "batting") and (stat_type in PLAYER_STATS_DEPENDENT_ON_BATTING):
+                if (int(row.get("b_pa", 0)) == 0):
+                    continue
+                if (stat_type == "baserunning") and (int(row.get("b_h", 0)) == 0):
+                    continue
+    
             if row["ID"] not in found_players.keys():
                 found_players[row["ID"]] = (row["URL"], [stat_type])
             else:
@@ -140,30 +150,7 @@ def is_player_file_up_to_date(player_id: str, stat_type: PLAYER_STAT_TYPES, year
         search_attributes = {"year_id": str(year)}
     search_results = player_data.search_rows(search_attributes)
 
-    if len(search_results) > 0:
-        return True
-
-    if stat_type != "baserunning":
-        return False
-
-    pitching_file_exists = player_data_file_exists(player_id, "pitching")
-    batting_file_exists = player_data_file_exists(player_id, "batting")
-
-    if not batting_file_exists and not pitching_file_exists:
-        return False
-    
-    if not batting_file_exists and pitching_file_exists:
-        return True
-    
-    batting_data = read_player_data_file(player_id, "batting")
-    batting_data_year_rows = batting_data.search_rows({"year_id": str(year)})
-    if len(batting_data_year_rows) == 0:
-        return True
-    
-    base_hits = int(batting_data_year_rows[0].get("b_h", 0)) - int(batting_data_year_rows[0].get("b_hr", 0))
-    walks = int(batting_data_year_rows[0].get("b_bb", 0)) + int(batting_data_year_rows[0].get("b_hbp", 0))
-
-    return (base_hits + walks) == 0
+    return len(search_results) > 0
 
 
 def create_team_folder(team_abbreviation: str) -> None:

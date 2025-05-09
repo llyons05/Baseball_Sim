@@ -110,25 +110,39 @@ Team_Stats Stat_Loader::load_team_stats(const string& main_team_abbreviation, un
 
 vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, unsigned int year) {
     vector<Player*> result;
-
     for (size_t i = 0; i < team_stats[TEAM_ROSTER].size(); i++) {
         string player_id = team_stats.get_stat<string>(TEAM_ROSTER, "ID", i, "");
         string name = team_stats.get_stat<string>(TEAM_ROSTER, "name_display", i, "");
-        vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
 
-        for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-            vector<size_t> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
-            if (!search_results.empty()) {
-                for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
-                    stats_to_load.push_back(player_stat_type);
-                }
-            }
-        }
-
+        vector<ePlayer_Stat_Types> stats_to_load = get_player_stat_types_to_load(player_id, team_stats);
         result.push_back(load_player(name, player_id, year, team_stats.year_specific_abbreviation, stats_to_load));
     }
-
     return result;
+}
+
+
+vector<ePlayer_Stat_Types> Stat_Loader::get_player_stat_types_to_load(const string& player_id, Team_Stats& team_stats) {
+    vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
+    for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
+
+        vector<size_t> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
+        if (!search_results.empty()) {
+
+            for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
+                if ((team_stat_type == TEAM_BATTING) && ((player_stat_type == PLAYER_BASERUNNING) || (player_stat_type == PLAYER_PITCH_SUMMARY_BATTING))) {
+                    if (team_stats[team_stat_type].get_stat("b_pa", search_results[0], .0f) == 0) {
+                        continue;
+                    }
+                    if ((player_stat_type == PLAYER_BASERUNNING) && (team_stats[team_stat_type].get_stat("b_h", search_results[0], .0f) == 0)) {
+                        continue;
+                    }
+                }
+
+                stats_to_load.push_back(player_stat_type);
+            }
+        }
+    }
+    return stats_to_load;
 }
 
 

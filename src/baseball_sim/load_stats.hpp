@@ -45,6 +45,7 @@ class Stat_Loader {
 
         Team_Stats load_team_stats(const std::string& main_team_abbreviation, unsigned int year);
         std::vector<Player*> load_team_roster(Team_Stats& team_stats, unsigned int year);
+        std::vector<ePlayer_Stat_Types> get_player_stat_types_to_load(const std::string& player_id, Team_Stats& team_stats);
         Player_Stats load_necessary_player_stats(const std::string& player_id, unsigned int year, const std::string& team_abbreviation, const std::vector<ePlayer_Stat_Types>& stats_to_load);
         Stat_Table load_player_stat_table(const std::string& player_id, const std::string& team_abbreviation, unsigned int year, ePlayer_Stat_Types player_stat_type);
 

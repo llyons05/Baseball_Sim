@@ -201,10 +201,10 @@ class Scraping_Client:
 
         table_parser = None
         if stat_type == "batting":
-            table_parser = self._try_scraping_batting_tables(base_player_page_url)
+            table_parser = self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "players_standard_batting", "all_players_standard_batting")
 
         elif stat_type == "pitching":
-            table_parser = self._try_scraping_pitching_tables(base_player_page_url)
+            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "players_standard_pitching", "all_players_standard_pitching")
 
         elif stat_type == "appearances":
             table_parser = self._scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
@@ -214,6 +214,12 @@ class Scraping_Client:
     
         elif stat_type == "batting_against":
             table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_batting", "all_pitching_batting")
+
+        elif stat_type == "pitch_summary_batting":
+            table_parser = self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_pitches", "all_batting_pitches")
+
+        elif stat_type == "pitch_summary_pitching":
+            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_pitches", "all_pitching_pitches")
 
         if table_parser is None:
             return EMPTY_TABLE
@@ -226,24 +232,7 @@ class Scraping_Client:
         ]
 
         player_data_table = table_parser.parse(row_filters=row_filters, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
-        player_data_table.sort(key=lambda d: int(d.get("year_ID", 0)))
         return player_data_table
-
-
-    def _try_scraping_batting_tables(self, base_player_page_url: str) -> Table_Parser | None:
-        player_batting_page_url = utils.get_player_batting_page_url(base_player_page_url)
-        table_id = "players_standard_batting"
-        wrapper_div_id = "all_players_standard_batting"
-
-        return self._scrape_table_from_player_page(player_batting_page_url, table_id, wrapper_div_id)
-
-
-    def _try_scraping_pitching_tables(self, base_player_page_url: str) -> Table_Parser | None:
-        player_pitching_page_url = utils.get_player_pitching_page_url(base_player_page_url)
-        table_id = "players_standard_pitching"
-        wrapper_div_id = "all_players_standard_pitching"
-
-        return self._scrape_table_from_player_page(player_pitching_page_url, table_id, wrapper_div_id)
 
 
     def _scrape_table_from_player_page(self, player_page_url: str,

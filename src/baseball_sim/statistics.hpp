@@ -14,6 +14,8 @@ enum ePlayer_Stat_Types {
     PLAYER_APPEARANCES,
     PLAYER_BASERUNNING,
     PLAYER_BATTING_AGAINST,
+    PLAYER_PITCH_SUMMARY_BATTING,
+    PLAYER_PITCH_SUMMARY_PITCHING,
     NUM_PLAYER_STAT_TYPES
 };
 
@@ -41,6 +43,7 @@ class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_
         void change_stat_table_target_row(ePlayer_Stat_Types stat_type, unsigned int year, const std::string& team_abbreviation);
 };
 
+bool is_player_stat_out_of_date(ePlayer_Stat_Types stat_type);
 
 enum eTeam_Stat_Types {
     TEAM_ROSTER,
