@@ -13,27 +13,42 @@ enum eBases {
 };
 
 
-enum eTrue_Outcomes {
-    OUTCOME_CONTACT,
-    OUTCOME_WALK,
-    OUTCOME_STRIKEOUT,
-    NUM_TRUE_OUTCOMES
+enum eStrike_Types {
+    STRIKE_LOOKING,
+    STRIKE_SWINGING,
+    STRIKE_FOUL,
+    STRIKE_IN_PLAY,
+    NUM_STRIKE_TYPES
 };
 
 
-struct At_Bat_Result {
+enum ePitch_Outcomes {
+    PITCH_STRIKE,
+    PITCH_BALL,
+    PITCH_FOUL,
+    PITCH_IN_PLAY,
+    NUM_PITCH_OUTCOMES
+};
+
+
+enum eAt_Bat_Outcomes {
+    OUTCOME_BALL_IN_PLAY,
+    OUTCOME_WALK,
+    OUTCOME_STRIKEOUT,
+    NUM_AB_OUTCOMES
+};
+
+
+// We will put more in here later (ex: double plays, pop flys, etc.)
+struct Ball_In_Play_Result {
     uint8_t batter_bases_advanced = 0;
-    eTrue_Outcomes true_outcome = OUTCOME_STRIKEOUT;
 };
 
 
 class At_Bat {
     public:
-        const static int NUM_BALLS_TO_WALK = 4;
-        const static int NUM_STRIKES_TO_OUT = 3;
-
-        int balls;
-        int strikes;
+        uint8_t balls;
+        uint8_t strikes;
 
         Team* batting_team;
         Team* pitching_team;
@@ -42,50 +57,60 @@ class At_Bat {
         Player* batter;
 
         At_Bat(Team* batting_team, Team* pitching_team);
-        At_Bat_Result play();
+        eAt_Bat_Outcomes play();
 
     private:
-        eTrue_Outcomes get_true_outcome();
-        uint8_t get_batter_bases_advanced();
+        // Probability of a pitch being a ball or not (index 0 is strike, 1 is ball)
+        float strike_or_ball_probs[2];
+        float strike_type_probs[NUM_STRIKE_TYPES];
+
+        void populate_pitch_probabilities();
+        ePitch_Outcomes get_pitch_outcome();
+        eAt_Bat_Outcomes get_basic_at_bat_outcome();
+        bool should_use_basic_stats();
 };
 
 
 class Base_State {
     public:
-        Player* players_on_base[3];
-
-        Team* batting_team;
-        Team* pitching_team;
-
         Base_State() {}
         Base_State(Team* batting_team, Team* pitching_team) : players_on_base(), batting_team(batting_team), pitching_team(pitching_team) {}
 
-        int advance_runners(Player* batter, At_Bat_Result result);
-        int handle_walk(Player* batter);
-        int handle_hit(Player* batter, At_Bat_Result result);
-        int get_player_advancement(eBases starting_base, uint8_t batter_bases_advanced, int max_base);
-
+        uint8_t handle_walk(Player* batter);
+        uint8_t handle_ball_in_play(Player* batter, const Ball_In_Play_Result& ball_in_play_result);
         void print();
+
+    private:
+        Player* players_on_base[3];
+        Team* batting_team;
+        Team* pitching_team;
+
+        uint8_t get_runner_advancement(eBases starting_base, uint8_t batter_bases_advanced, int max_base);
 };
 
 
 class Half_Inning {
     public:
-        const static int NUM_OUTS_TO_END_INNING = 3;
-
+        const static uint8_t NUM_OUTS_TO_END_INNING = 3;
+        
+        Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, unsigned int day_of_year);
+        uint8_t play();
+    
+    private:
         Team* batting_team;
         Team* pitching_team;
 
-        int outs;
-        int runs_scored;
+        uint8_t outs;
+        uint8_t runs_scored;
+
         Base_State bases;
 
-        int half_inning_number;
+        uint8_t half_inning_number;
         unsigned int day_of_year;
 
-        Half_Inning(Team* batting_team, Team* pitching_team, int half_inning_number, unsigned int day_of_year);
-        int play();
-        void handle_at_bat_result(At_Bat_Result at_bat_result);
+        void handle_at_bat_outcome(eAt_Bat_Outcomes at_bat_outcome);
+        Ball_In_Play_Result get_ball_in_play_result(Player* batter, Player* pitcher);
+        uint8_t get_batter_bases_advanced(Player* batter, Player* pitcher);
 };
 
 
@@ -110,5 +135,10 @@ class Game_Result {
             else {
                 winner = AWAY_TEAM;
             }
+
+            home_team->runs_scored += final_score[HOME_TEAM];
+            home_team->runs_allowed += final_score[AWAY_TEAM];
+            away_team->runs_scored += final_score[AWAY_TEAM];
+            away_team->runs_allowed += final_score[HOME_TEAM];
         }
 };

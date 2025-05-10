@@ -52,7 +52,7 @@ Game_Result Baseball_Game::play_game() {
 }
 
 
-int Baseball_Game::play_half_inning() {
+uint8_t Baseball_Game::play_half_inning() {
     Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count, day_of_year);
     int runs_scored = inning.play();
     half_inning_count++;

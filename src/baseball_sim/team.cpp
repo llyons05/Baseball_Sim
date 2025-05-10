@@ -142,7 +142,7 @@ Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
 }
 
 
-void Team::set_current_pitcher(Player* new_pitcher, unsigned int current_half_inning) {
+void Team::set_current_pitcher(Player* new_pitcher, uint8_t current_half_inning) {
     if (fielders[POS_DH] == fielders[POS_PITCHER]) {
         fielders[POS_DH] = new_pitcher;
         for (int i = 8; i >= 0; i--) { // Loop backwards since pitcher is almost always batting last
@@ -160,7 +160,7 @@ void Team::set_current_pitcher(Player* new_pitcher, unsigned int current_half_in
 }
 
 
-Player* Team::try_switching_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year) {
+Player* Team::try_switching_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year) {
     if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning, current_day_of_year);
         set_current_pitcher(new_pitcher, current_half_inning);
@@ -171,7 +171,7 @@ Player* Team::try_switching_pitcher(unsigned int current_half_inning, unsigned i
 }
 
 
-bool Team::should_swap_pitcher(Player* pitcher, unsigned int current_half_inning) {
+bool Team::should_swap_pitcher(Player* pitcher, uint8_t current_half_inning) {
     const float league_era = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCHING, team_stats.year, "earned_run_avg", .0f);
     if (runs_allowed_by_pitcher > league_era + 1) return true;
 
@@ -183,7 +183,7 @@ bool Team::should_swap_pitcher(Player* pitcher, unsigned int current_half_inning
 }
 
 
-Player* Team::pick_next_pitcher(unsigned int current_half_inning, unsigned int current_day_of_year) {
+Player* Team::pick_next_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year) {
     if (current_half_inning > 8) {
         return pick_relief_pitcher(current_day_of_year);
     }

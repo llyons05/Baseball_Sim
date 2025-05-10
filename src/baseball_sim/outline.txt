@@ -12,4 +12,6 @@ NOTES:
     Add walk offs, ie inning can end early if the other team cannot win
     Players who are both starting pitchers and hitters in the same game make the sim think that this team uses a DH, when this may not be the case
         - Ex: Shohei Ohtani
+        - This becomes an issue with older teams
+        - If the newer stats don't exist, create a method that uses the older stats to simulate
     Add a stat container to teams and players that accumulates stats as the games are played

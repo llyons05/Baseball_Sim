@@ -10,8 +10,8 @@ const int MAX_HALF_INNINGS = 18;
 class Baseball_Game {
     public:
         unsigned int day_of_year;
-        int half_inning_count;
-        int team_batting;
+        uint8_t half_inning_count;
+        uint8_t team_batting;
         int score[2];
         Team* teams[2];
 
@@ -21,5 +21,5 @@ class Baseball_Game {
         void print_game_result();
     
     private:
-        int play_half_inning();
+        uint8_t play_half_inning();
 };

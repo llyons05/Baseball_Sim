@@ -20,6 +20,7 @@ enum ePlayer_Stat_Types {
 };
 
 extern std::string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES];
+extern std::map<ePlayer_Stat_Types, unsigned int> PLAYER_STAT_EARLIEST_YEARS;
 
 class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_STAT_TYPES> {
     public:
@@ -75,11 +76,14 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
 enum eLeague_Stat_Types {
     LEAGUE_BATTING,
     LEAGUE_PITCHING,
+    LEAGUE_PITCH_SUMMARY_BATTING,
+    LEAGUE_PITCH_SUMMARY_PITCHING,
     LEAGUE_STANDINGS,
     NUM_LEAGUE_STAT_TYPES
 };
 
 extern std::string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES];
+extern std::map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS;
 
 typedef Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> League_Stats;
 

@@ -47,7 +47,7 @@ def scrape_and_save_league_data(year: int, stat_types: list[DI.LEAGUE_DATA_FILE_
     DI.create_league_year_dir(year)
 
     for stat_type in stat_types:
-        if (not DI.league_data_file_exists(stat_type, year)) or overwrite_data:
+        if (not DI.league_data_file_exists(stat_type, year) or overwrite_data) and (year >= DI.LEAGUE_STAT_EARLIEST_YEARS[stat_type]):
             league_data = client.scrape_league_stats(year, stat_type)
             DI.save_league_data_file(year, stat_type, league_data)
     

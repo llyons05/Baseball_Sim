@@ -186,7 +186,7 @@ def audit_season() -> None:
         main_roster_audit_str += roster_audit_str
     
     if len(all_missing_player_files) == 0:
-        print(f"\tAudit of the {year} season succesful, no missing or out-of-date files.\n")
+        print(f"\tAudit of the {year} season successful, no missing or out-of-date files.\n")
         return
     
     print(audit_str + f"\tAUDIT FAILED:\n\t{len(all_missing_player_files)} missing/out-of-date files.\n")
@@ -202,7 +202,7 @@ def audit_league_year_files(year: int) -> tuple[list[str], str]:
 
     missing_files, audit_str = [], ""
     for file_type in DI.get_league_data_file_types():
-        if not DI.league_data_file_exists(file_type, year):
+        if (not DI.league_data_file_exists(file_type, year)) and (year >= DI.LEAGUE_STAT_EARLIEST_YEARS[file_type]):
             missing_files.append(DI.get_league_data_file_path(file_type, year))
             audit_str += f"\tMissing league {file_type} file for {year}.\n"
     

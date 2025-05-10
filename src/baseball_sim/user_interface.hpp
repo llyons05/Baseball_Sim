@@ -6,6 +6,7 @@
 
 std::string get_user_choice(const std::string& prompt, const std::vector<std::string>& choices);
 std::string get_simulation_type();
+void wait_for_user_input(const std::string& prompt);
 
 template <class T>
 T get_user_input(const std::string& prompt) {

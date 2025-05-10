@@ -78,6 +78,9 @@ void Stat_Loader::load_league_year_stats(unsigned int year) {
     Stat_Table league_year_stat_tables[NUM_LEAGUE_STAT_TYPES];
 
     for (int i = 0; i < NUM_LEAGUE_STAT_TYPES; i++) {
+        if (year < LEAGUE_STAT_EARLIEST_YEARS.at((eLeague_Stat_Types)i)) {
+            continue;
+        }
         const string filename = get_league_data_file_path(LEAGUE_STAT_NAMES[i], year);
         map<string, vector<Table_Entry>> file_data = read_csv_file(filename);
         league_year_stat_tables[i] = Stat_Table(file_data, filename);
@@ -129,6 +132,7 @@ vector<ePlayer_Stat_Types> Stat_Loader::get_player_stat_types_to_load(const stri
         if (!search_results.empty()) {
 
             for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
+
                 if ((team_stat_type == TEAM_BATTING) && ((player_stat_type == PLAYER_BASERUNNING) || (player_stat_type == PLAYER_PITCH_SUMMARY_BATTING))) {
                     if (team_stats[team_stat_type].get_stat("b_pa", search_results[0], .0f) == 0) {
                         continue;
@@ -138,6 +142,9 @@ vector<ePlayer_Stat_Types> Stat_Loader::get_player_stat_types_to_load(const stri
                     }
                 }
 
+                if (team_stats.year < PLAYER_STAT_EARLIEST_YEARS.at(player_stat_type)) {
+                    continue;
+                }
                 stats_to_load.push_back(player_stat_type);
             }
         }

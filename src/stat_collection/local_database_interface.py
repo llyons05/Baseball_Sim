@@ -12,7 +12,7 @@ RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "baserunning", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
-LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "standings"]
+LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "pitch_summary_batting", "pitch_summary_pitching", "standings"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
@@ -22,6 +22,24 @@ PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] =
     "batting_against": "pitching",
     "pitch_summary_batting": "batting",
     "pitch_summary_pitching": "pitching"
+}
+
+PLAYER_STAT_EARLIEST_YEARS: dict[PLAYER_STAT_TYPES, int] = {
+    "appearances": 0,
+    "batting": 0,
+    "pitching": 0,
+    "baserunning": 1912,
+    "batting_against": 1912,
+    "pitch_summary_batting": 1988,
+    "pitch_summary_pitching": 1988
+}
+
+LEAGUE_STAT_EARLIEST_YEARS: dict[LEAGUE_DATA_FILE_TYPES] = {
+    "batting": 0,
+    "pitching": 0,
+    "pitch_summary_batting": 1988,
+    "pitch_summary_pitching": 1988,
+    "standings": 0
 }
 
 PLAYER_STATS_DEPENDENT_ON_BATTING: list[PLAYER_STAT_TYPES] = ["baserunning", "pitch_summary_batting"]
@@ -115,6 +133,9 @@ def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_S
     found_players: dict[str, tuple[str, list[PLAYER_STAT_TYPES]]] = dict()
 
     for stat_type in stat_types:
+        if year < PLAYER_STAT_EARLIEST_YEARS[stat_type]:
+            continue
+
         team_file_type_to_read_from = get_team_file_type_to_read_from(stat_type)
         team_data = read_team_data_file(team_abbreviation, year, team_file_type_to_read_from)
         for row in team_data:

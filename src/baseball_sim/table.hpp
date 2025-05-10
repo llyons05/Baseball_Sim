@@ -87,6 +87,10 @@ class Stat_Table {
             return column_size;
         }
 
+        bool empty() const {
+            return column_size == 0;
+        }
+
     private:
         std::map<std::string, std::vector<Table_Entry>> table_data;
         size_t column_size = 0;

@@ -28,3 +28,10 @@ string get_user_choice(const string& prompt, const vector<string>& choices) {
 string get_simulation_type() {
     return get_user_choice("Simulate single matchup or full season? (m/s): ", {"m", "s"});
 }
+
+
+void wait_for_user_input(const string& prompt) {
+    string temp;
+    cout << prompt;
+    getline(cin, temp);
+}
