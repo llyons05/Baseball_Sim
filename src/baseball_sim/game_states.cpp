@@ -179,7 +179,7 @@ uint8_t Half_Inning::play() {
     game_viewer_line(
         std::string top_or_bottom = "TOP ";
         if (half_inning_number % 2) top_or_bottom = "BOTTOM ";
-        std::cout << "\n" << top_or_bottom << half_inning_number / 2 + 1<< "\n";
+        std::cout << top_or_bottom << half_inning_number / 2 + 1<< "\n";
         std::cout << "TEAM AT BAT: " << batting_team->team_name << "\n";
     );
 
@@ -191,7 +191,7 @@ uint8_t Half_Inning::play() {
         game_viewer_line(wait_for_user_input(""));
     }
 
-    game_viewer_print("HALF INNING OVER: RUNS SCORED: " << (int)runs_scored << "\n");
+    game_viewer_print("HALF INNING OVER: RUNS SCORED: " << (int)runs_scored << "\n\n");
     return runs_scored;
 }
 
@@ -407,15 +407,24 @@ uint8_t Base_State::handle_walk(Player* batter) {
 void Base_State::print() {
     const char empty_base = 'o';
     const char full_base = (char)254;
-
+    // Print out second base
     if (players_on_base[SECOND_BASE] != NULL) {
-        std::cout << "\t\t" << full_base << "\n";
+        std::cout << "\t\t" << full_base;
     }
     else {
-        std::cout << "\t\t" << empty_base << "\n";
+        std::cout << "\t\t" << empty_base;
     }
-
+    // Print out the names of the players on base
+    if (players_on_base[FIRST_BASE] != NULL) {
+        std::cout << "\t\t1st: " << players_on_base[FIRST_BASE]->name;
+    }
     std::cout << "\n";
+    if (players_on_base[SECOND_BASE] != NULL) {
+        std::cout << "\t\t\t\t2nd: " << players_on_base[SECOND_BASE]->name;
+    }
+    std::cout << "\n";
+
+    // Print out first and third base
     if (players_on_base[THIRD_BASE] != NULL) {
         std::cout << "\t" << full_base;
     }
@@ -430,10 +439,9 @@ void Base_State::print() {
         std::cout << "\t\t" << empty_base;
     }
 
-    std::cout << "\n\n\t\tH\n";
-
-    for (int i = 0; i <= THIRD_BASE; i++) {
-        if (players_on_base[i] != NULL)
-            std::cout << "\t\tPLAYER ON BASE " << i + 1 << ": " << players_on_base[i]->name << "\n";
+    if (players_on_base[THIRD_BASE] != NULL) {
+        std::cout << "\t3rd: " << players_on_base[THIRD_BASE]->name;
     }
+
+    std::cout << "\n\n\t\tH\n";
 }

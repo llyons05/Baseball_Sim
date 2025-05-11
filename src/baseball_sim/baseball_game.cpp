@@ -53,6 +53,7 @@ Game_Result Baseball_Game::play_game() {
 
 
 uint8_t Baseball_Game::play_half_inning() {
+    game_viewer_print(teams[AWAY_TEAM]->team_name +"| " << score[AWAY_TEAM] <<"-"<< score[HOME_TEAM] << " |"+ teams[HOME_TEAM]->team_name + "\n");
     Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count, day_of_year);
     int runs_scored = inning.play();
     half_inning_count++;
