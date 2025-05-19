@@ -16,7 +16,12 @@
 const std::string BASERUNNING_STAT_STRINGS[2][2][3] = {{{"on_first_single", "on_first_single_13"}, 
                                                         {"on_first_double", "on_first_double_1H"}},
                                                        {{"on_second_single", "on_second_single_2H"}}};
+// [BASE][STOLEN/CAUGHT]
+const std::string BASE_STEALING_STAT_STRINGS[2][2] = {{"SB_2", "CS_2"},
+                                                      {"SB_3", "CS_3"}};
 
+// Translates from base to player who is defending that base
+const eDefensivePositions BASE_TO_POSITION_KEY[4] = {POS_1B, POS_2B, POS_3B, POS_CATCHER};
 
 At_Bat::At_Bat(Team* batting_team, Team* pitching_team) {
     this->pitcher = pitching_team->fielders[POS_PITCHER];
@@ -61,6 +66,9 @@ bool At_Bat::should_use_basic_stats() {
 
 
 // We want to precalculate these, since they will not change throughout the at bat
+// NOTE: There is a major issue hiding here, balls are put into play much less frequently using this method (as compared to using the basic stats calculation).
+// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear. 46.3% chance of ball being put in play with this method in 2024
+// 
 void At_Bat::populate_pitch_probabilities() {
     // Populate strike or ball probabilities;
     float batter_strike_or_ball_probs[2];
@@ -184,9 +192,7 @@ uint8_t Half_Inning::play() {
     );
 
     while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
-        At_Bat at_bat(batting_team, pitching_team);
-        eAt_Bat_Outcomes at_bat_outcome = at_bat.play();
-        handle_at_bat_outcome(at_bat_outcome);
+        play_at_bat();
         game_viewer_line(bases.print());
         game_viewer_line(wait_for_user_input(""));
     }
@@ -195,33 +201,39 @@ uint8_t Half_Inning::play() {
     return runs_scored;
 }
 
+// Check pitcher switch calling, it should be here
+void Half_Inning::play_at_bat() {
+    pitching_team->try_switching_pitcher(half_inning_number, day_of_year);
+    outs += bases.check_stolen_bases(pitching_team->get_pitcher());
 
-void Half_Inning::handle_at_bat_outcome(eAt_Bat_Outcomes at_bat_outcome) {
-    uint8_t runs_from_at_bat = 0;
+    if (outs < 3) {
+        global_stats.total_PAs++;
+        uint8_t runs_from_at_bat = 0;
+        At_Bat at_bat(batting_team, pitching_team);
+        eAt_Bat_Outcomes at_bat_outcome = at_bat.play();
 
-    if (at_bat_outcome == OUTCOME_STRIKEOUT) {
-        game_viewer_print("\tSTRIKEOUT!\n");
-        outs++;
-    }
-    else if (at_bat_outcome == OUTCOME_WALK) {
-        game_viewer_print("\tWALK...\n");
-        runs_from_at_bat = bases.handle_walk(batting_team->get_batter());
-    }
-    else { // Ball in play
-        Ball_In_Play_Result result = get_ball_in_play_result(batting_team->get_batter(), pitching_team->get_pitcher());
-        runs_from_at_bat = bases.handle_ball_in_play(batting_team->get_batter(), result);
-
-        if (result.batter_bases_advanced == 0) {
-            game_viewer_print("\tBATTER WAS PUT OUT!\n");
+        if (at_bat_outcome == OUTCOME_STRIKEOUT) {
+            game_viewer_print("\tSTRIKEOUT!\n");
             outs++;
         }
+        else if (at_bat_outcome == OUTCOME_WALK) {
+            game_viewer_print("\tWALK...\n");
+            runs_from_at_bat = bases.handle_walk(batting_team->get_batter());
+        }
+        else { // Ball in play
+            global_stats.balls_in_play++;
+            Ball_In_Play_Result result = get_ball_in_play_result(batting_team->get_batter(), pitching_team->get_pitcher());
+            runs_from_at_bat = bases.handle_ball_in_play(batting_team->get_batter(), result);
+
+            if (result.batter_bases_advanced == 0) {
+                game_viewer_print("\tBATTER WAS PUT OUT!\n");
+                outs++;
+            }
+        }
+        runs_scored += runs_from_at_bat;
+        batting_team->position_in_batting_order = (batting_team->position_in_batting_order + 1) % 9;
+        pitching_team->runs_allowed_by_pitcher += runs_from_at_bat;
     }
-
-    runs_scored += runs_from_at_bat;
-    batting_team->position_in_batting_order = (batting_team->position_in_batting_order + 1) % 9;
-
-    pitching_team->runs_allowed_by_pitcher += runs_from_at_bat;
-    pitching_team->try_switching_pitcher(half_inning_number, day_of_year);
 }
 
 
@@ -271,6 +283,7 @@ Ball_In_Play_Result Half_Inning::get_ball_in_play_result(Player* batter, Player*
 
 
 uint8_t Half_Inning::get_batter_bases_advanced(Player* batter, Player* pitcher) {
+    global_stats.total_hits++;
     float batter_probs[4];
     float pitcher_probs[4];
     float league_probs[4];
@@ -324,6 +337,110 @@ uint8_t Half_Inning::get_batter_bases_advanced(Player* batter, Player* pitcher) 
 }
 
 
+bool Base_State::bases_empty() {
+    return (players_on_base[FIRST_BASE] == players_on_base[SECOND_BASE]) && (players_on_base[FIRST_BASE] == players_on_base[THIRD_BASE]);
+}
+
+
+bool Base_State::can_simulate_steal(Player* runner, Player* pitcher) {
+    return runner->stats[PLAYER_BASERUNNING].size() && pitcher->stats[PLAYER_BATTING_AGAINST].size();
+}
+
+
+// Checks to see if any of the baserunners (if there are any) tried to steal, and if so, returns the number of outs (if any) that resulted from the play.
+uint8_t Base_State::check_stolen_bases(Player* pitcher) {
+    uint8_t outs = 0;
+    for (int i = SECOND_BASE; i >= FIRST_BASE; i--) {
+        if (!base_occupied((eBases)(i+1)) && base_occupied((eBases)i)) {
+            if (can_simulate_steal(players_on_base[i], pitcher) && will_runner_attempt_steal((eBases)i, pitcher)) {
+                if (will_steal_succeed((eBases)i, pitcher)) {
+                    game_viewer_print(players_on_base[i]->name +" STOLE BASE "<< i+2 << "\n");
+                    players_on_base[i+1] = players_on_base[i];
+                }
+                else {
+                    game_viewer_print(players_on_base[i]->name +" WAS CAUGHT STEALING BASE "<< i+2 << "\n");
+                    outs++;
+                }
+                players_on_base[i] = NULL;
+                game_viewer_line(print();wait_for_user_input(""));
+            }
+        }
+    }
+    return outs;
+}
+
+
+bool Base_State::will_runner_attempt_steal(eBases runner_base, Player* pitcher) {
+    Player* runner = players_on_base[runner_base];
+
+    // Will the runner steal or not: index 1 == yes, index 0 == no
+    float runner_attempt_probs[2];
+    float pitcher_attempt_probs[2];
+    float league_attempt_probs[2];
+
+    float runner_sbo = runner->stats.get_stat(PLAYER_BASERUNNING, "SB_opp", .0f);
+    if (runner_sbo == 0)
+        runner_attempt_probs[1] = 0;
+    else
+        runner_attempt_probs[1] = (runner->stats.get_stat(PLAYER_BASERUNNING, "SB", .0f) + runner->stats.get_stat(PLAYER_BASERUNNING, "CS", .0f))/runner_sbo;;
+    runner_attempt_probs[0] = 1 - runner_attempt_probs[1];
+
+    float league_sbo = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "SB_opp", .0f);
+    league_attempt_probs[1] = (ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "SB", .0f) + ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "CS", .0f))/league_sbo;
+    league_attempt_probs[0] = 1 - league_attempt_probs[1];
+
+    float pitcher_sbo = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "SB_opp", .0f);
+    if (pitcher_sbo <= 20)
+        pitcher_attempt_probs[1] = league_attempt_probs[1];
+    else
+        pitcher_attempt_probs[1] = (pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "SB", .0f) + pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "CS", .0f))/pitcher_sbo;
+    pitcher_attempt_probs[0] = 1 - pitcher_attempt_probs[1];
+
+    float attempt_probs[2];
+    calculate_event_probabilities(runner_attempt_probs, pitcher_attempt_probs, league_attempt_probs, attempt_probs, 2);
+    return get_random_event(attempt_probs, 2);
+}
+
+
+bool Base_State::will_steal_succeed(eBases runner_starting_base, Player* pitcher) {
+    Player* runner = players_on_base[runner_starting_base];
+    Player* baseman = pitching_team->fielders[BASE_TO_POSITION_KEY[runner_starting_base+1]];
+
+    // Will the runner successfully steal: index 1 == yes, index 0 == no
+    float runner_probs[2];
+    float defense_probs[2];
+    float league_probs[2];
+
+    float runner_steals = runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
+    float runner_caught = runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
+    if (runner_steals + runner_caught == 0)
+        runner_probs[1] = runner->stats.get_stat(PLAYER_BASERUNNING, "stolen_base_perc", .0f)/100;
+    else
+        runner_probs[1] = runner_steals/(runner_steals + runner_caught);
+    runner_probs[0] = 1 - runner_probs[1];
+
+    float league_steals = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
+    float league_caught = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
+    float league_fielding = ALL_LEAGUE_STATS.get_stat(LEAGUE_FIELDING, batting_team->team_stats.year, "fielding_perc", .0f);
+    league_probs[1] = league_fielding*league_steals/(league_steals + league_caught);
+    league_probs[0] = 1 - league_probs[1];
+
+    float pitcher_steals = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
+    float pitcher_caught = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
+    float baseman_fielding = baseman->stats.get_stat(PLAYER_FIELDING, "f_fielding_perc", .0f);
+    if (pitcher_steals + pitcher_caught == 0)
+        defense_probs[1] = league_probs[1];
+    else
+        defense_probs[1] = baseman_fielding*pitcher_steals/(pitcher_steals + pitcher_caught);
+    defense_probs[0] = 1 - defense_probs[1];
+
+    float success_probs[2];
+    calculate_event_probabilities(runner_probs, defense_probs, league_probs, success_probs, 2);
+    return get_random_event(success_probs, 2);
+}
+
+
+
 // Return runs scored after hit
 uint8_t Base_State::handle_ball_in_play(Player* batter, const Ball_In_Play_Result& result) {
     if (result.batter_bases_advanced == 0) {
@@ -334,8 +451,7 @@ uint8_t Base_State::handle_ball_in_play(Player* batter, const Ball_In_Play_Resul
     int max_base = HOME_PLATE + 1; // Makes sure that runners can't pass other runners
     for (int i = THIRD_BASE; i >= FIRST_BASE; i--) {
 
-        if (players_on_base[i] != NULL) {
-
+        if (base_occupied((eBases)i)) {
             int new_base = i + get_runner_advancement((eBases)i, result.batter_bases_advanced, max_base);
             if (new_base > THIRD_BASE) {
                 game_viewer_print("\t -" << players_on_base[i]->name << " SCORED\n");
@@ -408,38 +524,38 @@ void Base_State::print() {
     const char empty_base = 'o';
     const char full_base = (char)254;
     // Print out second base
-    if (players_on_base[SECOND_BASE] != NULL) {
+    if (base_occupied(SECOND_BASE)) {
         std::cout << "\t\t" << full_base;
     }
     else {
         std::cout << "\t\t" << empty_base;
     }
     // Print out the names of the players on base
-    if (players_on_base[FIRST_BASE] != NULL) {
+    if (base_occupied(FIRST_BASE)) {
         std::cout << "\t\t1st: " << players_on_base[FIRST_BASE]->name;
     }
     std::cout << "\n";
-    if (players_on_base[SECOND_BASE] != NULL) {
+    if (base_occupied(SECOND_BASE)) {
         std::cout << "\t\t\t\t2nd: " << players_on_base[SECOND_BASE]->name;
     }
     std::cout << "\n";
 
     // Print out first and third base
-    if (players_on_base[THIRD_BASE] != NULL) {
+    if (base_occupied(THIRD_BASE)) {
         std::cout << "\t" << full_base;
     }
     else {
         std::cout << "\t" << empty_base;
     }
 
-    if (players_on_base[FIRST_BASE] != NULL) {
+    if (base_occupied(FIRST_BASE)) {
         std::cout << "\t\t" << full_base;
     }
     else {
         std::cout << "\t\t" << empty_base;
     }
 
-    if (players_on_base[THIRD_BASE] != NULL) {
+    if (base_occupied(THIRD_BASE)) {
         std::cout << "\t3rd: " << players_on_base[THIRD_BASE]->name;
     }
 

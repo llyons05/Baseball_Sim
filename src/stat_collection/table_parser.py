@@ -82,11 +82,15 @@ class Table_Parser:
             header_cells = table_headers.find_all(self.row_header_cell_tag_name)
             for cell in header_cells:
                 value = cell.get(self.cell_descriptor_attribute_name)
-                if value not in column_filters:
+                if (value != None) and (value not in column_filters) and (not self.is_over_header(cell)):
                     headers.append(value)
 
         headers.extend(extra_column["name"] for extra_column in extra_columns)
         return headers
+
+
+    def is_over_header(self, cell: BeautifulSoup) -> bool:
+        return "over_header" in str(cell.get("class", ""))
 
 
     def parse_table_body(self,

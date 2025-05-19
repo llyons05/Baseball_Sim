@@ -6,29 +6,35 @@
 
 using namespace std;
 
+Global_Stat_Container global_stats;
 
-string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "appearances", "baserunning", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"};
+string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "fielding", "appearances", "baserunning", "baserunning_against", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"};
 string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
-string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "pitch_summary_batting", "pitch_summary_pitching", "standings"};
+string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "fielding", "baserunning", "pitch_summary_batting", "pitch_summary_pitching", "standings"};
 
 map<ePlayer_Stat_Types, unsigned int> PLAYER_STAT_EARLIEST_YEARS {
     {PLAYER_BATTING, 0},
     {PLAYER_PITCHING, 0},
+    {PLAYER_FIELDING, 0},
     {PLAYER_APPEARANCES, 0},
     {PLAYER_BASERUNNING, 1912},
+    {PLAYER_BASERUNNING_AGAINST, 1912},
     {PLAYER_BATTING_AGAINST, 1912},
     {PLAYER_PITCH_SUMMARY_BATTING, 1988},
     {PLAYER_PITCH_SUMMARY_PITCHING, 1988}
 };
 
 map<eTeam_Stat_Types, vector<ePlayer_Stat_Types>> TEAM_TO_PLAYER_STAT_CORRESPONDENCE = {
+    {TEAM_ROSTER, {PLAYER_APPEARANCES, PLAYER_FIELDING}},
     {TEAM_BATTING, {PLAYER_BATTING, PLAYER_BASERUNNING, PLAYER_PITCH_SUMMARY_BATTING}},
-    {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BATTING_AGAINST, PLAYER_PITCH_SUMMARY_PITCHING}}
+    {TEAM_PITCHING, {PLAYER_PITCHING, PLAYER_BASERUNNING_AGAINST, PLAYER_BATTING_AGAINST, PLAYER_PITCH_SUMMARY_PITCHING}}
 };
 
 map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS {
     {LEAGUE_BATTING, 0},
     {LEAGUE_PITCHING, 0},
+    {LEAGUE_FIELDING, 0},
+    {LEAGUE_BASERUNNING, 1912},
     {LEAGUE_PITCH_SUMMARY_BATTING, 1988},
     {LEAGUE_PITCH_SUMMARY_PITCHING, 1988},
     {LEAGUE_STANDINGS, 0}
@@ -46,7 +52,7 @@ Player_Stats::Player_Stats(const string& player_id, unsigned int year_to_pull_st
     }
 }
 
-
+// Change this for fielding
 void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, unsigned int year, const string& team_abbreviation) {
     string year_str = "year_id";
     string team_name_str = "team_name_abbr";
@@ -72,7 +78,11 @@ void Player_Stats::change_stat_table_target_row(ePlayer_Stat_Types stat_type, un
 
 // These tables have non-standard headers on baseball reference (at least until BR updates them)
 bool is_player_stat_out_of_date(ePlayer_Stat_Types stat_type) {
-    return (stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_BATTING_AGAINST) || (stat_type == PLAYER_PITCH_SUMMARY_BATTING) || (stat_type == PLAYER_PITCH_SUMMARY_PITCHING);
+    return (stat_type == PLAYER_BASERUNNING)
+        || (stat_type == PLAYER_BASERUNNING_AGAINST)
+        || (stat_type == PLAYER_BATTING_AGAINST)
+        || (stat_type == PLAYER_PITCH_SUMMARY_BATTING)
+        || (stat_type == PLAYER_PITCH_SUMMARY_PITCHING);
 }
 
 

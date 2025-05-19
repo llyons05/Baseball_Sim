@@ -6,13 +6,15 @@
 #include <map>
 #include <string>
 #include <stdexcept>
-
+#include <cstdint>
 
 enum ePlayer_Stat_Types {
     PLAYER_BATTING,
     PLAYER_PITCHING,
+    PLAYER_FIELDING,
     PLAYER_APPEARANCES,
     PLAYER_BASERUNNING,
+    PLAYER_BASERUNNING_AGAINST,
     PLAYER_BATTING_AGAINST,
     PLAYER_PITCH_SUMMARY_BATTING,
     PLAYER_PITCH_SUMMARY_PITCHING,
@@ -76,6 +78,8 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
 enum eLeague_Stat_Types {
     LEAGUE_BATTING,
     LEAGUE_PITCHING,
+    LEAGUE_FIELDING,
+    LEAGUE_BASERUNNING,
     LEAGUE_PITCH_SUMMARY_BATTING,
     LEAGUE_PITCH_SUMMARY_PITCHING,
     LEAGUE_STANDINGS,
@@ -104,7 +108,13 @@ class All_League_Stats_Wrapper {
     private:
         // Keys are years, values are League Stats for that year
         std::map<unsigned int, League_Stats> league_stat_tables;
-};
+} extern ALL_LEAGUE_STATS;
 
 
-extern All_League_Stats_Wrapper ALL_LEAGUE_STATS;
+struct Global_Stat_Container {
+    uint32_t balls_in_play = 0;
+    uint32_t total_PAs = 0;
+    uint32_t total_strikes = 0;
+    uint32_t total_pitches = 0;
+    uint32_t total_hits = 0;
+} extern global_stats;

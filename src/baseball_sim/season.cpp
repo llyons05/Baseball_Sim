@@ -1,6 +1,7 @@
 #include "season.hpp"
 
 #include "config.hpp"
+#include "user_interface.hpp"
 #include "utils.hpp"
 #include "player.hpp"
 #include "team.hpp"
@@ -55,11 +56,7 @@ vector<Team*> Season::run_games(unsigned int num_season_sims) {
                 matchup.home_team->losses++;
             }
 
-            game_viewer_line(
-                string buf;
-                cout << "Type anything and press enter to go to next game";
-                cin >> buf;
-            )
+            game_viewer_line(wait_for_user_input("Press enter to continue to the next game"))
         }
     }
 

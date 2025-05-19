@@ -206,11 +206,17 @@ class Scraping_Client:
         elif stat_type == "pitching":
             table_parser = self._scrape_table_from_player_page(base_player_page_url, "players_standard_pitching", "all_players_standard_pitching")
 
+        elif stat_type == "fielding":
+            table_parser = self._scrape_table_from_player_page(base_player_page_url, "players_standard_fielding", "all_players_standard_fielding")
+
         elif stat_type == "appearances":
             table_parser = self._scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
 
         elif stat_type == "baserunning":
             table_parser = self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_baserunning", "all_batting_baserunning")
+        
+        elif stat_type == "baserunning_against":
+            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_basesituation", "all_pitching_basesituation")
     
         elif stat_type == "batting_against":
             table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_batting", "all_pitching_batting")
@@ -260,6 +266,12 @@ class Scraping_Client:
 
         elif stat_type == "pitching":
             table = self._scrape_default_league_avg_table(base_league_year_url, "teams_standard_pitching", "all_teams_standard_pitching")
+        
+        elif stat_type == "fielding":
+            table = self._scrape_default_league_avg_table(base_league_year_url, "teams_standard_fielding", "all_teams_standard_fielding")
+
+        elif stat_type == "baserunning":
+            table = self._scrape_default_league_avg_table(utils.get_league_baserunning_url(base_league_year_url), "teams_baserunning_batting", "all_teams_baserunning_batting")
 
         elif stat_type == "pitch_summary_batting":
             table = self._scrape_default_league_avg_table(utils.get_league_pitch_summary_batting_url(base_league_year_url), "teams_pitches_batting", "all_teams_pitches_batting")

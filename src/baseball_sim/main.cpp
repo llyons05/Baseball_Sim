@@ -26,7 +26,9 @@ int main() {
 
     if (sim_type == "m") play_single_game();
     else if (sim_type == "s") play_season();
-    
+    // std::cout << std::fixed << std::setprecision(3) << "BALL IN PLAY%: " << ((float)global_stats.balls_in_play)/(float)global_stats.total_PAs << "\n";
+    // std::cout << "TOTAL HITS: " << global_stats.total_hits << "\n";
+    // std::cout << "TOTAL PAs: " << global_stats.total_PAs << "\n";
     return 0;
 }
 

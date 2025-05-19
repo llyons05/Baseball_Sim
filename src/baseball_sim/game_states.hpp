@@ -78,6 +78,8 @@ class Base_State {
 
         uint8_t handle_walk(Player* batter);
         uint8_t handle_ball_in_play(Player* batter, const Ball_In_Play_Result& ball_in_play_result);
+        uint8_t check_stolen_bases(Player* pitcher);
+        bool bases_empty();
         void print();
 
     private:
@@ -85,7 +87,14 @@ class Base_State {
         Team* batting_team;
         Team* pitching_team;
 
+        bool can_simulate_steal(Player* runner, Player* pitcher);
+        bool will_runner_attempt_steal(eBases runner_base, Player* pitcher);
+        bool will_steal_succeed(eBases runner_starting_base, Player* pitcher);
         uint8_t get_runner_advancement(eBases starting_base, uint8_t batter_bases_advanced, int max_base);
+
+        bool base_occupied(eBases base) {
+            return players_on_base[base] != NULL;
+        }
 };
 
 
@@ -108,7 +117,7 @@ class Half_Inning {
         uint8_t half_inning_number;
         unsigned int day_of_year;
 
-        void handle_at_bat_outcome(eAt_Bat_Outcomes at_bat_outcome);
+        void play_at_bat();
         Ball_In_Play_Result get_ball_in_play_result(Player* batter, Player* pitcher);
         uint8_t get_batter_bases_advanced(Player* batter, Player* pitcher);
 };

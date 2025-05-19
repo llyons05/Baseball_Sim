@@ -12,8 +12,6 @@
 using namespace std;
 
 
-const vector<ePlayer_Stat_Types> PLAYER_STATS_TO_ALWAYS_LOAD = {PLAYER_APPEARANCES};
-
 All_League_Stats_Wrapper ALL_LEAGUE_STATS;
 unordered_map<string, unique_ptr<Player>> player_cache;
 unordered_map<string, unique_ptr<Team>> team_cache;
@@ -125,31 +123,39 @@ vector<Player*> Stat_Loader::load_team_roster(Team_Stats& team_stats, unsigned i
 
 
 vector<ePlayer_Stat_Types> Stat_Loader::get_player_stat_types_to_load(const string& player_id, Team_Stats& team_stats) {
-    vector<ePlayer_Stat_Types> stats_to_load(PLAYER_STATS_TO_ALWAYS_LOAD);
-    for (eTeam_Stat_Types team_stat_type : {TEAM_BATTING, TEAM_PITCHING}) {
-
+    vector<ePlayer_Stat_Types> stats_to_load;
+    for (eTeam_Stat_Types team_stat_type : {TEAM_ROSTER, TEAM_BATTING, TEAM_PITCHING}) {
         vector<size_t> search_results = team_stats[team_stat_type].filter_rows({{"ID", {player_id}}});
         if (!search_results.empty()) {
-
             for (ePlayer_Stat_Types player_stat_type : TEAM_TO_PLAYER_STAT_CORRESPONDENCE[team_stat_type]) {
-
-                if ((team_stat_type == TEAM_BATTING) && ((player_stat_type == PLAYER_BASERUNNING) || (player_stat_type == PLAYER_PITCH_SUMMARY_BATTING))) {
-                    if (team_stats[team_stat_type].get_stat("b_pa", search_results[0], .0f) == 0) {
-                        continue;
-                    }
-                    if ((player_stat_type == PLAYER_BASERUNNING) && (team_stats[team_stat_type].get_stat("b_h", search_results[0], .0f) == 0)) {
-                        continue;
-                    }
+                if (should_load_player_stat_type(team_stats, search_results[0], player_stat_type)) {
+                    stats_to_load.push_back(player_stat_type);
                 }
-
-                if (team_stats.year < PLAYER_STAT_EARLIEST_YEARS.at(player_stat_type)) {
-                    continue;
-                }
-                stats_to_load.push_back(player_stat_type);
             }
         }
     }
     return stats_to_load;
+}
+
+
+// There are cases where players may appear on a team stat list, but still should not have some of those stats loaded.
+// Ex: Player appears on team batting list but has no hits, so we shouldn't load their baserunning stats (they never got on base).
+bool Stat_Loader::should_load_player_stat_type(const Team_Stats& team_stats, size_t player_row, ePlayer_Stat_Types stat_type) {
+    if (team_stats.year < PLAYER_STAT_EARLIEST_YEARS.at(stat_type)) {
+        return false;
+    }
+    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_PITCH_SUMMARY_BATTING)) {
+        if (team_stats[TEAM_BATTING].get_stat("b_pa", player_row, .0f) == 0) {
+            return false;
+        }
+        if ((stat_type == PLAYER_BASERUNNING) && (team_stats[TEAM_BATTING].get_stat("b_h", player_row, .0f) == 0)) {
+            return false;
+        }
+    }
+    if ((stat_type == PLAYER_FIELDING) && (team_stats[TEAM_ROSTER].get_stat("games_defense", player_row, .0f) == 0)) {
+        return false;
+    }
+    return true;
 }
 
 
