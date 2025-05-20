@@ -2,6 +2,7 @@ NOTES:
     Load Full batting order tables
     Add better documentation
     Baseball reference is slowly changing tables, make sure to stay up to date
+    Be careful when using methods that mix stats from different tables
     load only the necessary rows of the table
         - Maybe load an average row too?
     Cleaner DH settings
@@ -15,5 +16,6 @@ NOTES:
     Add a stat container to teams and players that accumulates stats as the games are played
     Use league stats to get % of SBOs on certain bases
     Add minimum number of plate appearances rather than just catching 0
-    Be careful when using methods that mix stats from different tables
-    Relievers can end up starting
+    Add double plays
+    https://www.retrosheet.org/eventfile.htm
+    https://www.retrosheet.org/game.htm#Top

@@ -12,7 +12,7 @@ RESOURCES_DIR: str = "resources"
 
 PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "fielding", "baserunning", "baserunning_against", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"]
 TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
-LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "fielding", "baserunning", "pitch_summary_batting", "pitch_summary_pitching", "standings"]
+LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "fielding", "baserunning", "pitch_summary_batting", "pitch_summary_pitching", "batting_by_bases", "standings"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
@@ -45,6 +45,7 @@ LEAGUE_STAT_EARLIEST_YEARS: dict[LEAGUE_DATA_FILE_TYPES] = {
     "baserunning": 1912,
     "pitch_summary_batting": 1988,
     "pitch_summary_pitching": 1988,
+    "batting_by_bases": 1912,
     "standings": 0
 }
 

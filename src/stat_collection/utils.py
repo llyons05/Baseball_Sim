@@ -74,6 +74,10 @@ def get_league_baserunning_url(base_league_year_url: str) -> str:
     return base_league_year_url.replace(".shtml", "-baserunning-batting.shtml")
 
 
+def get_league_batting_split_url(year: int) -> str:
+    return f"{BASE_URL}/leagues/split.cgi?t=b&lg=MLB&year={year}"
+
+
 def save_table_to_csv(filename: str, table: Table) -> None:
     headers = table.headers
     dict_list = table.rows

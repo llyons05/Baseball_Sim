@@ -5,39 +5,6 @@
 
 #include <stdint.h>
 
-enum eBases {
-    FIRST_BASE,
-    SECOND_BASE,
-    THIRD_BASE,
-    HOME_PLATE
-};
-
-
-enum eStrike_Types {
-    STRIKE_LOOKING,
-    STRIKE_SWINGING,
-    STRIKE_FOUL,
-    STRIKE_IN_PLAY,
-    NUM_STRIKE_TYPES
-};
-
-
-enum ePitch_Outcomes {
-    PITCH_STRIKE,
-    PITCH_BALL,
-    PITCH_FOUL,
-    PITCH_IN_PLAY,
-    NUM_PITCH_OUTCOMES
-};
-
-
-enum eAt_Bat_Outcomes {
-    OUTCOME_BALL_IN_PLAY,
-    OUTCOME_WALK,
-    OUTCOME_STRIKEOUT,
-    NUM_AB_OUTCOMES
-};
-
 
 // We will put more in here later (ex: double plays, pop flys, etc.)
 struct Ball_In_Play_Result {

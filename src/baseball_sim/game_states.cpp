@@ -1,6 +1,6 @@
 #include "game_states.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 #include "probability.hpp"
 #include "statistics.hpp"
 #include "user_interface.hpp"
@@ -12,16 +12,9 @@
 
 //https://sabr.org/journal/article/matchup-probabilities-in-major-league-baseball/
 
+const float MIN_DEFENSE_STOLEN_BASE_PROB = .01;
+const float MAX_DEFENSE_STOLEN_BASE_PROB = .99;
 
-const std::string BASERUNNING_STAT_STRINGS[2][2][3] = {{{"on_first_single", "on_first_single_13"}, 
-                                                        {"on_first_double", "on_first_double_1H"}},
-                                                       {{"on_second_single", "on_second_single_2H"}}};
-// [BASE][STOLEN/CAUGHT]
-const std::string BASE_STEALING_STAT_STRINGS[2][2] = {{"SB_2", "CS_2"},
-                                                      {"SB_3", "CS_3"}};
-
-// Translates from base to player who is defending that base
-const eDefensivePositions BASE_TO_POSITION_KEY[4] = {POS_1B, POS_2B, POS_3B, POS_CATCHER};
 
 At_Bat::At_Bat(Team* batting_team, Team* pitching_team) {
     this->pitcher = pitching_team->fielders[POS_PITCHER];
@@ -66,29 +59,28 @@ bool At_Bat::should_use_basic_stats() {
 
 
 // We want to precalculate these, since they will not change throughout the at bat
-// NOTE: There is a major issue hiding here, balls are put into play much less frequently using this method (as compared to using the basic stats calculation).
-// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear.
+// NOTE: There is a major issue hiding here, balls are put into play much less frequently (~6% less) using this method (as compared to using the basic stats calculation, which is getting it almost perfectly right).
+// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear. If you actually do the math,
+// it does add up that this will produce fewer hits, but why?? This is how the process actually happens, so this makes no sense to me.
+// The only thing that I can think of is that this does not account for players swinging more when they are about to strike out
 void At_Bat::populate_pitch_probabilities() {
+    const League_Stats& league_stats = ALL_LEAGUE_STATS[batter->stats.current_year];
+
     // Populate strike or ball probabilities;
     float batter_strike_or_ball_probs[2];
     float pitcher_strike_or_ball_probs[2];
-    float league_strike_or_ball_probs[2];
 
-    batter_strike_or_ball_probs[0] = batter->stats.get_stat(PLAYER_PITCH_SUMMARY_BATTING, "strike_perc", .0f)/100;
-    batter_strike_or_ball_probs[1] = 1 - batter_strike_or_ball_probs[0];
+    batter_strike_or_ball_probs[PITCH_STRIKE] = batter->stats.get_stat(PLAYER_PITCH_SUMMARY_BATTING, "strike_perc", .0f)/100;
+    batter_strike_or_ball_probs[PITCH_BALL] = 1 - batter_strike_or_ball_probs[PITCH_STRIKE];
 
-    pitcher_strike_or_ball_probs[0] = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, "strike_perc", .0f)/100;
-    pitcher_strike_or_ball_probs[1] = 1 - pitcher_strike_or_ball_probs[0];
+    pitcher_strike_or_ball_probs[PITCH_STRIKE] = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, "strike_perc", .0f)/100;
+    pitcher_strike_or_ball_probs[PITCH_BALL] = 1 - pitcher_strike_or_ball_probs[PITCH_STRIKE];
 
-    league_strike_or_ball_probs[0] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_BATTING, batter->stats.current_year, "strike_perc", .0f)/100;
-    league_strike_or_ball_probs[1] = 1 - league_strike_or_ball_probs[0];
-
-    calculate_event_probabilities(batter_strike_or_ball_probs, pitcher_strike_or_ball_probs, league_strike_or_ball_probs, strike_or_ball_probs, 2);
+    calculate_event_probabilities(batter_strike_or_ball_probs, pitcher_strike_or_ball_probs, league_stats.strike_or_ball_probs, strike_or_ball_probs, 2);
 
     // Populate probabilities for the 4 types of strikes (looking, swinging, foul, in-play). BR defines a strike as any pitch that (a) was in the strike zone or (b) was swung at (this includes all hits)
     float batter_strike_probs[NUM_STRIKE_TYPES];
     float pitcher_strike_probs[NUM_STRIKE_TYPES];
-    float league_strike_probs[NUM_STRIKE_TYPES];
 
     batter_strike_probs[STRIKE_LOOKING] = batter->stats.get_stat(PLAYER_PITCH_SUMMARY_BATTING, "strike_looking_perc", .0f)/100;
     batter_strike_probs[STRIKE_SWINGING] = batter->stats.get_stat(PLAYER_PITCH_SUMMARY_BATTING, "strike_swinging_perc", .0f)/100;
@@ -100,19 +92,14 @@ void At_Bat::populate_pitch_probabilities() {
     pitcher_strike_probs[STRIKE_FOUL] = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, "strike_foul_perc", .0f)/100;
     pitcher_strike_probs[STRIKE_IN_PLAY] = 1 - pitcher_strike_probs[STRIKE_LOOKING] - pitcher_strike_probs[STRIKE_SWINGING] - pitcher_strike_probs[STRIKE_FOUL];
 
-    league_strike_probs[STRIKE_LOOKING] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_BATTING, batter->stats.current_year, "strike_looking_perc", .0f)/100;
-    league_strike_probs[STRIKE_SWINGING] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_BATTING, batter->stats.current_year, "strike_swinging_perc", .0f)/100;
-    league_strike_probs[STRIKE_FOUL] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_BATTING, batter->stats.current_year, "strike_foul_perc", .0f)/100;
-    league_strike_probs[STRIKE_IN_PLAY] = 1 - league_strike_probs[STRIKE_LOOKING] - league_strike_probs[STRIKE_SWINGING] - league_strike_probs[STRIKE_FOUL];
-
-    calculate_event_probabilities(batter_strike_probs, pitcher_strike_probs, league_strike_probs, strike_type_probs, NUM_STRIKE_TYPES);
+    calculate_event_probabilities(batter_strike_probs, pitcher_strike_probs, league_stats.strike_type_probs, strike_type_probs, NUM_STRIKE_TYPES);
 }
 
 
 ePitch_Outcomes At_Bat::get_pitch_outcome() {
     global_stats.total_pitches++;
     int strike_or_ball = get_random_event(strike_or_ball_probs, 2);
-    if (strike_or_ball == 1) {
+    if (strike_or_ball == PITCH_BALL) {
         game_viewer_print("\t\tBALL...\n");
         return PITCH_BALL;
     }
@@ -138,7 +125,7 @@ eAt_Bat_Outcomes At_Bat::get_basic_at_bat_outcome() {
     debug_line(game_viewer_print("Using basic at bat outcome calculation for " + batter->name + " vs. " + pitcher->name + "\n"));
     float batter_probs[NUM_AB_OUTCOMES];
     float pitcher_probs[NUM_AB_OUTCOMES];
-    float league_probs[NUM_AB_OUTCOMES];
+    const float* league_probs = ALL_LEAGUE_STATS[batter->stats.current_year].basic_at_bat_probs;
 
     int batter_plate_appearances = batter->stats.get_stat(PLAYER_BATTING, "b_pa", .0f);
     if (batter_plate_appearances == 0) {
@@ -151,11 +138,6 @@ eAt_Bat_Outcomes At_Bat::get_basic_at_bat_outcome() {
         batter_probs[OUTCOME_WALK] = (batter->stats.get_stat(PLAYER_BATTING, "b_bb", .0f) + batter->stats.get_stat(PLAYER_BATTING, "b_hbp", .0f))/batter_plate_appearances;
     }
     batter_probs[OUTCOME_BALL_IN_PLAY] = 1 - batter_probs[OUTCOME_STRIKEOUT] - batter_probs[OUTCOME_WALK];
-
-    int league_plate_appearances = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "PA", 1.f);
-    league_probs[OUTCOME_STRIKEOUT] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "SO", .0f)/league_plate_appearances;
-    league_probs[OUTCOME_WALK] = (ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "BB", .0f) + ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", .0f))/league_plate_appearances;
-    league_probs[OUTCOME_BALL_IN_PLAY] = 1 - league_probs[OUTCOME_STRIKEOUT] - league_probs[OUTCOME_WALK];
 
     int pitcher_plate_appearances = pitcher->stats.get_stat(PLAYER_PITCHING, "p_bfp", .0f);
     if (pitcher_plate_appearances == 0) {
@@ -246,7 +228,7 @@ Ball_In_Play_Result Half_Inning::get_ball_in_play_result(Player* batter, Player*
     // Probabilities of getting a hit or getting out, index 0 is hit, index 1 is out.
     float batter_hit_probs[2];
     float pitcher_hit_probs[2];
-    float league_hit_probs[2];
+    const float* league_hit_probs = ALL_LEAGUE_STATS[batter->stats.current_year].hit_or_out_probs;
 
     float batter_balls_in_play = batter->stats.get_stat(PLAYER_BATTING, "b_pa", .0f) - batter->stats.get_stat(PLAYER_BATTING, "b_bb", .0f)
                                - batter->stats.get_stat(PLAYER_BATTING, "b_hbp", .0f) - batter->stats.get_stat(PLAYER_BATTING, "b_so", .0f);
@@ -256,12 +238,6 @@ Ball_In_Play_Result Half_Inning::get_ball_in_play_result(Player* batter, Player*
     else
         batter_hit_probs[0] = batter_hits/batter_balls_in_play;
     batter_hit_probs[1] = 1 - batter_hit_probs[0];
-    
-    float league_balls_in_play = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "PA", .0f) - ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "BB", .0f)
-                             - ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HBP", .0f) - ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "SO", .0f);
-    float league_hits = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", .0f);
-    league_hit_probs[0] = league_hits/league_balls_in_play;
-    league_hit_probs[1] = 1 - league_hit_probs[0];
 
     int pitcher_balls_in_play = pitcher->stats.get_stat(PLAYER_PITCHING, "p_bfp", .0f) - pitcher->stats.get_stat(PLAYER_PITCHING, "p_bb", .0f)
                               - pitcher->stats.get_stat(PLAYER_PITCHING, "p_hbp", .0f) - pitcher->stats.get_stat(PLAYER_PITCHING, "p_so", .0f);
@@ -288,8 +264,6 @@ Ball_In_Play_Result Half_Inning::get_ball_in_play_result(Player* batter, Player*
 uint8_t Half_Inning::get_batter_bases_advanced(Player* batter, Player* pitcher) {
     global_stats.total_hits++;
     float batter_probs[4];
-    float pitcher_probs[4];
-    float league_probs[4];
     float outcome_probabilities[4];
 
     const int batter_total_hits = batter->stats.get_stat(PLAYER_BATTING, "b_h", 1.f);
@@ -299,11 +273,8 @@ uint8_t Half_Inning::get_batter_bases_advanced(Player* batter, Player* pitcher) 
     batter_probs[0] = 1 - batter_probs[1] - batter_probs[2] - batter_probs[3];
 
     if (!pitcher->stats[PLAYER_BATTING_AGAINST].empty()) {
-        const int league_total_hits = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "H", 1.f);
-        league_probs[1] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "2B", .0f)/league_total_hits;
-        league_probs[2] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "3B", .0f)/league_total_hits;
-        league_probs[3] = ALL_LEAGUE_STATS.get_stat(LEAGUE_BATTING, batter->stats.current_year, "HR", .0f)/league_total_hits;
-        league_probs[0] = 1 - league_probs[1] - league_probs[2] - league_probs[3];
+        const float* league_probs = ALL_LEAGUE_STATS[batter->stats.current_year].hit_type_probs;
+        float pitcher_probs[4];
 
         const int pitcher_total_hits = pitcher->stats.get_stat(PLAYER_BATTING_AGAINST, "H", .0f);
         if (pitcher_total_hits == 0)
@@ -374,31 +345,37 @@ uint8_t Base_State::check_stolen_bases(Player* pitcher) {
 
 
 bool Base_State::will_runner_attempt_steal(eBases runner_base, Player* pitcher) {
+    debug_line(assert((runner_base == FIRST_BASE) || (runner_base == SECOND_BASE)))
+
     Player* runner = players_on_base[runner_base];
 
     // Will the runner steal or not: index 1 == yes, index 0 == no
     float runner_attempt_probs[2];
     float pitcher_attempt_probs[2];
-    float league_attempt_probs[2];
+    const float* league_attempt_probs = ALL_LEAGUE_STATS[pitcher->stats.current_year].steal_attempt_probs[runner_base];
 
-    float runner_sbo = runner->stats.get_stat(PLAYER_BASERUNNING, "SB_opp", .0f);
+    float runner_sbo_multiplier = ALL_LEAGUE_STATS[runner->stats.current_year].sbo_on_first_percent;
+    float pitcher_sbo_multiplier = ALL_LEAGUE_STATS[pitcher->stats.current_year].sbo_on_first_percent;
+    if (runner_base == SECOND_BASE) {
+        runner_sbo_multiplier = 1 - runner_sbo_multiplier;
+        pitcher_sbo_multiplier = 1 - pitcher_sbo_multiplier;
+    }
+
+    float runner_sbo = runner->stats.get_stat(PLAYER_BASERUNNING, "SB_opp", .0f)*runner_sbo_multiplier;
     if (runner_sbo == 0)
         runner_attempt_probs[1] = 0;
     else
-        runner_attempt_probs[1] = (runner->stats.get_stat(PLAYER_BASERUNNING, "SB", .0f) + runner->stats.get_stat(PLAYER_BASERUNNING, "CS", .0f))/runner_sbo;;
+        runner_attempt_probs[1] = (runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_base][0], .0f) + runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_base][1], .0f))/runner_sbo;;
     runner_attempt_probs[0] = 1 - runner_attempt_probs[1];
 
-    float league_sbo = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "SB_opp", .0f);
-    league_attempt_probs[1] = (ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "SB", .0f) + ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, "CS", .0f))/league_sbo;
-    league_attempt_probs[0] = 1 - league_attempt_probs[1];
-
-    float pitcher_sbo = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "SB_opp", .0f);
+    float pitcher_sbo = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "SB_opp", .0f)*pitcher_sbo_multiplier;
     if (pitcher_sbo <= 20)
         pitcher_attempt_probs[1] = league_attempt_probs[1];
     else
-        pitcher_attempt_probs[1] = (pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "SB", .0f) + pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, "CS", .0f))/pitcher_sbo;
+        pitcher_attempt_probs[1] = (pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_base][0], .0f) + pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_base][1], .0f))/pitcher_sbo;
     pitcher_attempt_probs[0] = 1 - pitcher_attempt_probs[1];
 
+    
     float attempt_probs[2];
     calculate_event_probabilities(runner_attempt_probs, pitcher_attempt_probs, league_attempt_probs, attempt_probs, 2);
     return get_random_event(attempt_probs, 2);
@@ -412,7 +389,7 @@ bool Base_State::will_steal_succeed(eBases runner_starting_base, Player* pitcher
     // Will the runner successfully steal: index 1 == yes, index 0 == no
     float runner_probs[2];
     float defense_probs[2];
-    float league_probs[2];
+    const float* league_probs = ALL_LEAGUE_STATS[pitcher->stats.current_year].steal_success_probs[runner_starting_base];
 
     float runner_steals = runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
     float runner_caught = runner->stats.get_stat(PLAYER_BASERUNNING, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
@@ -422,26 +399,19 @@ bool Base_State::will_steal_succeed(eBases runner_starting_base, Player* pitcher
         runner_probs[1] = runner_steals/(runner_steals + runner_caught);
     runner_probs[0] = 1 - runner_probs[1];
 
-    float league_steals = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
-    float league_caught = ALL_LEAGUE_STATS.get_stat(LEAGUE_BASERUNNING, batting_team->team_stats.year, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
-    float league_fielding = ALL_LEAGUE_STATS.get_stat(LEAGUE_FIELDING, batting_team->team_stats.year, "fielding_perc", .0f);
-    league_probs[1] = league_fielding*league_steals/(league_steals + league_caught);
-    league_probs[0] = 1 - league_probs[1];
-
     float pitcher_steals = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_starting_base][0], .0f);
     float pitcher_caught = pitcher->stats.get_stat(PLAYER_BASERUNNING_AGAINST, BASE_STEALING_STAT_STRINGS[runner_starting_base][1], .0f);
     float baseman_fielding = baseman->stats.get_stat(PLAYER_FIELDING, "f_fielding_perc", .0f);
     if (pitcher_steals + pitcher_caught == 0)
         defense_probs[1] = league_probs[1];
     else
-        defense_probs[1] = baseman_fielding*pitcher_steals/(pitcher_steals + pitcher_caught);
+        defense_probs[1] = std::clamp(baseman_fielding * pitcher_steals/(pitcher_steals + pitcher_caught), MIN_DEFENSE_STOLEN_BASE_PROB, MAX_DEFENSE_STOLEN_BASE_PROB); // We don't want pitchers who never ever give up stolen bases
     defense_probs[0] = 1 - defense_probs[1];
 
     float success_probs[2];
     calculate_event_probabilities(runner_probs, defense_probs, league_probs, success_probs, 2);
     return get_random_event(success_probs, 2);
 }
-
 
 
 // Return runs scored after hit

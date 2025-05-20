@@ -279,6 +279,9 @@ class Scraping_Client:
         elif stat_type == "pitch_summary_pitching":
             table = self._scrape_default_league_avg_table(utils.get_league_pitch_summary_pitching_url(base_league_year_url), "teams_pitches_pitching", "all_teams_pitches_pitching")
 
+        elif stat_type == "batting_by_bases":
+            table = self._scrape_league_batting_split_table(year, "bases", "all_bases")
+
         elif stat_type == "standings":
             table = self._scrape_league_standings_table(base_league_year_url)
 
@@ -316,6 +319,21 @@ class Scraping_Client:
         for row in table.rows:
             row["ID"] = utils.get_team_id_from_url(row["URL"])
         
+        return table
+
+
+    def _scrape_league_batting_split_table(self, year: int, table_id: str, wrapper_div_id: str) -> Table | None:
+        url = utils.get_league_batting_split_url(year)
+        response = self._scrape_page_html(url)
+        if response is None:
+            return None
+        
+        table_location = self._get_default_table_location(table_id)
+        wrapper_div_location = self._get_default_wrapper_div_location(wrapper_div_id)
+        table_parser = Table_Parser(response, table_location, wrapper_div_location)
+        column_filters = ["incomplete_split"]
+        table = table_parser.parse(column_filters=column_filters, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
+
         return table
 
 

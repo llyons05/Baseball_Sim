@@ -1,6 +1,6 @@
 #include "statistics.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 #include "table.hpp"
 #include "utils.hpp"
 
@@ -10,7 +10,7 @@ Global_Stat_Container global_stats;
 
 string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "fielding", "appearances", "baserunning", "baserunning_against", "batting_against", "pitch_summary_batting", "pitch_summary_pitching"};
 string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
-string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "fielding", "baserunning", "pitch_summary_batting", "pitch_summary_pitching", "standings"};
+string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES] = {"batting", "pitching", "fielding", "baserunning", "pitch_summary_batting", "pitch_summary_pitching", "batting_by_bases", "standings"};
 
 map<ePlayer_Stat_Types, unsigned int> PLAYER_STAT_EARLIEST_YEARS {
     {PLAYER_BATTING, 0},
@@ -37,6 +37,7 @@ map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS {
     {LEAGUE_BASERUNNING, 1912},
     {LEAGUE_PITCH_SUMMARY_BATTING, 1988},
     {LEAGUE_PITCH_SUMMARY_PITCHING, 1988},
+    {LEAGUE_BATTING_BY_BASES, 1912},
     {LEAGUE_STANDINGS, 0}
 };
 
@@ -98,6 +99,72 @@ Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_sta
 }
 
 
+
+League_Stats::League_Stats(unsigned int year, Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]): Stat_Table_Container(league_stat_tables) {
+    this->year = year;
+    populate_probs();
+}
+
+
+void League_Stats::populate_probs() {
+    populate_at_bat_probs();
+    populate_steal_probs();
+}
+
+
+void League_Stats::populate_at_bat_probs() {
+    if (year >= LEAGUE_STAT_EARLIEST_YEARS[LEAGUE_PITCH_SUMMARY_BATTING]) {
+        strike_or_ball_probs[PITCH_STRIKE] = get_stat(LEAGUE_PITCH_SUMMARY_BATTING, "strike_perc", 0, .0f)/100;
+        strike_or_ball_probs[PITCH_BALL] = 1 - strike_or_ball_probs[PITCH_STRIKE];
+
+        strike_type_probs[STRIKE_LOOKING] = get_stat(LEAGUE_PITCH_SUMMARY_BATTING, "strike_looking_perc", 0, .0f)/100;
+        strike_type_probs[STRIKE_SWINGING] = get_stat(LEAGUE_PITCH_SUMMARY_BATTING, "strike_swinging_perc", 0, .0f)/100;
+        strike_type_probs[STRIKE_FOUL] = get_stat(LEAGUE_PITCH_SUMMARY_BATTING, "strike_foul_perc", 0, .0f)/100;
+        strike_type_probs[STRIKE_IN_PLAY] = 1 - strike_type_probs[STRIKE_LOOKING] - strike_type_probs[STRIKE_SWINGING] - strike_type_probs[STRIKE_FOUL];
+    }
+
+    int league_plate_appearances = get_stat(LEAGUE_BATTING, "PA", 0, 1.f);
+    basic_at_bat_probs[OUTCOME_STRIKEOUT] = get_stat(LEAGUE_BATTING, "SO", 0, .0f)/league_plate_appearances;
+    basic_at_bat_probs[OUTCOME_WALK] = (get_stat(LEAGUE_BATTING, "BB", 0, .0f) + get_stat(LEAGUE_BATTING, "HBP", 0, .0f))/league_plate_appearances;
+    basic_at_bat_probs[OUTCOME_BALL_IN_PLAY] = 1 - basic_at_bat_probs[OUTCOME_STRIKEOUT] - basic_at_bat_probs[OUTCOME_WALK];
+
+    float league_balls_in_play = get_stat(LEAGUE_BATTING, "PA", 0, .0f) - get_stat(LEAGUE_BATTING, "BB", 0, .0f)
+                               - get_stat(LEAGUE_BATTING, "HBP", 0, .0f) - get_stat(LEAGUE_BATTING, "SO", 0, .0f);
+    float league_hits = get_stat(LEAGUE_BATTING, "H", 0, .0f);
+    hit_or_out_probs[0] = league_hits/league_balls_in_play;
+    hit_or_out_probs[1] = 1 - hit_or_out_probs[0];
+
+    const int league_total_hits = get_stat(LEAGUE_BATTING, "H", 0, 1.f);
+    hit_type_probs[1] = get_stat(LEAGUE_BATTING, "2B", 0, .0f)/league_total_hits;
+    hit_type_probs[2] = get_stat(LEAGUE_BATTING, "3B", 0, .0f)/league_total_hits;
+    hit_type_probs[3] = get_stat(LEAGUE_BATTING, "HR", 0, .0f)/league_total_hits;
+    hit_type_probs[0] = 1 - hit_type_probs[1] - hit_type_probs[2] - hit_type_probs[3];
+}
+
+
+void League_Stats::populate_steal_probs() {
+    if (year < LEAGUE_STAT_EARLIEST_YEARS[LEAGUE_BASERUNNING]) return;
+
+    float total_sbo = get_stat(LEAGUE_BASERUNNING, "SB_opp", 0, 1.f);
+    float sbos_on_first = get_stat(LEAGUE_BATTING_BY_BASES, "PA", 3, .0f) + get_stat(LEAGUE_BATTING_BY_BASES, "PA", 7, .0f); // These row values are hardcoded unfortunately
+    sbo_on_first_percent = sbos_on_first/total_sbo;
+
+    steal_attempt_probs[FIRST_BASE][1] = (get_stat(LEAGUE_BASERUNNING, "SB_2", 0, .0f) + get_stat(LEAGUE_BASERUNNING, "CS_2", 0, .0f))/sbos_on_first;
+    steal_attempt_probs[FIRST_BASE][0] = 1 - steal_attempt_probs[FIRST_BASE][1];
+
+    steal_attempt_probs[SECOND_BASE][1] = (get_stat(LEAGUE_BASERUNNING, "SB_3", 0, .0f) + get_stat(LEAGUE_BASERUNNING, "CS_3", 0, .0f))/(total_sbo - sbos_on_first);
+    steal_attempt_probs[SECOND_BASE][0] = 1 - steal_attempt_probs[SECOND_BASE][1];
+
+    for (int base = 0; base <= SECOND_BASE; base++) {
+        float steals = get_stat(LEAGUE_BASERUNNING, BASE_STEALING_STAT_STRINGS[base][0], 0, .0f);
+        float caught = get_stat(LEAGUE_BASERUNNING, BASE_STEALING_STAT_STRINGS[base][1], 0, .0f);
+        float fielding_perc = get_stat(LEAGUE_FIELDING, "fielding_perc", 0, .0f);
+        steal_success_probs[base][1] = fielding_perc*steals/(steals + caught);
+        steal_success_probs[base][0] = 1 - steal_success_probs[base][1];
+    }
+}
+
+
 bool All_League_Stats_Wrapper::holds_year(unsigned int year) const {
     return league_stat_tables.find(year) != league_stat_tables.end();
 }
@@ -108,12 +175,6 @@ void All_League_Stats_Wrapper::add_year(unsigned int year, const League_Stats& y
 }
 
 
-const League_Stats& All_League_Stats_Wrapper::get_year(unsigned int year) {
+const League_Stats& All_League_Stats_Wrapper::get_year(unsigned int year) const {
     return league_stat_tables.at(year);
-}
-
-
-unsigned int All_League_Stats_Wrapper::get_avg_pitcher_cooldown(unsigned int year) {
-    const League_Stats& year_table = get_year(year);
-    return year_table.get_stat(LEAGUE_PITCHING, "G", 0, 0.f)/year_table.get_stat(LEAGUE_PITCHING, "pitchers_used", 0, 1.f);
 }

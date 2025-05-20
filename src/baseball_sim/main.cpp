@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "includes.hpp"
 #include "load_stats.hpp"
 #include "baseball_game.hpp"
 #include "probability.hpp"

@@ -11,10 +11,6 @@
 #include <memory>
 #include <cstdint>
 
-enum eTeam {
-    AWAY_TEAM,
-    HOME_TEAM
-};
 
 class Team {
     public:

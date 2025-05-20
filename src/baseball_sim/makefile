@@ -8,7 +8,7 @@ VIEWING_FLAGS = -DBASEBALL_VIEW=1
 
 _OBJ_FILES = main.o user_interface.o utils.o statistics.o probability.o team.o season.o load_stats.o game_states.o baseball_game.o
 OBJ_FILES = $(patsubst %.o,$(BUILD_DIR)/%.o,$(_OBJ_FILES))
-HEADER_FILES = baseball_game.hpp config.hpp game_states.hpp load_stats.hpp player.hpp probability.hpp season.hpp statistics.hpp table.hpp team.hpp user_interface.hpp utils.hpp
+HEADER_FILES = baseball_game.hpp includes.hpp game_states.hpp load_stats.hpp player.hpp probability.hpp season.hpp statistics.hpp table.hpp team.hpp user_interface.hpp utils.hpp
 
 ifdef OS # Check if we are on windows
 	RD = rd /s /q

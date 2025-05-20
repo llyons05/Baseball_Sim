@@ -1,6 +1,6 @@
 #include "team.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 #include "statistics.hpp"
 #include "player.hpp"
 #include "table.hpp"
@@ -102,7 +102,7 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
     }
     if (max_games == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
         new_pitcher = least_unrested_pitcher;
-        debug_print("No rested starting pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player...");
+        game_viewer_line(debug_print("No rested starting pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player..."));
     }
 
     return new_pitcher;
@@ -135,7 +135,7 @@ Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
     }
     if (most_relief_games == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
         new_pitcher = least_unrested_pitcher;
-        debug_print("No rested relief pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player...");
+        game_viewer_line(debug_print("No rested relief pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player..."));
     }
 
     return new_pitcher;

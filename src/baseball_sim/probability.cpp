@@ -1,6 +1,6 @@
 #include "probability.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 
 #include <random>
 #include <iostream>
@@ -13,7 +13,7 @@ void set_up_rand() {
 }
 
 
-void calculate_event_probabilities(float x[], float y[], float z[], float output[], int num_events) {
+void calculate_event_probabilities(const float x[], const float y[], const float z[], float output[], int num_events) {
     float total = 0;
     for (int i = 0; i < num_events; i++) {
         output[i] = x[i]*y[i]/z[i];
@@ -23,10 +23,19 @@ void calculate_event_probabilities(float x[], float y[], float z[], float output
     for (int i = 0; i < num_events; i++) {
         output[i] = output[i]/total;
     }
+
+    debug_line(
+        if (total == 0) {
+            std::cout << "WARNING: NAN PROBABILITY\n";
+            std::cout << "\tNUM EVENTS: " << num_events << ", z[] PROBS: ";
+            for (int i = 0; i < num_events; i++) std::cout << z[i] << " ";
+            std::cout << "\n";
+        }
+    )
 }
 
 
-int get_random_event(float event_probs[], int num_events) {
+int get_random_event(const float event_probs[], int num_events) {
     debug_line(
         float sum = 0;
         for (int i = 0; i < num_events; sum+=event_probs[i], i++);

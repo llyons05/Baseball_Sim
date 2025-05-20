@@ -1,6 +1,6 @@
 #include "season.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 #include "user_interface.hpp"
 #include "utils.hpp"
 #include "player.hpp"

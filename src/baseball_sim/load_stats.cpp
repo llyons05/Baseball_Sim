@@ -42,7 +42,7 @@ Season Stat_Loader::load_season(unsigned int year) {
 // not the main team abbreviations, so we cannot load directly from this list of abbreviations.
 // NOTE: League stats for this year must be loaded before this is called.
 std::vector<std::string> Stat_Loader::load_all_real_team_abbrs_from_year(unsigned int year) {
-    const Stat_Table& standings_table = ALL_LEAGUE_STATS.get_year(year)[LEAGUE_STANDINGS];
+    const Stat_Table& standings_table = ALL_LEAGUE_STATS[year][LEAGUE_STANDINGS];
     return standings_table.column<string>("ID", "NO ID FOUND");
 }
 
@@ -84,7 +84,7 @@ void Stat_Loader::load_league_year_stats(unsigned int year) {
         league_year_stat_tables[i] = Stat_Table(file_data, filename);
     }
 
-    ALL_LEAGUE_STATS.add_year(year, League_Stats(league_year_stat_tables));
+    ALL_LEAGUE_STATS.add_year(year, League_Stats(year, league_year_stat_tables));
 }
 
 

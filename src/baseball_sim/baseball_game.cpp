@@ -1,6 +1,6 @@
 #include "baseball_game.hpp"
 
-#include "config.hpp"
+#include "includes.hpp"
 #include "game_states.hpp"
 
 #include <iostream>

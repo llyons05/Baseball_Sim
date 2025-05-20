@@ -1,6 +1,7 @@
 #pragma once
 
 #include "table.hpp"
+#include "includes.hpp"
 
 #include <vector>
 #include <map>
@@ -84,6 +85,7 @@ enum eLeague_Stat_Types {
     LEAGUE_BASERUNNING,
     LEAGUE_PITCH_SUMMARY_BATTING,
     LEAGUE_PITCH_SUMMARY_PITCHING,
+    LEAGUE_BATTING_BY_BASES,
     LEAGUE_STANDINGS,
     NUM_LEAGUE_STAT_TYPES
 };
@@ -91,7 +93,27 @@ enum eLeague_Stat_Types {
 extern std::string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES];
 extern std::map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS;
 
-typedef Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> League_Stats;
+class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> {
+    public:
+        float strike_or_ball_probs[2];
+        float strike_type_probs[NUM_STRIKE_TYPES];
+        float basic_at_bat_probs[NUM_AB_OUTCOMES];
+        float hit_or_out_probs[2];
+        float hit_type_probs[4];
+        float steal_attempt_probs[2][2];
+        float steal_success_probs[2][2];
+
+        float sbo_on_first_percent;
+        unsigned int year;
+
+        League_Stats() {}
+        League_Stats(unsigned int year, Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]);
+
+    private:
+        void populate_probs();
+        void populate_at_bat_probs();
+        void populate_steal_probs();
+};
 
 // Holds League Stats for all loaded years
 class All_League_Stats_Wrapper {
@@ -99,12 +121,15 @@ class All_League_Stats_Wrapper {
         All_League_Stats_Wrapper(){}
         void add_year(unsigned int year, const League_Stats& year_table);
         bool holds_year(unsigned int year) const;
-        const League_Stats& get_year(unsigned int year);
-        unsigned int get_avg_pitcher_cooldown(unsigned int year);
+        const League_Stats& get_year(unsigned int year) const;
 
         template <class T>
         T get_stat(eLeague_Stat_Types stat_type, unsigned int year, const std::string& stat_name, const T& default_val) const {
             return league_stat_tables.at(year).get_stat(stat_type, stat_name, 0, default_val);
+        }
+
+        const League_Stats& operator[](unsigned int year) const {
+            return get_year(year);
         }
 
     private:
