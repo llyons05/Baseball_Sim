@@ -67,8 +67,7 @@ bool At_Bat::should_use_basic_stats() {
 
 // We want to precalculate these, since they will not change throughout the at bat
 // NOTE: There is a major issue hiding here, balls are put into play much less frequently using this method (as compared to using the basic stats calculation).
-// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear. 46.3% chance of ball being put in play with this method in 2024
-// 
+// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear.
 void At_Bat::populate_pitch_probabilities() {
     // Populate strike or ball probabilities;
     float batter_strike_or_ball_probs[2];
@@ -111,12 +110,14 @@ void At_Bat::populate_pitch_probabilities() {
 
 
 ePitch_Outcomes At_Bat::get_pitch_outcome() {
+    global_stats.total_pitches++;
     int strike_or_ball = get_random_event(strike_or_ball_probs, 2);
     if (strike_or_ball == 1) {
         game_viewer_print("\t\tBALL...\n");
         return PITCH_BALL;
     }
 
+    global_stats.total_strikes++;
     eStrike_Types strike_type = (eStrike_Types)get_random_event(strike_type_probs, NUM_STRIKE_TYPES);
     if (strike_type < STRIKE_FOUL) {
         game_viewer_print("\t\tSTRIKE!\n");
@@ -141,6 +142,7 @@ eAt_Bat_Outcomes At_Bat::get_basic_at_bat_outcome() {
 
     int batter_plate_appearances = batter->stats.get_stat(PLAYER_BATTING, "b_pa", .0f);
     if (batter_plate_appearances == 0) {
+        debug_print(batter->name + " has no batting plate appearances, defaulting to 0...\n");
         batter_probs[OUTCOME_STRIKEOUT] = 1;
         batter_probs[OUTCOME_WALK] = 0;
     }
@@ -157,6 +159,7 @@ eAt_Bat_Outcomes At_Bat::get_basic_at_bat_outcome() {
 
     int pitcher_plate_appearances = pitcher->stats.get_stat(PLAYER_PITCHING, "p_bfp", .0f);
     if (pitcher_plate_appearances == 0) {
+        debug_print(pitcher->name + " has no pitching plate appearances, defaulting to league avg...\n");
         pitcher_probs[OUTCOME_STRIKEOUT] = league_probs[OUTCOME_STRIKEOUT];
         pitcher_probs[OUTCOME_WALK] = league_probs[OUTCOME_WALK];
     }

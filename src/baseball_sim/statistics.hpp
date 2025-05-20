@@ -7,6 +7,8 @@
 #include <string>
 #include <stdexcept>
 #include <cstdint>
+#include <iostream>
+#include <iomanip>
 
 enum ePlayer_Stat_Types {
     PLAYER_BATTING,
@@ -108,7 +110,8 @@ class All_League_Stats_Wrapper {
     private:
         // Keys are years, values are League Stats for that year
         std::map<unsigned int, League_Stats> league_stat_tables;
-} extern ALL_LEAGUE_STATS;
+}
+extern ALL_LEAGUE_STATS;
 
 
 struct Global_Stat_Container {
@@ -117,4 +120,13 @@ struct Global_Stat_Container {
     uint32_t total_strikes = 0;
     uint32_t total_pitches = 0;
     uint32_t total_hits = 0;
-} extern global_stats;
+
+    void print(int divisor = 1) {
+        std::cout << std::fixed << std::setprecision(3);
+        std::cout << "BALL IN PLAY%: " << ((float)balls_in_play)/(float)total_PAs << "\n"
+                  << "     STRIKE %: " << (float)total_strikes/(total_pitches?total_pitches:1) << "\n" 
+                  << "         HITS: " << total_hits/divisor << "\n"
+                  << "          PAs: " << total_PAs/divisor << "\n";
+    }
+}
+extern global_stats;

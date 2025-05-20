@@ -26,9 +26,7 @@ int main() {
 
     if (sim_type == "m") play_single_game();
     else if (sim_type == "s") play_season();
-    // std::cout << std::fixed << std::setprecision(3) << "BALL IN PLAY%: " << ((float)global_stats.balls_in_play)/(float)global_stats.total_PAs << "\n";
-    // std::cout << "TOTAL HITS: " << global_stats.total_hits << "\n";
-    // std::cout << "TOTAL PAs: " << global_stats.total_PAs << "\n";
+
     return 0;
 }
 
@@ -69,7 +67,8 @@ void play_season() {
         std::cout << std::fixed << std::setprecision(1) << wins << "-" << losses << "\t";
         std::cout << runs_scored << "-" << runs_allowed << "\n";
     }
-    std::cout << "AVG:\t\t\t\t" << total_runs/final_standings.size() << "-" << total_runs/final_standings.size() << "\n";
+    std::cout << "AVG:\t\t\t\t" << total_runs/final_standings.size() << "-" << total_runs/final_standings.size() << "\n\n";
+    global_stats.print(season_sims);
 }
 
 
@@ -124,5 +123,6 @@ void play_single_game() {
 
     std::cout << "Result of " << num_games << " games:\n";
     std::cout << team_1->team_name << ": " << total_wins[0] << " wins\t Total runs: " << total_runs[0] << "\n";
-    std::cout << team_2->team_name << ": " << total_wins[1] << " wins\t Total runs: " << total_runs[1] << "\n";
+    std::cout << team_2->team_name << ": " << total_wins[1] << " wins\t Total runs: " << total_runs[1] << "\n\n";
+    global_stats.print(num_games);
 }

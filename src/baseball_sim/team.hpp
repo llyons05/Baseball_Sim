@@ -69,7 +69,7 @@ class Team {
         void reset();
 
     private:
-        const unsigned int MAX_PITCHER_COOLDOWN = 20; // days
+        const unsigned int MAX_PITCHER_COOLDOWN = 15; // days
 
         void set_up_batting_order();
         void set_up_fielders();

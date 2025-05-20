@@ -84,15 +84,15 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
     unsigned int most_days_of_rest_for_unrested_player = 0;
 
     for (Player* player : available_pitchers) {
-        int games = player->stats.get_stat(PLAYER_PITCHING, "p_gs", 1.f);
-        if (games <= 0) games = 1;
+        int games_started = player->stats.get_stat(PLAYER_PITCHING, "p_gs", .0f);
+        if (games_started <= 0) continue; // This player has never been a starting pitcher, so we don't want to put him in
 
-        unsigned int cooldown = min(team_stats.days_in_schedule/games, MAX_PITCHER_COOLDOWN);
+        unsigned int cooldown = min(team_stats.days_in_schedule/games_started, MAX_PITCHER_COOLDOWN);
         unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
         bool is_rested = days_of_rest >= cooldown;
 
-        if (is_rested && (games > max_games)) { // Also use winrate here
-            max_games = games;
+        if (is_rested && (games_started > max_games)) { // Also use winrate here
+            max_games = games_started;
             new_pitcher = player;
         }
         else if ((max_games == -1) && (days_of_rest >= most_days_of_rest_for_unrested_player)) { // if our player is unrested and we are yet to find a rested player
@@ -112,28 +112,28 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
 Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
     Player* new_pitcher = get_pitcher();
     Player* least_unrested_pitcher = get_pitcher();
-    int most_saves = -1;
+    int most_relief_games = -1;
     unsigned int most_days_of_rest_for_unrested_player = 0;
 
     for (Player* player : available_pitchers) {
-        int saves = player->stats.get_stat(PLAYER_PITCHING, "p_sv", .0f);
-        int games = player->stats.get_stat(PLAYER_PITCHING, "p_g", 1.f);
-        if (games <= 0) games = 1;
+        int games_total = player->stats.get_stat(PLAYER_PITCHING, "p_g", .0f);
+        int relief_games = games_total - player->stats.get_stat(PLAYER_PITCHING, "p_gs", .0f);
+        if (relief_games <= 0) continue; // If this player is only a starter, we do not put them in as a reliever. This helps save starting pitchers.
 
-        unsigned int cooldown = min(team_stats.days_in_schedule/games, MAX_PITCHER_COOLDOWN);
+        unsigned int cooldown = min(team_stats.days_in_schedule/games_total, MAX_PITCHER_COOLDOWN);
         unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
         bool is_rested = days_of_rest >= cooldown;
 
-        if (is_rested && (saves > most_saves)) {
-            most_saves = saves;
+        if (is_rested && (relief_games > most_relief_games)) {
+            most_relief_games = relief_games;
             new_pitcher = player;
         }
-        else if ((most_saves == -1) && (days_of_rest >= most_days_of_rest_for_unrested_player)) { // if our player is unrested and we are yet to find a rested player
+        else if ((most_relief_games == -1) && (days_of_rest >= most_days_of_rest_for_unrested_player)) { // if our player is unrested and we are yet to find a rested player
             most_days_of_rest_for_unrested_player = days_of_rest;
             least_unrested_pitcher = player;
         }
     }
-    if (most_saves == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
+    if (most_relief_games == -1) { // If there are no rested pitchers (this is somewhat rare), then we just go with the player that has the most rest
         new_pitcher = least_unrested_pitcher;
         debug_print("No rested relief pitchers available on " << team_stats.team_cache_id << ", defaulting to least unrested player...");
     }
