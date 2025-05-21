@@ -4,6 +4,8 @@
 #include "table.hpp"
 #include "utils.hpp"
 
+#include <assert.h>
+
 using namespace std;
 
 Global_Stat_Container global_stats;
@@ -91,13 +93,26 @@ Team_Stats::Team_Stats(const string& main_team_abbreviation, Stat_Table team_sta
     this->main_team_abbreviation = main_team_abbreviation;
     this->year_specific_abbreviation = stat_tables[TEAM_INFO].get_stat<string>("abbreviation", 0, "NO ABBREVIATION FOUND");
     this->team_cache_id = get_team_cache_id(year_specific_abbreviation, year);
-
-    unsigned int start_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", 0, ""), year);
-    unsigned int end_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", stat_tables[TEAM_SCHEDULE].size() - 1, ""), year);
-    this->days_in_schedule = end_date - start_date;
     this->year = year;
+    set_days_in_schedule();
 }
 
+
+// This aids in simulating seasons that aren't finished yet
+void Team_Stats::set_days_in_schedule() {
+    assert(stat_tables[TEAM_SCHEDULE].size() < 1000);
+    assert(stat_tables[TEAM_SCHEDULE].size() > 0);
+
+    unsigned int start_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", 0, ""), year);
+    unsigned int end_date = start_date + 1;
+    for (size_t i = stat_tables[TEAM_SCHEDULE].size(); i > 0; i--) {
+        if (get_stat<string>(TEAM_SCHEDULE, "win_loss_result", i-1, "NONE") != "NONE") {
+            end_date = get_day_of_year(get_stat<string>(TEAM_SCHEDULE, "date_game", i-1, ""), year);
+            break;
+        }
+    }
+    this->days_in_schedule = end_date - start_date;
+}
 
 
 League_Stats::League_Stats(unsigned int year, Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]): Stat_Table_Container(league_stat_tables) {

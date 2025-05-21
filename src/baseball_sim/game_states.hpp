@@ -34,7 +34,10 @@ class At_Bat {
         void populate_pitch_probabilities();
         ePitch_Outcomes get_pitch_outcome();
         eAt_Bat_Outcomes get_basic_at_bat_outcome();
+        bool is_special_pitch_count();
         bool should_use_basic_stats();
+        void calculate_special_strike_ball_probs(float output[]);
+        void calculate_special_strike_type_probs(float output[]);
 };
 
 

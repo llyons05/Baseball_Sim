@@ -75,6 +75,8 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
 
         Team_Stats() {}
         Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], unsigned int year);
+    private:
+        void set_days_in_schedule();
 };
 
 

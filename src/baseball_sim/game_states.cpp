@@ -53,14 +53,23 @@ eAt_Bat_Outcomes At_Bat::play() {
 }
 
 
+bool At_Bat::is_special_pitch_count() {
+    return (!(balls || strikes))
+        || ((balls == 3) && (strikes == 0))
+        || ((balls == 0) && (strikes == 2));
+        // || ((balls == 2) && (strikes == 0))
+        // || ((balls == 3) && (strikes == 1));
+}
+
+
 bool At_Bat::should_use_basic_stats() {
-    return batter->stats[PLAYER_PITCH_SUMMARY_BATTING].empty() || pitcher->stats[PLAYER_PITCH_SUMMARY_PITCHING].empty();
+    return batter->stats[PLAYER_PITCH_SUMMARY_BATTING].empty() || pitcher->stats[PLAYER_PITCH_SUMMARY_PITCHING].empty() || true; // Unfortunately the pitch by pitch sucks right now so we're not going to use it until I make it better
 }
 
 
 // We want to precalculate these, since they will not change throughout the at bat
 // NOTE: There is a major issue hiding here, balls are put into play much less frequently (~6% less) using this method (as compared to using the basic stats calculation, which is getting it almost perfectly right).
-// At the moment I have no idea why this, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear. If you actually do the math,
+// At the moment I have no idea why this is, it is clearly favoring pitchers quite a bit, but the origin of that bias is unclear. If you actually do the math,
 // it does add up that this will produce fewer hits, but why?? This is how the process actually happens, so this makes no sense to me.
 // The only thing that I can think of is that this does not account for players swinging more when they are about to strike out
 void At_Bat::populate_pitch_probabilities() {
@@ -96,9 +105,65 @@ void At_Bat::populate_pitch_probabilities() {
 }
 
 
+void At_Bat::calculate_special_strike_ball_probs(float output[]) {
+    float batter_strike_or_ball_probs[2];
+    float pitcher_strike_or_ball_probs[2];
+    const float* league_strike_or_ball_probs = ALL_LEAGUE_STATS[batter->stats.current_year].strike_or_ball_probs;
+
+    batter_strike_or_ball_probs[PITCH_STRIKE] = batter->stats.get_stat(PLAYER_PITCH_SUMMARY_BATTING, "strike_perc", .0f)/100;
+    batter_strike_or_ball_probs[PITCH_BALL] = 1 - batter_strike_or_ball_probs[PITCH_STRIKE];
+
+    std::string stat_string;
+
+    if (!(strikes || balls)) {
+        pitcher_strike_or_ball_probs[PITCH_STRIKE] = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, "first_pitch_strike_perc", .0f)/100;
+        pitcher_strike_or_ball_probs[PITCH_BALL] = 1 - pitcher_strike_or_ball_probs[PITCH_STRIKE];
+
+        // league_strike_or_ball_probs[PITCH_STRIKE] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_PITCHING, pitcher->stats.current_year, "first_pitch_strike_perc", .0f)/100;
+        // league_strike_or_ball_probs[PITCH_BALL] = 1 - league_strike_or_ball_probs[PITCH_STRIKE];
+    }
+    else {
+        std::string total_string;
+        std::string strike_string;
+        if ((balls == 3) && (strikes == 0)) {
+            total_string = "30_pitches";
+            strike_string = "30_strikes";
+        }
+        else if ((balls == 0) && (strikes == 2)) {
+            total_string = "02_pitches";
+            strike_string = "02_strikes";
+        }
+        else assert(false); // We should never get here
+
+        // float league_pitches = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_PITCHING, pitcher->stats.current_year, total_string, .0f);
+        // league_strike_or_ball_probs[PITCH_STRIKE] = ALL_LEAGUE_STATS.get_stat(LEAGUE_PITCH_SUMMARY_PITCHING, pitcher->stats.current_year, strike_string, .0f)/league_pitches;
+        // league_strike_or_ball_probs[PITCH_BALL] = 1 - league_strike_or_ball_probs[PITCH_STRIKE];
+
+        float pitcher_pitches = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, total_string, .0f);
+        if (pitcher_pitches == 0)
+            pitcher_strike_or_ball_probs[PITCH_STRIKE] = league_strike_or_ball_probs[PITCH_STRIKE];
+        else
+            pitcher_strike_or_ball_probs[PITCH_STRIKE] = pitcher->stats.get_stat(PLAYER_PITCH_SUMMARY_PITCHING, strike_string, .0f)/pitcher_pitches;
+        pitcher_strike_or_ball_probs[PITCH_BALL] = 1 - pitcher_strike_or_ball_probs[PITCH_STRIKE];
+    }
+
+    calculate_event_probabilities(batter_strike_or_ball_probs, pitcher_strike_or_ball_probs, league_strike_or_ball_probs, output, 2);
+}
+
+
 ePitch_Outcomes At_Bat::get_pitch_outcome() {
     global_stats.total_pitches++;
-    int strike_or_ball = get_random_event(strike_or_ball_probs, 2);
+
+    int strike_or_ball;
+    if (is_special_pitch_count()) {
+        float probs[2];
+        calculate_special_strike_ball_probs(probs);
+        strike_or_ball = get_random_event(probs, 2);
+    }
+    else {
+        strike_or_ball = get_random_event(strike_or_ball_probs, 2);
+    }
+
     if (strike_or_ball == PITCH_BALL) {
         game_viewer_print("\t\tBALL...\n");
         return PITCH_BALL;

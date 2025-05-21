@@ -17,5 +17,6 @@ NOTES:
     Use league stats to get % of SBOs on certain bases
     Add minimum number of plate appearances rather than just catching 0
     Add double plays
+    Use pitch summary for pitchers to get more accurate assesment of when they throw strikes
     https://www.retrosheet.org/eventfile.htm
     https://www.retrosheet.org/game.htm#Top
