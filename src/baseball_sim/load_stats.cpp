@@ -144,13 +144,8 @@ bool Stat_Loader::should_load_player_stat_type(const Team_Stats& team_stats, siz
     if (team_stats.year < PLAYER_STAT_EARLIEST_YEARS.at(stat_type)) {
         return false;
     }
-    if ((stat_type == PLAYER_BASERUNNING) || (stat_type == PLAYER_PITCH_SUMMARY_BATTING)) {
-        if (team_stats[TEAM_BATTING].get_stat("b_pa", player_row, .0f) == 0) {
-            return false;
-        }
-        if ((stat_type == PLAYER_BASERUNNING) && (team_stats[TEAM_BATTING].get_stat("b_h", player_row, .0f) == 0)) {
-            return false;
-        }
+    if ((stat_type == PLAYER_BASERUNNING) && (team_stats[TEAM_BATTING].get_stat("b_h", player_row, .0f) == 0)) {
+        return false;
     }
     if ((stat_type == PLAYER_FIELDING) && (team_stats[TEAM_ROSTER].get_stat("games_defense", player_row, .0f) == 0)) {
         return false;

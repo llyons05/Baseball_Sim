@@ -62,14 +62,6 @@ def get_league_standings_url(base_league_year_url: str) -> str:
     return base_league_year_url.replace(".shtml", "-standings.shtml")
 
 
-def get_league_pitch_summary_batting_url(base_league_year_url: str) -> str:
-    return base_league_year_url.replace(".shtml", "-pitches-batting.shtml")
-
-
-def get_league_pitch_summary_pitching_url(base_league_year_url: str) -> str:
-    return base_league_year_url.replace(".shtml", "-pitches-pitching.shtml")
-
-
 def get_league_baserunning_url(base_league_year_url: str) -> str:
     return base_league_year_url.replace(".shtml", "-baserunning-batting.shtml")
 

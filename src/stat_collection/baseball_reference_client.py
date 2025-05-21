@@ -221,12 +221,6 @@ class Scraping_Client:
         elif stat_type == "batting_against":
             table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_batting", "all_pitching_batting")
 
-        elif stat_type == "pitch_summary_batting":
-            table_parser = self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_pitches", "all_batting_pitches")
-
-        elif stat_type == "pitch_summary_pitching":
-            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_pitches", "all_pitching_pitches")
-
         if table_parser is None:
             return EMPTY_TABLE
 
@@ -272,12 +266,6 @@ class Scraping_Client:
 
         elif stat_type == "baserunning":
             table = self._scrape_default_league_avg_table(utils.get_league_baserunning_url(base_league_year_url), "teams_baserunning_batting", "all_teams_baserunning_batting")
-
-        elif stat_type == "pitch_summary_batting":
-            table = self._scrape_default_league_avg_table(utils.get_league_pitch_summary_batting_url(base_league_year_url), "teams_pitches_batting", "all_teams_pitches_batting")
-
-        elif stat_type == "pitch_summary_pitching":
-            table = self._scrape_default_league_avg_table(utils.get_league_pitch_summary_pitching_url(base_league_year_url), "teams_pitches_pitching", "all_teams_pitches_pitching")
 
         elif stat_type == "batting_by_bases":
             table = self._scrape_league_batting_split_table(year, "bases", "all_bases")

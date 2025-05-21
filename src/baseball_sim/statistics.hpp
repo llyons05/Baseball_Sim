@@ -19,8 +19,6 @@ enum ePlayer_Stat_Types {
     PLAYER_BASERUNNING,
     PLAYER_BASERUNNING_AGAINST,
     PLAYER_BATTING_AGAINST,
-    PLAYER_PITCH_SUMMARY_BATTING,
-    PLAYER_PITCH_SUMMARY_PITCHING,
     NUM_PLAYER_STAT_TYPES
 };
 
@@ -85,8 +83,6 @@ enum eLeague_Stat_Types {
     LEAGUE_PITCHING,
     LEAGUE_FIELDING,
     LEAGUE_BASERUNNING,
-    LEAGUE_PITCH_SUMMARY_BATTING,
-    LEAGUE_PITCH_SUMMARY_PITCHING,
     LEAGUE_BATTING_BY_BASES,
     LEAGUE_STANDINGS,
     NUM_LEAGUE_STAT_TYPES
@@ -97,9 +93,7 @@ extern std::map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS;
 
 class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> {
     public:
-        float strike_or_ball_probs[2];
-        float strike_type_probs[NUM_STRIKE_TYPES];
-        float basic_at_bat_probs[NUM_AB_OUTCOMES];
+        float at_bat_probs[NUM_AB_OUTCOMES];
         float hit_or_out_probs[2];
         float hit_type_probs[4];
         float steal_attempt_probs[2][2];
@@ -144,14 +138,11 @@ extern ALL_LEAGUE_STATS;
 struct Global_Stat_Container {
     uint32_t balls_in_play = 0;
     uint32_t total_PAs = 0;
-    uint32_t total_strikes = 0;
-    uint32_t total_pitches = 0;
     uint32_t total_hits = 0;
 
     void print(int divisor = 1) {
         std::cout << std::fixed << std::setprecision(3);
         std::cout << "BALL IN PLAY%: " << ((float)balls_in_play)/(float)total_PAs << "\n"
-                  << "     STRIKE %: " << (float)total_strikes/(total_pitches?total_pitches:1) << "\n" 
                   << "         HITS: " << total_hits/divisor << "\n"
                   << "          PAs: " << total_PAs/divisor << "\n";
     }

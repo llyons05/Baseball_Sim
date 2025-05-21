@@ -25,19 +25,6 @@ class At_Bat {
 
         At_Bat(Team* batting_team, Team* pitching_team);
         eAt_Bat_Outcomes play();
-
-    private:
-        // Probability of a pitch being a ball or not (index 0 is strike, 1 is ball)
-        float strike_or_ball_probs[2];
-        float strike_type_probs[NUM_STRIKE_TYPES];
-
-        void populate_pitch_probabilities();
-        ePitch_Outcomes get_pitch_outcome();
-        eAt_Bat_Outcomes get_basic_at_bat_outcome();
-        bool is_special_pitch_count();
-        bool should_use_basic_stats();
-        void calculate_special_strike_ball_probs(float output[]);
-        void calculate_special_strike_type_probs(float output[]);
 };
 
 
