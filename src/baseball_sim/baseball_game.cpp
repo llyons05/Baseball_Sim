@@ -7,7 +7,7 @@
 #include <random>
 #include <time.h>
 
-Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, unsigned int day_of_year) {
+Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, uint day_of_year) {
     teams[HOME_TEAM] = home_team;
     teams[AWAY_TEAM] = away_team;
 

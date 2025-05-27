@@ -14,7 +14,7 @@
 using namespace std;
 
 
-Season::Season(const vector<Team*>& teams, unsigned int year) {
+Season::Season(const vector<Team*>& teams, uint year) {
     this->teams = teams;
     this->year = year;
 
@@ -31,7 +31,7 @@ void Season::populate_matchups() {
             Team* away_team = team_cache.at(get_team_cache_id(away_team_abbr, year)).get();
 
             if (find(loaded_teams.begin(), loaded_teams.end(), away_team) != loaded_teams.end()) {
-                unsigned int day_of_year = get_day_of_year(schedule_table.get_stat<string>("date_game", i, ""), year);
+                uint day_of_year = get_day_of_year(schedule_table.get_stat<string>("date_game", i, ""), year);
                 matchups.push_back(Matchup(team, away_team, day_of_year));
             }
         }
@@ -43,8 +43,8 @@ void Season::populate_matchups() {
 
 
 // Return the teams in order of win %
-vector<Team*> Season::run_games(unsigned int num_season_sims) {
-    for (unsigned int i = 0; i < num_season_sims; i++){
+vector<Team*> Season::run_games(uint num_season_sims) {
+    for (uint i = 0; i < num_season_sims; i++){
         for (Matchup& matchup : matchups) {
             eTeam winner = simulate_matchup(matchup);
             if (winner == HOME_TEAM) {
@@ -80,13 +80,11 @@ eTeam Season::simulate_matchup(const Matchup& matchup) {
         player->day_of_last_game_played = matchup.day_of_year;
     }
 
-    matchup.home_team->reset();
-    matchup.away_team->reset();
     return result.winner;
 }
 
 
-Matchup::Matchup(Team* home_team, Team* away_team, unsigned int day_of_year) {
+Matchup::Matchup(Team* home_team, Team* away_team, uint day_of_year) {
     this->home_team = home_team;
     this->away_team = away_team;
     this->day_of_year = day_of_year;

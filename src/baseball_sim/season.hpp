@@ -12,10 +12,10 @@ class Matchup {
     public:
         Team* home_team;
         Team* away_team;
-        unsigned int day_of_year;
+        uint day_of_year;
 
         Matchup(){}
-        Matchup(Team* home_team, Team* away_team, unsigned int day_of_year);
+        Matchup(Team* home_team, Team* away_team, uint day_of_year);
 
         inline Baseball_Game load_game() const {
             return Baseball_Game(home_team, away_team, day_of_year);
@@ -25,16 +25,23 @@ class Matchup {
 
 class Season {
     public:
-        unsigned int year;
+        uint year;
         std::vector<Matchup> matchups;
         std::vector<Team*> teams;
 
         Season(){}
-        Season(const std::vector<Team*>& teams, unsigned int year);
+        Season(const std::vector<Team*>& teams, uint year);
 
-        std::vector<Team*> run_games(unsigned int sims_per_matchup);
+        std::vector<Team*> run_games(uint sims_per_matchup);
 
     private:
         void populate_matchups();
         eTeam simulate_matchup(const Matchup& matchup);
+};
+
+
+class Series {
+    public:
+        uint num_games;
+        
 };

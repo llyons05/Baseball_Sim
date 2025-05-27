@@ -1,5 +1,7 @@
 #pragma once
 
+#include "includes.hpp"
+
 #include <vector>
 #include <string>
 #include <map>
@@ -162,14 +164,14 @@ class Stat_Table {
 };
 
 // Container for multiple stat_tables
-template <class Stat_Type, unsigned int num_stat_types> // Change this to size_t maybe???
+template <class Stat_Type, uint num_stat_types> // Change this to size_t maybe???
 class Stat_Table_Container {
     public:
         Stat_Table stat_tables[num_stat_types];
 
         Stat_Table_Container(): stat_tables() {};
         Stat_Table_Container(Stat_Table stat_tables[num_stat_types]) {
-            for (unsigned int i = 0; i < num_stat_types; i++) {
+            for (uint i = 0; i < num_stat_types; i++) {
                 this->stat_tables[i] = stat_tables[i];
             }
         }

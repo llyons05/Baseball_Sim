@@ -32,7 +32,11 @@ Team::Team(const string& team_name, const vector<Player*>& players, const Team_S
 }
 
 // Call this before every game the team plays
-void Team::prepare_for_game(unsigned int day_of_game, bool keep_batting_order) {
+void Team::prepare_for_game(uint day_of_game, bool keep_batting_order) {
+    position_in_batting_order = 0;
+    runs_allowed_by_pitcher = 0;
+    current_pitcher_starting_half_inning = 0;
+
     set_up_pitchers();
     set_current_pitcher(pick_next_pitcher(0, day_of_game), 0);
     if (!keep_batting_order) {
@@ -77,18 +81,18 @@ set<Player*> Team::get_all_pitchers() {
 }
 
 
-Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
+Player* Team::pick_starting_pitcher(uint current_day_of_year) {
     Player* new_pitcher = get_pitcher();
     Player* least_unrested_pitcher = get_pitcher();
     int max_games = -1;
-    unsigned int most_days_of_rest_for_unrested_player = 0;
+    uint most_days_of_rest_for_unrested_player = 0;
 
     for (Player* player : available_pitchers) {
         int games_started = player->stats.get_stat(PLAYER_PITCHING, "p_gs", .0f);
         if (games_started <= 0) continue; // This player has never been a starting pitcher, so we don't want to put him in
 
-        unsigned int cooldown = min(team_stats.days_in_schedule/games_started, MAX_PITCHER_COOLDOWN);
-        unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
+        uint cooldown = min(team_stats.days_in_schedule/games_started, MAX_PITCHER_COOLDOWN);
+        uint days_of_rest = current_day_of_year - player->day_of_last_game_played;
         bool is_rested = days_of_rest >= cooldown;
 
         if (is_rested && (games_started > max_games)) { // Also use winrate here
@@ -109,19 +113,19 @@ Player* Team::pick_starting_pitcher(unsigned int current_day_of_year) {
 }
 
 
-Player* Team::pick_relief_pitcher(unsigned int current_day_of_year) {
+Player* Team::pick_relief_pitcher(uint current_day_of_year) {
     Player* new_pitcher = get_pitcher();
     Player* least_unrested_pitcher = get_pitcher();
     int most_relief_games = -1;
-    unsigned int most_days_of_rest_for_unrested_player = 0;
+    uint most_days_of_rest_for_unrested_player = 0;
 
     for (Player* player : available_pitchers) {
         int games_total = player->stats.get_stat(PLAYER_PITCHING, "p_g", .0f);
         int relief_games = games_total - player->stats.get_stat(PLAYER_PITCHING, "p_gs", .0f);
         if (relief_games <= 0) continue; // If this player is only a starter, we do not put them in as a reliever. This helps save starting pitchers.
 
-        unsigned int cooldown = min(team_stats.days_in_schedule/games_total, MAX_PITCHER_COOLDOWN);
-        unsigned int days_of_rest = current_day_of_year - player->day_of_last_game_played;
+        uint cooldown = min(team_stats.days_in_schedule/games_total, MAX_PITCHER_COOLDOWN);
+        uint days_of_rest = current_day_of_year - player->day_of_last_game_played;
         bool is_rested = days_of_rest >= cooldown;
 
         if (is_rested && (relief_games > most_relief_games)) {
@@ -160,7 +164,7 @@ void Team::set_current_pitcher(Player* new_pitcher, uint8_t current_half_inning)
 }
 
 
-Player* Team::try_switching_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year) {
+Player* Team::try_switching_pitcher(uint8_t current_half_inning, uint current_day_of_year) {
     if (should_swap_pitcher(get_pitcher(), current_half_inning)) {
         Player* new_pitcher = pick_next_pitcher(current_half_inning, current_day_of_year);
         set_current_pitcher(new_pitcher, current_half_inning);
@@ -183,7 +187,7 @@ bool Team::should_swap_pitcher(Player* pitcher, uint8_t current_half_inning) {
 }
 
 
-Player* Team::pick_next_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year) {
+Player* Team::pick_next_pitcher(uint8_t current_half_inning, uint current_day_of_year) {
     if (current_half_inning > 8) {
         return pick_relief_pitcher(current_day_of_year);
     }
@@ -292,11 +296,4 @@ void Team::print_batting_order() {
         cout << "\t-Batting Avg: " << batting_order[i]->stats.get_stat(PLAYER_BATTING, "b_batting_avg", .0f) << "\n";
     }
     cout << "\n";
-}
-
-
-void Team::reset() {
-    position_in_batting_order = 0;
-    runs_allowed_by_pitcher = 0;
-    current_pitcher_starting_half_inning = 0;
 }

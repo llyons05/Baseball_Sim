@@ -1,5 +1,6 @@
 #pragma once
 
+#include "includes.hpp"
 #include "table.hpp"
 
 #include <fstream>
@@ -17,8 +18,8 @@ void populate_row(const std::vector<std::string>& row_data, const std::vector<st
 Table_Entry convert_string_to_table_entry(const std::string& str);
 bool is_float(const std::string& str);
 
-std::string get_player_cache_id(const std::string& player_id, const std::string& team_abbreviation, unsigned int year);
+std::string get_player_cache_id(const std::string& player_id, const std::string& team_abbreviation, uint year);
 std::string get_player_cache_id(const std::string& player_id, const std::string& team_cache_id);
-std::string get_team_cache_id(const std::string& team_abbr, unsigned int year);
+std::string get_team_cache_id(const std::string& team_abbr, uint year);
 
-unsigned int get_day_of_year(const std::string& schedule_date_string, unsigned int year);
+uint get_day_of_year(const std::string& schedule_date_string, uint year);

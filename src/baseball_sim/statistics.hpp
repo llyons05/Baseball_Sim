@@ -23,16 +23,16 @@ enum ePlayer_Stat_Types {
 };
 
 extern std::string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES];
-extern std::map<ePlayer_Stat_Types, unsigned int> PLAYER_STAT_EARLIEST_YEARS;
+extern std::map<ePlayer_Stat_Types, uint> PLAYER_STAT_EARLIEST_YEARS;
 
 class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_STAT_TYPES> {
     public:
         std::string player_id;
         std::string cache_id;
-        unsigned int current_year;
+        uint current_year;
 
         Player_Stats(){}
-        Player_Stats(const std::string& player_id, unsigned int year, const std::string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
+        Player_Stats(const std::string& player_id, uint year, const std::string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]);
 
         template <class T>
         T get_stat(ePlayer_Stat_Types stat_type, const std::string& stat_name, const T& default_val) const {
@@ -44,7 +44,7 @@ class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_
         size_t current_table_row_indices[NUM_PLAYER_STAT_TYPES] = {0};
         std::string current_team_abbreviation;
 
-        void change_stat_table_target_row(ePlayer_Stat_Types stat_type, unsigned int year, const std::string& team_abbreviation);
+        void change_stat_table_target_row(ePlayer_Stat_Types stat_type, uint year, const std::string& team_abbreviation);
 };
 
 bool is_player_stat_out_of_date(ePlayer_Stat_Types stat_type);
@@ -68,11 +68,11 @@ class Team_Stats : public Stat_Table_Container<eTeam_Stat_Types, NUM_TEAM_STAT_T
         std::string main_team_abbreviation;
         std::string year_specific_abbreviation;
         std::string team_cache_id;
-        unsigned int days_in_schedule;
-        unsigned int year;
+        uint days_in_schedule;
+        uint year;
 
         Team_Stats() {}
-        Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], unsigned int year);
+        Team_Stats(const std::string& main_team_abbreviation, Stat_Table team_stat_tables[NUM_TEAM_STAT_TYPES], uint year);
     private:
         void set_days_in_schedule();
 };
@@ -89,7 +89,7 @@ enum eLeague_Stat_Types {
 };
 
 extern std::string LEAGUE_STAT_NAMES[NUM_LEAGUE_STAT_TYPES];
-extern std::map<eLeague_Stat_Types, unsigned int> LEAGUE_STAT_EARLIEST_YEARS;
+extern std::map<eLeague_Stat_Types, uint> LEAGUE_STAT_EARLIEST_YEARS;
 
 class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_STAT_TYPES> {
     public:
@@ -100,10 +100,10 @@ class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_
         float steal_success_probs[2][2];
 
         float sbo_on_first_percent;
-        unsigned int year;
+        uint year;
 
         League_Stats() {}
-        League_Stats(unsigned int year, Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]);
+        League_Stats(uint year, Stat_Table league_stat_tables[NUM_LEAGUE_STAT_TYPES]);
 
     private:
         void populate_probs();
@@ -115,22 +115,22 @@ class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_
 class All_League_Stats_Wrapper {
     public:
         All_League_Stats_Wrapper(){}
-        void add_year(unsigned int year, const League_Stats& year_table);
-        bool holds_year(unsigned int year) const;
-        const League_Stats& get_year(unsigned int year) const;
+        void add_year(uint year, const League_Stats& year_table);
+        bool holds_year(uint year) const;
+        const League_Stats& get_year(uint year) const;
 
         template <class T>
-        T get_stat(eLeague_Stat_Types stat_type, unsigned int year, const std::string& stat_name, const T& default_val) const {
+        T get_stat(eLeague_Stat_Types stat_type, uint year, const std::string& stat_name, const T& default_val) const {
             return league_stat_tables.at(year).get_stat(stat_type, stat_name, 0, default_val);
         }
 
-        const League_Stats& operator[](unsigned int year) const {
+        const League_Stats& operator[](uint year) const {
             return get_year(year);
         }
 
     private:
         // Keys are years, values are League Stats for that year
-        std::map<unsigned int, League_Stats> league_stat_tables;
+        std::map<uint, League_Stats> league_stat_tables;
 }
 extern ALL_LEAGUE_STATS;
 

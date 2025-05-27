@@ -59,7 +59,7 @@ class Half_Inning {
     public:
         const static uint8_t NUM_OUTS_TO_END_INNING = 3;
         
-        Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, unsigned int day_of_year);
+        Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year);
         uint8_t play();
     
     private:
@@ -72,7 +72,7 @@ class Half_Inning {
         Base_State bases;
 
         uint8_t half_inning_number;
-        unsigned int day_of_year;
+        uint day_of_year;
 
         void play_at_bat();
         Ball_In_Play_Result get_ball_in_play_result(Player* batter, Player* pitcher);

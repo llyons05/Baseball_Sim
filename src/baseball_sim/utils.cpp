@@ -1,6 +1,7 @@
 #include "utils.hpp"
 
 #include "table.hpp"
+#include "includes.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -72,7 +73,7 @@ vector<string> read_csv_line(const string& line) {
 // Assumes that row_data[i] corresponds to headers[i]. If len(row_data) < len(headers), the extra columns are filled in as null. If len(row_data) > len(headers), the extra data is left out.
 // Also converts the strings into Table_Entry's along the way (i.e. converts them into floats or null values as needed).
 void populate_row(const vector<string>& row_data, const vector<string>& headers, map<string, vector<Table_Entry>>& target) {
-    for (unsigned int i = 0; i < headers.size(); i++) {
+    for (uint i = 0; i < headers.size(); i++) {
         if (i < row_data.size())
             target.at(headers[i]).push_back(convert_string_to_table_entry(row_data[i]));
         else
@@ -107,7 +108,7 @@ bool is_float(const string& str) {
 
 // We must cache players with their team and year, since it is possible for the same player to play for two teams in the same year
 // Also we might want to have two different versions of the same team play (ex: 2023 NYY vs 2024 NYY)
-string get_player_cache_id(const string& player_id, const string& team_abbreviation, unsigned int year) {
+string get_player_cache_id(const string& player_id, const string& team_abbreviation, uint year) {
     return player_id + "_" + team_abbreviation + "_" + to_string(year);
 }
 
@@ -117,12 +118,12 @@ string get_player_cache_id(const string& player_id, const string& team_cache_id)
 }
 
 
-string get_team_cache_id(const string& team_abbreviation, unsigned int year) {
+string get_team_cache_id(const string& team_abbreviation, uint year) {
     return team_abbreviation + "_" + to_string(year);
 }
 
 
-unsigned int get_day_of_year(const std::string& schedule_date_string, unsigned int year) {
+uint get_day_of_year(const std::string& schedule_date_string, uint year) {
     const string date_str = schedule_date_string + " " + to_string(year);
     tm t{};
     istringstream ss(date_str);

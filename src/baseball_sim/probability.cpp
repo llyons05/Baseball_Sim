@@ -13,14 +13,14 @@ void set_up_rand() {
 }
 
 
-void calculate_event_probabilities(const float x[], const float y[], const float z[], float output[], int num_events) {
+void calculate_event_probabilities(const float x[], const float y[], const float z[], float output[], uint num_events) {
     float total = 0;
-    for (int i = 0; i < num_events; i++) {
+    for (uint i = 0; i < num_events; i++) {
         output[i] = x[i]*y[i]/z[i];
         total += output[i];
     }
 
-    for (int i = 0; i < num_events; i++) {
+    for (uint i = 0; i < num_events; i++) {
         output[i] = output[i]/total;
     }
 
@@ -28,20 +28,20 @@ void calculate_event_probabilities(const float x[], const float y[], const float
         if (total == 0) {
             std::cout << "WARNING: NAN PROBABILITY\n";
             std::cout << "\tNUM EVENTS: " << num_events << ", z[] PROBS: ";
-            for (int i = 0; i < num_events; i++) std::cout << z[i] << " ";
+            for (uint i = 0; i < num_events; i++) std::cout << z[i] << " ";
             std::cout << "\n";
         }
     )
 }
 
 
-int get_random_event(const float event_probs[], int num_events) {
+int get_random_event(const float event_probs[], uint num_events) {
     debug_line(
         float sum = 0;
-        for (int i = 0; i < num_events; sum+=event_probs[i], i++);
+        for (uint i = 0; i < num_events; sum+=event_probs[i], i++);
         if (abs(1 - sum) > 1e-6) {
             std::cout << "SUM: " << sum << "\n";
-            for (int i = 0; i < num_events; i++) std::cout << "\t" << event_probs[i] << "\n";
+            for (uint i = 0; i < num_events; i++) std::cout << "\t" << event_probs[i] << "\n";
             std::cout << "abs(1-sum) = " << abs(1 - sum) << "\n";
             assert(abs(1 - sum) < 1e-6);
         }

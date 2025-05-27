@@ -61,7 +61,7 @@ eAt_Bat_Outcomes At_Bat::play() {
 }
 
 
-Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, unsigned int day_of_year) {
+Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year) {
     this->batting_team = batting_team;
     this->pitching_team = pitching_team;
     this->half_inning_number = half_inning_number;

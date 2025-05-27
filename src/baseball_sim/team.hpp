@@ -16,8 +16,8 @@ class Team {
     public:
         std::string team_name;
         Team_Stats team_stats;
-        unsigned int runs_scored = 0;
-        unsigned int runs_allowed = 0;
+        uint runs_scored = 0;
+        uint runs_allowed = 0;
 
         std::vector<Player*> all_players;
         Player* batting_order[9];
@@ -28,7 +28,7 @@ class Team {
         uint8_t position_in_batting_order;
         uint8_t runs_allowed_by_pitcher;
         uint8_t current_pitcher_starting_half_inning;
-        unsigned int wins, losses;
+        uint wins, losses;
 
         Team(){}
         Team(const std::string& team_name, const std::vector<Player*>& players, const Team_Stats& team_stats);
@@ -53,26 +53,25 @@ class Team {
         std::set<Player*> filter_players_by_listed_pos(const std::vector<Table_Entry>& positions = {});
         std::set<Player*> filter_pitchers(const std::vector<Table_Entry>& positions = {});
 
-        Player* try_switching_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year);
-        Player* pick_next_pitcher(uint8_t current_half_inning, unsigned int current_day_of_year);
+        Player* try_switching_pitcher(uint8_t current_half_inning, uint current_day_of_year);
+        Player* pick_next_pitcher(uint8_t current_half_inning, uint current_day_of_year);
         void set_current_pitcher(Player* new_pitcher, uint8_t current_half_inning);
         void set_position_in_field(Player* new_player, eDefensivePositions position);
 
         void print_fielders();
         void print_batting_order();
 
-        void prepare_for_game(unsigned int day_of_game, bool keep_batting_order);
-        void reset();
+        void prepare_for_game(uint day_of_game, bool keep_batting_order);
 
     private:
-        const unsigned int MAX_PITCHER_COOLDOWN = 15; // days
+        const uint MAX_PITCHER_COOLDOWN = 15; // days
 
         void set_up_batting_order();
         void set_up_fielders();
         void set_up_pitchers();
 
-        Player* pick_starting_pitcher(unsigned int current_day_of_year);
-        Player* pick_relief_pitcher(unsigned int current_day_of_year);
+        Player* pick_starting_pitcher(uint current_day_of_year);
+        Player* pick_relief_pitcher(uint current_day_of_year);
         std::set<Player*> get_all_pitchers();
         bool should_swap_pitcher(Player* pitcher, uint8_t current_half_inning);
 

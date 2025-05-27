@@ -17,7 +17,7 @@ class Player {
     public:
         std::string name, id;
         Player_Stats stats;
-        unsigned int day_of_last_game_played;
+        uint day_of_last_game_played;
 
         Player() {}
 

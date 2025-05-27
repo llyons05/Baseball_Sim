@@ -34,8 +34,8 @@ int main() {
 void play_season() {
     Stat_Loader loader;
 
-    unsigned int season_year = get_user_input<unsigned int>("Input season to simulate: ");
-    unsigned int season_sims = get_user_input<unsigned int>("Input number of times to simulate season: ");
+    uint season_year = get_user_input<uint>("Input season to simulate: ");
+    uint season_sims = get_user_input<uint>("Input number of times to simulate season: ");
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     
@@ -76,10 +76,10 @@ void play_single_game() {
     Stat_Loader loader;
 
     std::string team_1_name = get_user_input<std::string>("Input Team 1 Abbreviation (Ex: NYY or LAD): ");
-    unsigned int team_1_year = get_user_input<unsigned int>("Input Team 1 Year (Ex: 1924 or 2024): ");
+    uint team_1_year = get_user_input<uint>("Input Team 1 Year (Ex: 1924 or 2024): ");
     std::string team_2_name = get_user_input<std::string>("Input Team 2 Abbreviation (Ex: NYY or LAD): ");
-    unsigned int team_2_year = get_user_input<unsigned int>("Input Team 2 Year (Ex: 1924 or 2024): ");
-    unsigned int num_games = get_user_input<unsigned int>("Input number of games in the series: ");
+    uint team_2_year = get_user_input<uint>("Input Team 2 Year (Ex: 1924 or 2024): ");
+    uint num_games = get_user_input<uint>("Input number of games in the series: ");
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     Team* team_1 = loader.load_team(team_1_name, team_1_year);
@@ -99,7 +99,7 @@ void play_single_game() {
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    for (unsigned int i = 0; i < num_games; i++) {
+    for (uint i = 0; i < num_games; i++) {
         teams[0]->prepare_for_game(0, true);
         teams[1]->prepare_for_game(0, true);
 
@@ -113,9 +113,6 @@ void play_single_game() {
 
         total_runs[home_id] += result.final_score[HOME_TEAM];
         total_runs[away_id] += result.final_score[AWAY_TEAM];
-
-        teams[0]->reset();
-        teams[1]->reset();
     }
 
     float duration = (std::chrono::steady_clock::now() - begin).count()/(1e+9);

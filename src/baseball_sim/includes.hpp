@@ -20,6 +20,7 @@
     #define game_viewer_line(line_of_code) /*Compile a line of code only if we are in game viewing mode*/
 #endif
 
+typedef unsigned int uint;
 
 enum eTeam {
     AWAY_TEAM,
