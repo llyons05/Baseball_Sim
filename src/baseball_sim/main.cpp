@@ -14,7 +14,7 @@
 
 
 std::string get_simulation_type();
-void play_single_game();
+void play_series();
 void play_season();
 
 int main() {
@@ -24,7 +24,7 @@ int main() {
 
     std::string sim_type = get_simulation_type();
 
-    if (sim_type == "m") play_single_game();
+    if (sim_type == "t") play_series();
     else if (sim_type == "s") play_season();
 
     return 0;
@@ -72,54 +72,38 @@ void play_season() {
 }
 
 
-void play_single_game() {
+void play_series() {
     Stat_Loader loader;
 
-    std::string team_1_name = get_user_input<std::string>("Input Team 1 Abbreviation (Ex: NYY or LAD): ");
-    uint team_1_year = get_user_input<uint>("Input Team 1 Year (Ex: 1924 or 2024): ");
-    std::string team_2_name = get_user_input<std::string>("Input Team 2 Abbreviation (Ex: NYY or LAD): ");
-    uint team_2_year = get_user_input<uint>("Input Team 2 Year (Ex: 1924 or 2024): ");
-    uint num_games = get_user_input<uint>("Input number of games in the series: ");
+    std::string home_team_name = get_user_input<std::string>("Input Home Team Abbreviation (Ex: NYY or LAD): ");
+    uint home_team_year = get_user_input<uint>("Input Home Team Year (Ex: 1924 or 2024): ");
+    std::string away_team_name = get_user_input<std::string>("Input Away Team Abbreviation (Ex: NYY or LAD): ");
+    uint away_team_year = get_user_input<uint>("Input Away Team Year (Ex: 1924 or 2024): ");
+    uint num_games = get_user_input<uint>("Input number of games in the series (ex: the world series is a 7 game series): ");
+    uint num_sims = get_user_input<uint>("Input number of times to simulate series: ");
+    bool swap_teams = num_games > 4;
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
-    Team* team_1 = loader.load_team(team_1_name, team_1_year);
-    Team* team_2 = loader.load_team(team_2_name, team_2_year);
-    Team* teams[2] = {team_1, team_2};
+    Team* home_team = loader.load_team(home_team_name, home_team_year);
+    Team* away_team = loader.load_team(away_team_name, away_team_year);
 
-    loader.load_league_year_stats(team_1_year);
-    loader.load_league_year_stats(team_2_year);
+    loader.load_league_year_stats(home_team_year);
+    loader.load_league_year_stats(away_team_year);
+
+    Series series(home_team, away_team, num_games, num_sims, swap_teams);
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";
 
-    int total_wins[2] = {0};
-    int total_runs[2] = {0};
-
-    std::cout << "Running " << num_games << " games... ";
+    std::cout << "Running ~" << num_games*num_sims << " games... ";
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    for (uint i = 0; i < num_games; i++) {
-        teams[0]->prepare_for_game(0, true);
-        teams[1]->prepare_for_game(0, true);
-
-        int home_id = i%2;
-        int away_id = (i+1)%2;
-        Baseball_Game game(teams[home_id], teams[away_id], 0);
-        Game_Result result = game.play_game();
-
-        if (result.winner == HOME_TEAM) total_wins[home_id]++;
-        else total_wins[away_id]++;
-
-        total_runs[home_id] += result.final_score[HOME_TEAM];
-        total_runs[away_id] += result.final_score[AWAY_TEAM];
-    }
+    series.play();
 
     float duration = (std::chrono::steady_clock::now() - begin).count()/(1e+9);
-    std::cout << "Completed in " << duration << " seconds (" << num_games/duration << " games/s)\n\n";
+    std::cout << "Completed in " << duration << " seconds (" << series.total_games_played/duration << " games/s)\n\n";
 
-    std::cout << "Result of " << num_games << " games:\n";
-    std::cout << team_1->team_name << ": " << total_wins[0] << " wins\t Total runs: " << total_runs[0] << "\n";
-    std::cout << team_2->team_name << ": " << total_wins[1] << " wins\t Total runs: " << total_runs[1] << "\n\n";
-    global_stats.print(num_games);
+    series.print_results();
+    global_stats.print(num_sims);
 }

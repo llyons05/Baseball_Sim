@@ -23,12 +23,12 @@ Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, uint day_of_year)
 
 Game_Result Baseball_Game::play_game() {
     game_viewer_line(
-        std::cout << "MATCHUP: " + teams[HOME_TEAM]->team_name + " vs " + teams[AWAY_TEAM]->team_name + "\n";
-        teams[HOME_TEAM]->print_fielders();
+        std::cout << "MATCHUP: " + teams[AWAY_TEAM]->team_name + " @ " + teams[HOME_TEAM]->team_name + "\n";
         teams[AWAY_TEAM]->print_fielders();
+        teams[HOME_TEAM]->print_fielders();
 
-        teams[HOME_TEAM]->print_batting_order();
         teams[AWAY_TEAM]->print_batting_order();
+        teams[HOME_TEAM]->print_batting_order();
     )
 
     // Play first 8.5 innings

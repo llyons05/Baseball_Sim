@@ -188,7 +188,7 @@ bool Team::should_swap_pitcher(Player* pitcher, uint8_t current_half_inning) {
 
 
 Player* Team::pick_next_pitcher(uint8_t current_half_inning, uint current_day_of_year) {
-    if (current_half_inning > 8) {
+    if (current_half_inning > 5) {
         return pick_relief_pitcher(current_day_of_year);
     }
     return pick_starting_pitcher(current_day_of_year);
@@ -282,7 +282,15 @@ Player* Team::find_best_player_for_defense_pos(eDefensivePositions position, con
 }
 
 
+void Team::reset_player_tracking_data() {
+    for (Player* player : all_players) {
+        player->day_of_last_game_played = 1000;
+    }
+}
+
+
 void Team::print_fielders() {
+    cout << team_name + " fielders:\n";
     for (int i = 0; i < NUM_DEFENSIVE_POSITIONS; i++) {
         cout << fielders[i]->name << " is starting at " << DEFENSIVE_POSITIONS[i] << "\n";
     }
@@ -291,8 +299,9 @@ void Team::print_fielders() {
 
 
 void Team::print_batting_order() {
+    cout << team_name + " batting order:\n";
     for (int i = 0; i < 9; i++) {
-        cout << batting_order[i]->name << " is batting at " << to_string(i + 1) << "\n";
+        cout << to_string(i + 1) << ": " << batting_order[i]->name << "\n";
         cout << "\t-Batting Avg: " << batting_order[i]->stats.get_stat(PLAYER_BATTING, "b_batting_avg", .0f) << "\n";
     }
     cout << "\n";

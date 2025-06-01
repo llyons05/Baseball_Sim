@@ -27,6 +27,7 @@ At_Bat::At_Bat(Team* batting_team, Team* pitching_team) {
 
 
 eAt_Bat_Outcomes At_Bat::play() {
+    game_viewer_print("\n\tUp to bat: " + batter->name + "\n");
     float batter_probs[NUM_AB_OUTCOMES];
     float pitcher_probs[NUM_AB_OUTCOMES];
     const float* league_probs = ALL_LEAGUE_STATS[batter->stats.current_year].at_bat_probs;

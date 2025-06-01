@@ -26,7 +26,7 @@ string get_user_choice(const string& prompt, const vector<string>& choices) {
 
 
 string get_simulation_type() {
-    return get_user_choice("Simulate single matchup or full season? (m/s): ", {"m", "s"});
+    return get_user_choice("Simulate two-team series or full season? (t/s): ", {"t", "s"});
 }
 
 

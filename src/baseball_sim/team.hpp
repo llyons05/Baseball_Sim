@@ -62,6 +62,7 @@ class Team {
         void print_batting_order();
 
         void prepare_for_game(uint day_of_game, bool keep_batting_order);
+        void reset_player_tracking_data();
 
     private:
         const uint MAX_PITCHER_COOLDOWN = 15; // days
