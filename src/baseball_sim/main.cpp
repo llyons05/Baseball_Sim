@@ -81,7 +81,6 @@ void play_series() {
     uint away_team_year = get_user_input<uint>("Input Away Team Year (Ex: 1924 or 2024): ");
     uint num_games = get_user_input<uint>("Input number of games in the series (ex: the world series is a 7 game series): ");
     uint num_sims = get_user_input<uint>("Input number of times to simulate series: ");
-    bool swap_teams = num_games > 4;
 
     std::chrono::steady_clock::time_point load_start = std::chrono::steady_clock::now();
     Team* home_team = loader.load_team(home_team_name, home_team_year);
@@ -90,7 +89,7 @@ void play_series() {
     loader.load_league_year_stats(home_team_year);
     loader.load_league_year_stats(away_team_year);
 
-    Series series(home_team, away_team, num_games, num_sims, swap_teams);
+    Series series(home_team, away_team, num_games, num_sims);
 
     float load_duration = (std::chrono::steady_clock::now() - load_start).count()/(1e+9);
     std::cout << "Data loaded in " << load_duration << " seconds\n\n";

@@ -17,7 +17,6 @@ NOTES:
     Use league stats to get % of SBOs on certain bases
     Add minimum number of plate appearances rather than just catching 0
     Add double plays
-    Add gaps of a day between series games when home/away switches
     nan prob error in 2025 season sim
 
     https://chadwick.readthedocs.io/en/latest/

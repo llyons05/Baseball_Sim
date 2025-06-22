@@ -85,12 +85,11 @@ Matchup::Matchup(Team* home_team, Team* away_team, uint day_of_year) {
 }
 
 
-Series::Series(Team* home_team, Team* away_team, uint games_in_series, uint num_simulations, bool swap_teams) {
+Series::Series(Team* home_team, Team* away_team, uint games_in_series, uint num_simulations) {
     teams[HOME_TEAM] = home_team;
     teams[AWAY_TEAM] = away_team;
     this->games_in_series = games_in_series;
     this->num_simulations = num_simulations;
-    this->swap_teams = swap_teams;
     games_to_clinch = games_in_series/2 + 1;
 
     if (games_in_series * num_simulations == 0) {
@@ -103,10 +102,20 @@ Series::Series(Team* home_team, Team* away_team, uint games_in_series, uint num_
 
 void Series::populate_matchups() {
     for (uint i = 0; i < games_in_series; i++) {
-        eTeam home_team = swap_teams ? (eTeam)(i % 2) : HOME_TEAM;
-        eTeam away_team = swap_teams ? (eTeam)((i+1) % 2) : AWAY_TEAM;
-        matchups.push_back(Matchup(teams[home_team], teams[away_team], i));
+        matchups.push_back(get_series_matchup(i));
     }
+}
+
+
+Matchup Series::get_series_matchup(uint current_matchup_index) {
+    if (games_in_series < 5) {
+        return Matchup(teams[HOME_TEAM], teams[AWAY_TEAM], current_matchup_index);
+    }
+    bool is_home_advantage = (current_matchup_index < 2) || (current_matchup_index >= 2 + games_in_series/2);
+    Team* home_team = is_home_advantage ? teams[HOME_TEAM] : teams[AWAY_TEAM];
+    Team* away_team = is_home_advantage ? teams[AWAY_TEAM] : teams[HOME_TEAM];
+    uint day = current_matchup_index + ((current_matchup_index >= 2) ? 1 : 0) + ((current_matchup_index >= 2 + games_in_series/2) ? 1 : 0);
+    return Matchup(home_team, away_team, day);
 }
 
 

@@ -70,7 +70,7 @@ class Series {
     public:
         uint total_games_played = 0;
 
-        Series(Team* home_team, Team* away_team, uint games_in_series, uint num_simulations, bool swap_teams);
+        Series(Team* home_team, Team* away_team, uint games_in_series, uint num_simulations);
         eTeam play();
         void print_results();
 
@@ -82,8 +82,8 @@ class Series {
         uint games_in_series; // Number of games in the series (Ex: For a world series, this would be 7)
         uint num_simulations; // Number of times to simulate the series
         uint games_to_clinch; // Number of games needed to clinch the series
-        bool swap_teams;
 
         void populate_matchups();
+        Matchup get_series_matchup(uint current_matchup_index);
         eTeam play_series_once();
 };
