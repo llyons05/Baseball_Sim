@@ -16,8 +16,6 @@ class Team {
     public:
         std::string team_name;
         Team_Stats team_stats;
-        uint runs_scored = 0;
-        uint runs_allowed = 0;
 
         std::vector<Player*> all_players;
         Player* batting_order[9];
@@ -28,14 +26,11 @@ class Team {
         uint8_t position_in_batting_order;
         uint8_t runs_allowed_by_pitcher;
         uint8_t current_pitcher_starting_half_inning;
-        uint wins, losses;
+
+        Team_Running_Stat_Container running_stats;
 
         Team(){}
         Team(const std::string& team_name, const std::vector<Player*>& players, const Team_Stats& team_stats);
-
-        void add_player(Player* player) {
-            all_players.push_back(player);
-        }
 
         const std::vector<Player*>& get_players() {
             return all_players;

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Global_Stat_Container global_stats;
+Global_Running_Stat_Container global_stats;
 
 string PLAYER_STAT_NAMES[NUM_PLAYER_STAT_TYPES] = {"batting", "pitching", "fielding", "appearances", "baserunning", "baserunning_against", "batting_against"};
 string TEAM_STAT_NAMES[NUM_TEAM_STAT_TYPES] = {"roster", "batting", "pitching", "common_batting_orders", "team_info", "schedule"};
@@ -40,7 +40,7 @@ map<eLeague_Stat_Types, uint> LEAGUE_STAT_EARLIEST_YEARS {
 };
 
 
-Player_Stats::Player_Stats(const string& player_id, uint year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) : Stat_Table_Container(player_stat_tables){
+Player_Stats::Player_Stats(const string& player_id, uint year_to_pull_stats_from, const string& team_abbreviation, Stat_Table player_stat_tables[NUM_PLAYER_STAT_TYPES]) : Stat_Table_Container(player_stat_tables) {
     this->player_id = player_id;
     this->cache_id = get_player_cache_id(player_id, team_abbreviation, year_to_pull_stats_from);
     this->current_year = year_to_pull_stats_from;

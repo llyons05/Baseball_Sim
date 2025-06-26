@@ -57,10 +57,10 @@ void play_season() {
     std::cout << "RANK\tTEAM\tW-L\t\tR-RA\n";
     float total_runs = 0;
     for (size_t i = 0; i < final_standings.size(); i++) {
-        float wins = (float)final_standings[i]->wins / season_sims;
-        float losses = (float)final_standings[i]->losses / season_sims;
-        float runs_scored = (float)final_standings[i]->runs_scored/(season_sims*final_standings[i]->team_stats[TEAM_SCHEDULE].size());
-        float runs_allowed = (float)final_standings[i]->runs_allowed/(season_sims*final_standings[i]->team_stats[TEAM_SCHEDULE].size());
+        float wins = (float)final_standings[i]->running_stats.wins / season_sims;
+        float losses = (float)final_standings[i]->running_stats.losses / season_sims;
+        float runs_scored = (float)final_standings[i]->running_stats.runs_scored / (season_sims*final_standings[i]->team_stats[TEAM_SCHEDULE].size());
+        float runs_allowed = (float)final_standings[i]->running_stats.runs_allowed / (season_sims*final_standings[i]->team_stats[TEAM_SCHEDULE].size());
         total_runs += runs_scored;
 
         std::cout << "    " << i+1 << ":\t" << final_standings[i]->team_stats.year_specific_abbreviation << "\t";

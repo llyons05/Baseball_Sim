@@ -102,9 +102,9 @@ class Game_Result {
                 winner = AWAY_TEAM;
             }
 
-            home_team->runs_scored += final_score[HOME_TEAM];
-            home_team->runs_allowed += final_score[AWAY_TEAM];
-            away_team->runs_scored += final_score[AWAY_TEAM];
-            away_team->runs_allowed += final_score[HOME_TEAM];
+            home_team->running_stats.runs_scored += final_score[HOME_TEAM];
+            home_team->running_stats.runs_allowed += final_score[AWAY_TEAM];
+            away_team->running_stats.runs_scored += final_score[AWAY_TEAM];
+            away_team->running_stats.runs_allowed += final_score[HOME_TEAM];
         }
 };

@@ -36,8 +36,7 @@ class Player_Stats : public Stat_Table_Container<ePlayer_Stat_Types, NUM_PLAYER_
 
         template <class T>
         T get_stat(ePlayer_Stat_Types stat_type, const std::string& stat_name, const T& default_val) const {
-            size_t row_index = current_table_row_indices[stat_type];
-            return stat_tables[stat_type].get_stat(stat_name, row_index, default_val);
+            return stat_tables[stat_type].get_stat(stat_name, current_table_row_indices[stat_type], default_val);
         }
 
     private:
@@ -111,7 +110,7 @@ class League_Stats : public Stat_Table_Container<eLeague_Stat_Types, NUM_LEAGUE_
         void populate_steal_probs();
 };
 
-// Holds League Stats for all loaded years
+// Holds real-world League Stats for all loaded years
 class All_League_Stats_Wrapper {
     public:
         All_League_Stats_Wrapper(){}
@@ -135,7 +134,8 @@ class All_League_Stats_Wrapper {
 extern ALL_LEAGUE_STATS;
 
 
-struct Global_Stat_Container {
+// Container for stats that our simulation accumulates (not real-life stats)
+struct Global_Running_Stat_Container {
     uint32_t balls_in_play = 0;
     uint32_t total_PAs = 0;
     uint32_t total_hits = 0;
@@ -148,3 +148,11 @@ struct Global_Stat_Container {
     }
 }
 extern global_stats;
+
+
+struct Team_Running_Stat_Container {
+    uint runs_scored = 0;
+    uint runs_allowed = 0;
+    uint wins = 0;
+    uint losses = 0;
+};

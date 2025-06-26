@@ -16,17 +16,17 @@
 using namespace std;
 
 
-Team::Team(const string& team_name, const vector<Player*>& players, const Team_Stats& team_stats): batting_order(), fielders() {
-    this->team_stats = team_stats;
+Team::Team(const string& team_name, const vector<Player*>& players, const Team_Stats& team_stats): 
+    team_stats(team_stats), 
+    all_players(players), 
+    batting_order(), 
+    fielders() 
+{
     this->team_name = team_name;
 
-    all_players = players;
     position_in_batting_order = 0;
     runs_allowed_by_pitcher = 0;
     current_pitcher_starting_half_inning = 0;
-
-    wins = 0;
-    losses = 0;
 
     prepare_for_game(0, false);
 }

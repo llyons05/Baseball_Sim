@@ -21,8 +21,7 @@ class Player {
 
         Player() {}
 
-        Player(const std::string& name, const Player_Stats& stats) {
-            this->stats = stats;
+        Player(const std::string& name, const Player_Stats& stats) : stats(stats) {
             this->name = name;
             id = stats.player_id;
             day_of_last_game_played = 1000;

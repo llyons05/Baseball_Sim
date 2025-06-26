@@ -51,12 +51,12 @@ vector<Team*> Season::run_games(uint num_season_sims) {
         for (Matchup& matchup : matchups) {
             eTeam winner = simulate_matchup(matchup);
             if (winner == HOME_TEAM) {
-                matchup.home_team->wins++;
-                matchup.away_team->losses++;
+                matchup.home_team->running_stats.wins++;
+                matchup.away_team->running_stats.losses++;
             }
             else {
-                matchup.away_team->wins++;
-                matchup.home_team->losses++;
+                matchup.away_team->running_stats.wins++;
+                matchup.home_team->running_stats.losses++;
             }
 
             game_viewer_line(wait_for_user_input("Press enter to continue to the next game"))
@@ -64,7 +64,7 @@ vector<Team*> Season::run_games(uint num_season_sims) {
     }
 
     vector<Team*> final_standings(teams);
-    sort(final_standings.begin(), final_standings.end(), [](const Team* a, const Team* b){return a->wins > b->wins;});
+    sort(final_standings.begin(), final_standings.end(), [](const Team* a, const Team* b){return a->running_stats.wins > b->running_stats.wins;});
     return final_standings;
 }
 

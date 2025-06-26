@@ -62,8 +62,7 @@ class Stat_Table {
                 throw std::exception();
             }
 
-            const Table_Entry& entry = get_entry(row_index, stat_name);
-            return convert_entry(entry, default_val);
+            return convert_entry(get_entry(row_index, stat_name), default_val);
         }
 
 
