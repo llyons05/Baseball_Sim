@@ -59,7 +59,7 @@ class Half_Inning {
     public:
         const static uint8_t NUM_OUTS_TO_END_INNING = 3;
         
-        Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year);
+        Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year, float runs_to_end_game);
         uint8_t play();
     
     private:
@@ -68,6 +68,7 @@ class Half_Inning {
 
         uint8_t outs;
         uint8_t runs_scored;
+        float runs_to_end_game; // This is a float so it can be infinity
 
         Base_State bases;
 

@@ -8,7 +8,6 @@ NOTES:
     Cleaner DH settings
         - Maybe team takes in a "uses_dh" arg
     Make an iterator to iterate through table rows
-    Add walk offs, ie inning can end early if the other team cannot win
     Players who are both starting pitchers and hitters in the same game make the sim think that this team uses a DH, when this may not be the case
         - Ex: Shohei Ohtani
         - This becomes an issue with older teams
@@ -17,6 +16,8 @@ NOTES:
     Use league stats to get % of SBOs on certain bases
     Add minimum number of plate appearances rather than just catching 0
     Add double plays
+        - DPs are just subset of outs
+        - If a play results in an out, and there is a runner on first, we can roll for a double play
     nan prob error in 2025 season sim
 
     https://chadwick.readthedocs.io/en/latest/

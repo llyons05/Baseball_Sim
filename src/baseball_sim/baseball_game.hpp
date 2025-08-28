@@ -22,4 +22,5 @@ class Baseball_Game {
     
     private:
         uint8_t play_half_inning();
+        float get_runs_to_end_game();
 };

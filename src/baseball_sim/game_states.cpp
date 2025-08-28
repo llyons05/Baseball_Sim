@@ -62,11 +62,12 @@ eAt_Bat_Outcomes At_Bat::play() {
 }
 
 
-Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year) {
+Half_Inning::Half_Inning(Team* batting_team, Team* pitching_team, uint8_t half_inning_number, uint day_of_year, float runs_to_end_game) {
     this->batting_team = batting_team;
     this->pitching_team = pitching_team;
     this->half_inning_number = half_inning_number;
     this->day_of_year = day_of_year;
+    this->runs_to_end_game = runs_to_end_game;
     this->bases = Base_State(batting_team, pitching_team);
     outs = 0;
     runs_scored = 0;
@@ -81,7 +82,7 @@ uint8_t Half_Inning::play() {
         std::cout << "TEAM AT BAT: " << batting_team->team_name << "\n";
     );
 
-    while (outs < Half_Inning::NUM_OUTS_TO_END_INNING) {
+    while ((outs < Half_Inning::NUM_OUTS_TO_END_INNING) && (runs_scored < runs_to_end_game)) {
         play_at_bat();
         game_viewer_line(bases.print());
         game_viewer_line(wait_for_user_input(""));
@@ -90,6 +91,7 @@ uint8_t Half_Inning::play() {
     game_viewer_print("HALF INNING OVER: RUNS SCORED: " << (int)runs_scored << "\n\n");
     return runs_scored;
 }
+
 
 // Check pitcher switch calling, it should be here
 void Half_Inning::play_at_bat() {

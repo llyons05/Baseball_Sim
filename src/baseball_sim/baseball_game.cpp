@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 #include <time.h>
+#include <cassert>
 
 Baseball_Game::Baseball_Game(Team* home_team, Team* away_team, uint day_of_year) {
     teams[HOME_TEAM] = home_team;
@@ -54,7 +55,7 @@ Game_Result Baseball_Game::play_game() {
 
 uint8_t Baseball_Game::play_half_inning() {
     game_viewer_print(teams[AWAY_TEAM]->team_name +"| " << score[AWAY_TEAM] <<"-"<< score[HOME_TEAM] << " |"+ teams[HOME_TEAM]->team_name + "\n");
-    Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count, day_of_year);
+    Half_Inning inning(teams[team_batting], teams[!team_batting], half_inning_count, day_of_year, get_runs_to_end_game());
     int runs_scored = inning.play();
     half_inning_count++;
     return runs_scored;
@@ -70,4 +71,17 @@ void Baseball_Game::print_game_result() {
     }
     std::cout << "TOTAL INNINGS: " << (float)half_inning_count/2 << "\n";
     std::cout << "FINAL SCORE: " << score[HOME_TEAM] << " - " << score[AWAY_TEAM] << "\n\n";
+}
+
+
+// Get the number of runs that the batting team would need to score to end the game.
+// If the game cannot be ended in the current inning, return infinity.
+float Baseball_Game::get_runs_to_end_game() {
+    // If we are in the bottom of the 9th+ inning, the batting team can end the game.
+    if ((half_inning_count >= MAX_HALF_INNINGS-1) && (half_inning_count % 2 == 1)) {
+        assert(score[!team_batting] >= score[team_batting]);
+        return score[!team_batting] - score[team_batting] + 1;
+    }
+    // Otherwise, the game cannot be ended in the current inning, no matter how many runs the batting team scores.
+    return INFINITY;
 }
