@@ -18,6 +18,25 @@ NOTES:
     Add double plays
         - DPs are just subset of outs
         - If a play results in an out, and there is a runner on first, we can roll for a double play
+        - Stats needed:
+            - DPopp + DPs (Situational batting)
+            - DPopp + DPs (Ratio Pitching)
+        - Be aware of potential advantage for older teams where there can be no batting double plays
+    Add sac flies
+        - Sac flies are also a subset of outs
+        - If a play results in an out, and there is a runner on third, we can roll for a sac fly
+        - Stats needed:
+            - Sac Flies (std batting) + <2,3B (Situational batting)
+            - Sac Flies (batting against) + <2,3B (Baserunning against)
+    What to do if man on first and third w/ <2 outs and play is an out?
+        - Both sac fly and DP are possible, but it can't be both
+        - Which do we roll for first??
+        - Make it so there are 3 possible outcomes on any given out:
+            - Player is out
+            - Double play (always 0% if there is nobody on first)
+            - Sac fly (always 0% if there is nobody on third)
+        - Pick one of the there
+        - These other types of outs are included in the total number of outs, so we must subtract them from total before taking prob
     nan prob error in 2025 season sim
 
     https://chadwick.readthedocs.io/en/latest/

@@ -66,6 +66,10 @@ def get_league_baserunning_url(base_league_year_url: str) -> str:
     return base_league_year_url.replace(".shtml", "-baserunning-batting.shtml")
 
 
+def get_league_situational_batting_url(base_league_year_url: str) -> str:
+    return base_league_year_url.replace(".shtml", "-situational-batting.shtml")
+
+
 def get_league_batting_split_url(year: int) -> str:
     return f"{BASE_URL}/leagues/split.cgi?t=b&lg=MLB&year={year}"
 

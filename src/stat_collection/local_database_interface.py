@@ -10,9 +10,30 @@ PLAYERS_DIR: str = f"{PARENT_DIR}/players"
 LEAGUE_DIR: str = f"{PARENT_DIR}/league"
 RESOURCES_DIR: str = "resources"
 
-PLAYER_STAT_TYPES = Literal["batting", "pitching", "appearances", "fielding", "baserunning", "baserunning_against", "batting_against"]
-TEAM_DATA_FILE_TYPES = Literal["roster", "batting", "pitching", "team_info", "common_batting_orders", "schedule"]
-LEAGUE_DATA_FILE_TYPES = Literal["batting", "pitching", "fielding", "baserunning", "batting_by_bases", "standings"]
+PLAYER_STAT_TYPES = Literal["batting",
+                            "pitching",
+                            "appearances",
+                            "fielding",
+                            "baserunning",
+                            "baserunning_against",
+                            "batting_against",
+                            "situational_batting",
+                            "ratio_pitching"]
+
+TEAM_DATA_FILE_TYPES = Literal["roster",
+                               "batting",
+                               "pitching",
+                               "team_info",
+                               "common_batting_orders",
+                               "schedule"]
+
+LEAGUE_DATA_FILE_TYPES = Literal["batting",
+                                 "pitching",
+                                 "fielding",
+                                 "baserunning",
+                                 "batting_by_bases",
+                                 "situational_batting",
+                                 "standings"]
 
 PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] = {
     "appearances": "roster",
@@ -21,7 +42,9 @@ PLAYER_LIST_LOCATIONS_FOR_STATS: dict[PLAYER_STAT_TYPES, TEAM_DATA_FILE_TYPES] =
     "fielding": "roster",
     "baserunning": "batting",
     "baserunning_against": "pitching",
-    "batting_against": "pitching"
+    "batting_against": "pitching",
+    "situational_batting": "batting",
+    "ratio_pitching": "pitching"
 }
 
 PLAYER_STAT_EARLIEST_YEARS: dict[PLAYER_STAT_TYPES, int] = {
@@ -31,7 +54,9 @@ PLAYER_STAT_EARLIEST_YEARS: dict[PLAYER_STAT_TYPES, int] = {
     "fielding": 0,
     "baserunning": 1912,
     "baserunning_against": 1912,
-    "batting_against": 1912
+    "batting_against": 1912,
+    "situational_batting": 1933,
+    "ratio_pitching": 1912
 }
 
 LEAGUE_STAT_EARLIEST_YEARS: dict[LEAGUE_DATA_FILE_TYPES] = {
@@ -40,13 +65,14 @@ LEAGUE_STAT_EARLIEST_YEARS: dict[LEAGUE_DATA_FILE_TYPES] = {
     "fielding": 0,
     "baserunning": 1912,
     "batting_by_bases": 1912,
+    "situational_batting": 1933,
     "standings": 0
 }
 
-PLAYER_STATS_DEPENDENT_ON_BATTING: list[PLAYER_STAT_TYPES] = ["baserunning"]
+PLAYER_STATS_DEPENDENT_ON_BATTING: list[PLAYER_STAT_TYPES] = ["baserunning", "situational_batting"]
 
 # Stat tables that Baseball Reference has not switched to the new format
-NON_UPDATED_PLAYER_STAT_TABLES: list[PLAYER_STAT_TYPES] = ["baserunning", "batting_against", "baserunning_against"]
+NON_UPDATED_PLAYER_STAT_TABLES: list[PLAYER_STAT_TYPES] = ["baserunning", "batting_against", "baserunning_against", "situational_batting", "ratio_pitching"]
 
 
 def set_up_file_structure():
@@ -156,6 +182,9 @@ def get_player_list(team_abbreviation: str, year: int, stat_types: list[PLAYER_S
 
 def should_load_player_stat_type(player_row_in_team_data: dict[str, str], stat_type: PLAYER_STAT_TYPES) -> bool:
     if (stat_type == "baserunning") and (int(player_row_in_team_data.get("b_h", 0)) == 0):
+        return False
+    
+    elif (stat_type == "situational_batting") and (int(player_row_in_team_data.get("b_pa", 0)) == 0):
         return False
 
     elif (stat_type == "fielding") and (int(player_row_in_team_data.get("games_defense", 0)) == 0):

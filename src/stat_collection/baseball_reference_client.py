@@ -199,27 +199,7 @@ class Scraping_Client:
         Returns a Table containing the data for that player, and an Empty Table if no table is found.
         """
 
-        table_parser = None
-        if stat_type == "batting":
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, "players_standard_batting", "all_players_standard_batting")
-
-        elif stat_type == "pitching":
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, "players_standard_pitching", "all_players_standard_pitching")
-
-        elif stat_type == "fielding":
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, "players_standard_fielding", "all_players_standard_fielding")
-
-        elif stat_type == "appearances":
-            table_parser = self._scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
-
-        elif stat_type == "baserunning":
-            table_parser = self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_baserunning", "all_batting_baserunning")
-        
-        elif stat_type == "baserunning_against":
-            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_basesituation", "all_pitching_basesituation")
-    
-        elif stat_type == "batting_against":
-            table_parser = self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_batting", "all_pitching_batting")
+        table_parser = self._get_player_stat_table_parser(base_player_page_url, stat_type)
 
         if table_parser is None:
             return EMPTY_TABLE
@@ -233,6 +213,38 @@ class Scraping_Client:
 
         player_data_table = table_parser.parse(row_filters=row_filters, forbidden_chars=DEFAULT_FORBIDDEN_CHARS)
         return player_data_table
+
+
+    def _get_player_stat_table_parser(self, base_player_page_url: str, stat_type: DI.PLAYER_STAT_TYPES) -> Table_Parser | None:
+        if stat_type == "batting":
+            return self._scrape_table_from_player_page(base_player_page_url, "players_standard_batting", "all_players_standard_batting")
+
+        elif stat_type == "pitching":
+            return self._scrape_table_from_player_page(base_player_page_url, "players_standard_pitching", "all_players_standard_pitching")
+
+        elif stat_type == "fielding":
+            return self._scrape_table_from_player_page(base_player_page_url, "players_standard_fielding", "all_players_standard_fielding")
+
+        elif stat_type == "appearances":
+            return self._scrape_table_from_player_page(base_player_page_url, "appearances", "all_appearances")
+
+        elif stat_type == "baserunning":
+            return self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_baserunning", "all_batting_baserunning")
+        
+        elif stat_type == "baserunning_against":
+            return self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_basesituation", "all_pitching_basesituation")
+    
+        elif stat_type == "batting_against":
+            return self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_batting", "all_pitching_batting")
+
+        elif stat_type == "situational_batting":
+            return self._scrape_table_from_player_page(utils.get_player_batting_page_url(base_player_page_url), "batting_situational", "all_batting_situational")
+        
+        elif stat_type == "ratio_pitching":
+            return self._scrape_table_from_player_page(utils.get_player_pitching_page_url(base_player_page_url), "pitching_ratio", "all_pitching_ratio")
+        
+        return None
+
 
 
     def _scrape_table_from_player_page(self, player_page_url: str,
@@ -269,6 +281,9 @@ class Scraping_Client:
 
         elif stat_type == "batting_by_bases":
             table = self._scrape_league_batting_split_table(year, "bases", "all_bases")
+
+        elif stat_type == "situational_batting":
+            table = self._scrape_default_league_avg_table(utils.get_league_situational_batting_url(base_league_year_url), "teams_situational_batting", "all_teams_situational_batting")
 
         elif stat_type == "standings":
             table = self._scrape_league_standings_table(base_league_year_url)
