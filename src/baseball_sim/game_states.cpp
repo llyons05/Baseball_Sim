@@ -387,6 +387,7 @@ uint8_t Base_State::handle_walk(Player* batter) {
 
     while (current_player != NULL) {
         if (current_base >= THIRD_BASE) {
+            game_viewer_print("\t -" << players_on_base[current_base]->name << " SCORED\n");
             ++runs_scored;
             break;
         }

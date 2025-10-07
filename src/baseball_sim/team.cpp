@@ -17,7 +17,8 @@ using namespace std;
 
 
 Team::Team(const string& team_name, const vector<Player*>& players, const Team_Stats& team_stats): 
-    team_stats(team_stats), 
+    team_stats(team_stats),
+    uses_dh(true),
     all_players(players), 
     batting_order(), 
     fielders() 
@@ -147,7 +148,8 @@ Player* Team::pick_relief_pitcher(uint current_day_of_year) {
 
 
 void Team::set_current_pitcher(Player* new_pitcher, uint8_t current_half_inning) {
-    if (fielders[POS_DH] == fielders[POS_PITCHER]) {
+    if (!uses_dh) {
+        debug_line(assert(fielders[POS_DH] == fielders[POS_PITCHER]));
         fielders[POS_DH] = new_pitcher;
         for (int i = 8; i >= 0; i--) { // Loop backwards since pitcher is almost always batting last
             if (batting_order[i] == fielders[POS_PITCHER]) {
@@ -198,6 +200,7 @@ Player* Team::pick_next_pitcher(uint8_t current_half_inning, uint current_day_of
 // Pitcher must be set before calling
 void Team::set_up_batting_order() {
     const Stat_Table& batting_order_table = team_stats[TEAM_COMMON_BATTING_ORDERS];
+    uses_dh = true;
 
     // Finding the most used batting order (in the future use discrete distribution and select randomly)
     int max_games_found = -1;
@@ -215,6 +218,7 @@ void Team::set_up_batting_order() {
         string player_id = batting_order_table.get_stat<string>(pos_in_order, most_common_batting_order_row, "");
         if (player_id == "Pitcher") {
             batting_order[i - 1] = fielders[POS_PITCHER];
+            uses_dh = false;
         }
         else {
             set<Player*> search_results = find_players({player_id});
@@ -229,26 +233,18 @@ void Team::set_up_batting_order() {
 // Pitcher and batting order must be set before calling this
 void Team::set_up_fielders() {
     vector<string> players_added;
-    for (int i = 1; i < POS_DH; i++) {
+    for (int i = POS_CATCHER; i < POS_DH; i++) {
         eDefensivePositions pos_value = (eDefensivePositions)i;
         Player* best_player = find_best_player_for_defense_pos(pos_value, players_added);
         set_position_in_field(best_player, pos_value);
         players_added.push_back(best_player->id);
     }
 
-    bool pitcher_is_batting = false;
-    for (int i = 0; i < 9; i++) {
-        if (fielders[POS_PITCHER] == batting_order[i]) {
-            pitcher_is_batting = true;
-            break;
-        }
-    }
-
     Player* dh;
-    if (pitcher_is_batting)
-        dh = fielders[POS_PITCHER];
-    else
+    if (uses_dh)
         dh = find_best_player_for_defense_pos(POS_DH, players_added);
+    else
+        dh = fielders[POS_PITCHER];
     
     set_position_in_field(dh, POS_DH);
 }

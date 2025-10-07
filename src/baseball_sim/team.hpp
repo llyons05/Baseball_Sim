@@ -16,6 +16,7 @@ class Team {
     public:
         std::string team_name;
         Team_Stats team_stats;
+        bool uses_dh;
 
         std::vector<Player*> all_players;
         Player* batting_order[9];

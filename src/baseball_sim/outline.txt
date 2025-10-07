@@ -37,7 +37,7 @@ NOTES:
             - Sac fly (always 0% if there is nobody on third)
         - Pick one of the there
         - These other types of outs are included in the total number of outs, so we must subtract them from total before taking prob
-    nan prob error in 2025 season sim
+    Fix up the class constructors they are very messy
 
     https://chadwick.readthedocs.io/en/latest/
     https://www.retrosheet.org/eventfile.htm
